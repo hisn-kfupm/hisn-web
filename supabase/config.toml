@@ -251,11 +251,11 @@ otp_expiry = 600
 
 # Sign-in is a 6-digit code only: both templates show {{ .Token }} and no link.
 [auth.email.template.confirmation]
-subject = "رمز الدخول إلى حصن"
+subject = "{{ .Token }} — رمز الدخول إلى حصن"
 content_path = "./supabase/templates/otp.html"
 
 [auth.email.template.magic_link]
-subject = "رمز الدخول إلى حصن"
+subject = "{{ .Token }} — رمز الدخول إلى حصن"
 content_path = "./supabase/templates/otp.html"
 
 # Uncomment to customize email template
