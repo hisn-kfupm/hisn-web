@@ -5,7 +5,7 @@ import { safeReturnTo } from '@/lib/auth/return-to'
 describe('safeReturnTo', () => {
   it('keeps same-site paths, with their query and hash', () => {
     expect(safeReturnTo('/events/7')).toBe('/events/7')
-    expect(safeReturnTo('/library?d=DEPT_2#recording-9101')).toBe('/library?d=DEPT_2#recording-9101')
+    expect(safeReturnTo('/library?d=CAREER_READINESS#recording-9101')).toBe('/library?d=CAREER_READINESS#recording-9101')
   })
 
   it('sends everything else home', () => {

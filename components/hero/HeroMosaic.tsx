@@ -19,18 +19,19 @@ const [satellite, circuit, campus, jetFan, soldering] = images.hero
 /*
   Running bond, hand laid: halves at the course ends, photos as double and triple bricks, six
   major names on bricks (desktop only; they are too small to read on phones), and one empty
-  socket, where the «لبنة» brick came from before it dropped into the slogan.
+  socket, where the «لبنة» brick came from before it dropped into the slogan. The majors are codes
+  from data/majors.json with names short enough for a two-course brick (so not AIDS).
 */
 const BRICKS: Brick[] = [
   { kind: 'tone', r: 1, c: 1, w: 2, tone: 0 },
-  { kind: 'major', r: 1, c: 3, w: 2, code: 'ICS', tone: 1 },
+  { kind: 'major', r: 1, c: 3, w: 2, code: 'CS', tone: 1 },
   { kind: 'photo', r: 1, c: 5, w: 4, h: 2, image: campus, sizes: WIDE },
   { kind: 'tone', r: 2, c: 1, w: 1, tone: 2 },
   { kind: 'major', r: 2, c: 2, w: 2, code: 'SEC', tone: 3 },
   { kind: 'tone', r: 2, c: 4, w: 1, tone: 1 },
   { kind: 'photo', r: 3, c: 1, w: 4, h: 3, image: satellite, sizes: WIDE },
   { kind: 'tone', r: 3, c: 5, w: 2, tone: 0 },
-  { kind: 'major', r: 3, c: 7, w: 2, code: 'DATA', tone: 2 },
+  { kind: 'major', r: 3, c: 7, w: 2, code: 'CE', tone: 2 },
   { kind: 'tone', r: 4, c: 5, w: 1, tone: 3 },
   { kind: 'photo', r: 4, c: 6, w: 2, h: 2, image: jetFan, sizes: SMALL },
   { kind: 'tone', r: 4, c: 8, w: 1, tone: 1 },
@@ -38,9 +39,9 @@ const BRICKS: Brick[] = [
   { kind: 'tone', r: 5, c: 8, w: 1, tone: 0 },
   { kind: 'major', r: 6, c: 1, w: 2, code: 'AE', tone: 1 },
   { kind: 'photo', r: 6, c: 3, w: 2, h: 2, image: circuit, sizes: SMALL },
-  { kind: 'major', r: 6, c: 5, w: 2, code: 'AI', tone: 3 },
+  { kind: 'major', r: 6, c: 5, w: 2, code: 'EE', tone: 3 },
   { kind: 'photo', r: 6, c: 7, w: 2, h: 2, image: soldering, sizes: SMALL },
-  { kind: 'major', r: 7, c: 1, w: 2, code: 'MSE', tone: 2 },
+  { kind: 'major', r: 7, c: 1, w: 2, code: 'MATE', tone: 2 },
   { kind: 'socket', r: 7, c: 5, w: 2 },
 ]
 

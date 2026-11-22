@@ -69,7 +69,7 @@ describe('stand-in images', () => {
 })
 
 describe('eventCover', () => {
-  const base = { id: 7, departmentCode: 'DEPT_4' as string | null }
+  const base = { id: 7, departmentCode: 'CYBERSECURITY' as string | null }
 
   it('uses the event image when it has one', () => {
     expect(eventCover({ ...base, imageUrl: 'https://cdn.example.org/a.jpg' })).toEqual({ src: 'https://cdn.example.org/a.jpg', remote: true })
@@ -79,9 +79,9 @@ describe('eventCover', () => {
     const a = eventCover({ ...base, imageUrl: null })
     expect(a.remote).toBe(false)
     expect(eventCover({ ...base, imageUrl: null })).toEqual(a)
-    const picks = new Set([1, 2, 3, 4, 5, 6].map((id) => eventCover({ id, departmentCode: 'DEPT_4', imageUrl: null }).src))
+    const picks = new Set([1, 2, 3, 4, 5, 6].map((id) => eventCover({ id, departmentCode: 'CYBERSECURITY', imageUrl: null }).src))
     expect(picks.size).toBeGreaterThan(1)
-    expect(picks.has(departmentImage('DEPT_4').src)).toBe(true)
+    expect(picks.has(departmentImage('CYBERSECURITY').src)).toBe(true)
   })
 
   it('falls back to the talk and workshop scenes without a known department', () => {

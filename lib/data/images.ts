@@ -48,12 +48,12 @@ export const images = {
   verbs: { learn: verbLearnAuditorium, qualify: verbQualifyWorkshop, connect: verbConnectShowcase },
   /** one per department code in data/departments.json */
   departments: {
-    DEPT_1: deptAwarenessAircraftHangar,
-    DEPT_2: deptQualificationStudentShop,
-    DEPT_3: deptSystemsControlRoom,
-    DEPT_4: deptCyberServerCables,
-    DEPT_5: deptManufacturingLaserCutter,
-    DEPT_6: deptDataMonitorWall,
+    SECTOR_AWARENESS: deptAwarenessAircraftHangar,
+    CAREER_READINESS: deptQualificationStudentShop,
+    SYSTEMS_INTEGRATION: deptSystemsControlRoom,
+    CYBERSECURITY: deptCyberServerCables,
+    MANUFACTURING_DESIGN: deptManufacturingLaserCutter,
+    DATA_ANALYSIS: deptDataMonitorWall,
   } as Record<string, SiteImage>,
   /** talk and workshop scenes: event covers without a department, and general event imagery */
   events: [eventPanelDiscussion, eventTalkAudience, eventLectureLaptops, eventWorkshopTables, eventLectureSlide],
@@ -66,12 +66,12 @@ export const images = {
 
 /** each department's cover pool: its own photo, a scene and a subject photo, picked by event id */
 const coverPools: Record<string, SiteImage[]> = {
-  DEPT_1: [deptAwarenessAircraftHangar, eventPanelDiscussion, heroJetEngineFan],
-  DEPT_2: [deptQualificationStudentShop, eventWorkshopTables, verbConnectShowcase],
-  DEPT_3: [deptSystemsControlRoom, eventTalkAudience, heroSatelliteCleanroom],
-  DEPT_4: [deptCyberServerCables, eventLectureLaptops, heroDataCentreAisle],
-  DEPT_5: [deptManufacturingLaserCutter, verbQualifyWorkshop, hero3dPrinter],
-  DEPT_6: [deptDataMonitorWall, eventLectureSlide, heroCircuitTraces],
+  SECTOR_AWARENESS: [deptAwarenessAircraftHangar, eventPanelDiscussion, heroJetEngineFan],
+  CAREER_READINESS: [deptQualificationStudentShop, eventWorkshopTables, verbConnectShowcase],
+  SYSTEMS_INTEGRATION: [deptSystemsControlRoom, eventTalkAudience, heroSatelliteCleanroom],
+  CYBERSECURITY: [deptCyberServerCables, eventLectureLaptops, heroDataCentreAisle],
+  MANUFACTURING_DESIGN: [deptManufacturingLaserCutter, verbQualifyWorkshop, hero3dPrinter],
+  DATA_ANALYSIS: [deptDataMonitorWall, eventLectureSlide, heroCircuitTraces],
 }
 
 /** every distinct photo, for checks */

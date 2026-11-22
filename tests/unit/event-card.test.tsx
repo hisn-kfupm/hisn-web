@@ -8,7 +8,7 @@ const event: PublicEvent = {
   id: 42,
   title: 'مدخل إلى هندسة الأنظمة',
   description: '',
-  departmentCode: 'DEPT_3',
+  departmentCode: 'SYSTEMS_INTEGRATION',
   startsAt: '2026-11-18T15:00:00Z',
   endsAt: '2026-11-18T17:00:00Z',
   format: 'in_person',
@@ -31,7 +31,7 @@ describe('EventCard', () => {
 
   it('shows the department, the Riyadh time range and the place', () => {
     const { container } = render(<EventCard event={event} variant="upcoming" />)
-    expect(container.textContent).toContain(t('dept.DEPT_3.title'))
+    expect(container.textContent).toContain(t('dept.SYSTEMS_INTEGRATION.title'))
     expect(container.textContent).toContain('٦:٠٠–٨:٠٠')
     expect(container.textContent).toContain('مبنى ٥٨ · قاعة ١٠٢')
   })

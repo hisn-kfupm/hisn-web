@@ -18,7 +18,7 @@ const ev = (over: Partial<PublicEvent>): PublicEvent => ({
   id: 1,
   title: 'فعالية',
   description: 'وصف',
-  departmentCode: 'DEPT_1',
+  departmentCode: 'SECTOR_AWARENESS',
   startsAt: '2026-11-18T15:00:00Z',
   endsAt: '2026-11-18T17:00:00Z',
   format: 'in_person',
