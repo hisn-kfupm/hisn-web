@@ -1,0 +1,8 @@
+[
+  {"code":"SECTOR_AWARENESS","slug":"sector-awareness","icon":"Compass"},
+  {"code":"CAREER_READINESS","slug":"career-readiness","icon":"Briefcase"},
+  {"code":"SYSTEMS_INTEGRATION","slug":"systems-integration","icon":"Workflow"},
+  {"code":"CYBERSECURITY","slug":"cybersecurity","icon":"ShieldCheck"},
+  {"code":"MANUFACTURING_DESIGN","slug":"manufacturing-design","icon":"Factory"},
+  {"code":"DATA_ANALYSIS","slug":"data-analysis","icon":"LineChart"}
+]

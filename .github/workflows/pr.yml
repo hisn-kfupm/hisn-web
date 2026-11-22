@@ -1,0 +1,37 @@
+# Checks for every pull request (dev-1 D1-4).
+# One job per concern: Abdulaziz adds the database and E2E jobs in A-7 next to `checks`.
+name: PR
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+
+      # Lists every string still marked «مؤقت». Informational until the approved copy is in.
+      - name: Placeholder text left
+        run: npm run check:content
+        continue-on-error: true
