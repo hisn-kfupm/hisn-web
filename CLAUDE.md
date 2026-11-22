@@ -1,7 +1,8 @@
 # حصن (Hisn) — hisn-web
 
 The phase 2 site for Hisn, a KFUPM initiative on defense industries: departments, events calendar with registration
-and waitlist, emails, recordings library, قاعدة المواهب (talent database), admin. Next.js App Router + TypeScript, Supabase, Tailwind v4, Vercel.
+and waitlist, emails, recordings library, قاعدة المواهب (talent database), admin. Launches in **Arabic and English** (spec revision 2.3);
+the admin area is Arabic only. Next.js App Router + TypeScript, Supabase, Tailwind v4, Vercel.
 
 Spec: `docs/superpowers/specs/2026-11-10-hisn-phase2-design.md` (§). Plan: `docs/superpowers/plans/2026-11-12-hisn-phase2.md` (T).
 
@@ -20,19 +21,24 @@ Write the task's listed tests → run them and see them fail → implement → r
 ## Rules (plan "Global Constraints")
 
 - **P-1:** when protection and convenience conflict, protection wins.
-- **No literal UI text** in components (HR-7). Every string is a key in `lib/i18n/ar.json` (flat, dotted keys) via `t('key', vars)`.
+- **No literal UI text** in components (HR-7). Every string is a key in both `lib/i18n/ar.json` and `lib/i18n/en.json` (flat, dotted keys,
+  identical key sets; CI fails if they differ) via `t(locale, 'key', vars)`. Developers draft the English; Abdulaziz approves it.
+- **Two languages.** Public pages live under `app/[locale]/` (`/ar`, `/en`) with `lang`/`dir` per locale; `/` redirects to `/ar`.
+  Admin (`/admin`) is Arabic only. Server-action files stay outside `app/[locale]`. A person's email language is `profiles.locale`.
 - **No physical left/right CSS.** Logical only: `ms-* me-* ps-* pe-* start-* end-* text-start text-end`, `margin-inline-start`.
   Never `ml-/mr-/pl-/pr-/left-/right-/text-left/text-right`, `margin-left`, etc.
 - **Banned identifier `supabase`.** Name clients `supabaseProd…` / `supabaseTalent`.
 - **`supabaseProdServer()` is async:** `const db = await supabaseProdServer()`. `supabaseProdService()` (service key, server only) is sync.
 - **Times:** store UTC; display `Asia/Riyadh` (`lib/time/riyadh.ts`). Saudi Arabia has no DST.
-- **Mixed direction:** emails, URLs and English names inside Arabic text are wrapped in `<Bdi>`.
+- **Mixed direction:** emails, URLs and English names inside Arabic text are wrapped in `<Bdi>`; so are Arabic names and
+  fallback Arabic event text inside English text.
 - **HR-1:** developers can never read talent data. Nothing but `app/talent/actions.ts` imports `lib/db/talent`
   (lint rule + test). Talent inserts request no returned row (no `.select()`). Never add a read policy. Never log talent data.
 - **HR-2:** the talent form never asks for email, Arabic name, major, academic level or gender; the server copies them from the profile.
 - **HR-4:** no code path writes `profiles.is_admin`.
 - **HR-5:** signed links act only on POST; GET renders a confirm page.
-- **HR-8:** the talent form opens only when `TALENT_FORM_OPEN=true`, and only with final consent text.
+- **HR-8:** the talent form opens only when `TALENT_FORM_OPEN=true`, and only with final consent text in both languages
+  (`v1.ar.md` is binding; `v1.en.md` is its translation and says the Arabic prevails).
 - Sign-in: 6-digit OTP, 10-minute expiry, resend after 60 s. `returnTo` accepts only same-site relative paths.
 - Almost full: `ALMOST_FULL_RATIO = 0.2`; `0 < seatsLeft ≤ max(1, floor(capacity × 0.2))`.
 - Announcement batches ≤ 100; idempotency key `{kind}-event-{id}-run-{r}-batch-{n}`.
@@ -43,7 +49,7 @@ Write the task's listed tests → run them and see them fail → implement → r
 - Contact `Contact@Hisn-sa.org`. Sender `حصن <noreply@hisn-sa.org>`.
 - Verbatim copy, never paraphrase: announcements checkbox «لقاءات مع قادة القطاع، وورش تقرّبك من دورك فيه، تصلك أولًا بأول على بريدك.»;
   almost-full badge «المقاعد شارفت على الاكتمال!».
-- Placeholder copy carries «مؤقت»; `check:content` fails while any remain.
+- Placeholder copy carries «مؤقت» (in `ar.json`, `en.json` and `content/`); `check:content` fails while any remain.
 - No production or talent credentials in the repo, repo secrets or preview env.
 
 ## npm scripts

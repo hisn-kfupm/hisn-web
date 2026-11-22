@@ -265,13 +265,13 @@ export function alternatesFor(path: string): {
   canonical: string; languages: { ar: string; en: string; 'x-default': string } }
   // languages: { ar: '/ar' + path, en: '/en' + path, 'x-default': '/ar' + path }
 ```
-- Header links (all through `localePath(locale, …)`): logo → `/{locale}`; الأقسام dropdown (one link per `departments` entry → `/{locale}/departments/{slug}`, label `t(locale, 'dept.<CODE>.title')`); الفعاليات → `/{locale}/events`; المكتبة → `/{locale}/library`; قاعدة المواهب → `/{locale}/talent`. Signed out: button → `/{locale}/sign-in`. Signed in: menu with حسابي → `/{locale}/account` and تسجيل الخروج (calls `signOut`). Labels come from `t(locale, …)`, so `/en` shows the English labels.
+- Header links (all through `localePath(locale, …)`): logo → `/{locale}`; الأقسام dropdown (one link per `departments` entry → `/{locale}/departments/{slug}`, label `t(locale, 'dept.<CODE>.title')`); الفعاليات → `/{locale}/events`; المكتبة → `/{locale}/library`; قاعدة المواهب → `/{locale}/talent`. Signed out: button → `/{locale}/sign-in`. Signed in: menu with حسابي → `/{locale}/account` and تسجيل الخروج (calls `signOut(locale)`, which returns the person to `/{locale}`). Labels come from `t(locale, …)`, so `/en` shows the English labels.
 - The sign-in button / account menu has `data-testid="auth-entry"` and is **not** a descendant of the mobile menu element (`data-testid="mobile-menu"`).
 - `LanguageSwitcher` appears in the header and in the mobile menu. It links to `switchLocalePath(current, other)`, where `current` is the current path with its query string (`usePathname()` + `useSearchParams()`), and `other` is the language not shown. Link text `t(locale, 'lang.switch')` (the other language's name), with `lang` and `hrefLang` set to the other locale. It renders nothing on a path without a locale prefix (e.g. `/admin`; admin is Arabic only).
 - `<Bdi>` wraps values in the other script both ways: emails, URLs and English names inside Arabic text, and Arabic names or fallback Arabic event text inside English text (with `lang="ar"`).
 - Every public page's `generateMetadata` returns `alternates: alternatesFor(<its path without locale>)`, so each page lists its `ar`, `en` and `x-default` (hreflang) versions.
 - `not-found.tsx` and `error.tsx` read the locale with `useParams()` and render their text and navigation in that language.
-- Consumes: `getSession(): Promise<{ userId: string; email: string } | null>` and `signOut(): Promise<void>` from `lib/auth/session.ts` (Abdullah, D2-4).
+- Consumes: `getSession(): Promise<{ userId: string; email: string } | null>` and `signOut(locale: Locale): Promise<void>` from `lib/auth/session.ts` (Abdullah, D2-4); it signs out and redirects to `/{locale}`, so an English user stays on `/en`.
 
 **Stub until D2-4 merges:** `app/[locale]/layout.tsx` passes `session={null}` to `Header`, and the sign-out item is omitted. When D2-4 is on `main`, replace with `const session = await getSession()` and wire `signOut` (a 2-line follow-up PR).
 
@@ -288,6 +288,7 @@ export function alternatesFor(path: string): {
   - `[data-testid="auth-entry"]` is not contained in `[data-testid="mobile-menu"]`.
   - The departments dropdown contains exactly `departments.length` links, each `href` starting with `/ar/departments/`.
   - A language-switcher link exists in the header and another inside `[data-testid="mobile-menu"]`.
+  - With `locale="en"` and a session (mock `signOut`): using the sign-out item calls `signOut('en')`; with `locale="ar"` it calls `signOut('ar')`.
 - `tests/unit/paths.test.ts`: `localePath('en', '/events') === '/en/events'`; `switchLocalePath('/ar/events?m=2026-12', 'en') === '/en/events?m=2026-12'`; `switchLocalePath('/en/events/7', 'ar') === '/ar/events/7'`.
 - `tests/unit/language-switcher.test.tsx` (mock `next/navigation`): on `/ar/events?m=2026-12` with `locale="ar"` → one link with `href="/en/events?m=2026-12"`; on pathname `/admin` → renders no link.
 - `tests/unit/alternates.test.ts`: `alternatesFor('/events').languages` equals `{ ar: '/ar/events', en: '/en/events', 'x-default': '/ar/events' }`.
@@ -325,7 +326,7 @@ export function NewsletterForm(props: { locale: Locale }): JSX.Element   // hidd
 export const TALENT_RETENTION_MONTHS: number | null = null
 ```
 - Consumes: SQL `newsletter_signup(p_email text, p_source text default 'footer', p_locale text default 'ar') returns void` (Abdulaziz, A-5; `p_locale` added by A-19), called as `(await supabaseProdServer()).rpc('newsletter_signup', { p_email, p_source: 'footer', p_locale })`. It stores `p_locale` in `signups.locale`. Direct inserts into `signups` are not allowed; this function is the only way in.
-- Privacy page (`/ar/privacy`, `/en/privacy`): sections from spec §7.10, text from `t(locale, …)`. Retention paragraph: when `TALENT_RETENTION_MONTHS === null` → `t(locale, 'privacy.retention.unset')`; otherwise `t(locale, 'privacy.retention.set', { months: TALENT_RETENTION_MONTHS })`. Contact address `Contact@Hisn-sa.org` wrapped in `<Bdi>`. `generateMetadata` returns `alternates: alternatesFor('/privacy')`.
+- Privacy page (`/ar/privacy`, `/en/privacy`): sections from spec §7.10, text from `t(locale, …)`. The Arabic text is binding: `/en/privacy` opens with `t('en', 'privacy.arabicPrevails')` ("This is a translation; the Arabic text prevails." or your approved wording); the key exists in both files for key parity but is rendered only on `/en`. Retention paragraph: when `TALENT_RETENTION_MONTHS === null` → `t(locale, 'privacy.retention.unset')`; otherwise `t(locale, 'privacy.retention.set', { months: TALENT_RETENTION_MONTHS })`. Contact address `Contact@Hisn-sa.org` wrapped in `<Bdi>`. `generateMetadata` returns `alternates: alternatesFor('/privacy')`.
 
 **Stub until A-5 merges:** none needed for the unit tests (mock the client). Run the `tests/db` test once A-5 is on `main`.
 
@@ -344,7 +345,7 @@ export const TALENT_RETENTION_MONTHS: number | null = null
   - `{ email: 'a@b.com', locale: 'fr' }` → `{ ok: false, reason: 'invalid' }`, `rpc` called 0 times.
   - `rpc` returns `{ error: { code: '22023' } }` for `{ email: 'a@b.c', locale: 'ar' }` → `{ ok: false, reason: 'invalid' }`.
 - `tests/db/newsletter.test.ts`: calling `subscribeNewsletter` twice with `x@test.com` → both `{ ok: true }`; `select count(*) from signups where lower(email) = 'x@test.com'` = 1. Subscribing `y@test.com` with `locale: 'en'` → its `signups.locale = 'en'`.
-- `tests/unit/privacy.test.tsx`: rendered with locale `ar`, the page text contains `'Contact@Hisn-sa.org'` and the text of `t('ar', 'privacy.retention.unset')`; rendered with locale `en`, it contains `'Contact@Hisn-sa.org'` and the text of `t('en', 'privacy.retention.unset')`.
+- `tests/unit/privacy.test.tsx`: rendered with locale `ar`, the page text contains `'Contact@Hisn-sa.org'` and the text of `t('ar', 'privacy.retention.unset')`; rendered with locale `en`, it contains `'Contact@Hisn-sa.org'` and the text of `t('en', 'privacy.retention.unset')`, and starts with the text of `t('en', 'privacy.arabicPrevails')`; rendered with locale `ar`, it does not contain the text of `t('ar', 'privacy.arabicPrevails')`.
 
 **Done when:** `npm test -- tests/unit/newsletter.test.ts tests/unit/privacy.test.tsx && npm run test:db -- tests/db/newsletter.test.ts` passes.
 
@@ -397,7 +398,7 @@ export function eventButtonState(e: PublicEvent, seatsLeft: number | null,
   mine: 'registered' | 'waitlisted' | null, now: Date): ButtonState
 ```
 - `eventButtonState` evaluates in this exact order; the first match wins: `status === 'cancelled'` → `cancelled`; `now >= endsAt` → `ended`; `mine === 'registered'` → `registered`; `mine === 'waitlisted'` → `waitlisted`; `now >= registrationClosesAt` → `closed`; `seatsLeft === 0` → `full`; `isAlmostFull(capacity, seatsLeft)` → `open_almost_full`; otherwise `open`.
-- `riyadhDateKey` uses `Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Riyadh' })`. `formatRiyadh` on `ar` uses `RIYADH_LOCALE` with `timeZone: 'Asia/Riyadh'`; on `en` it uses `'en-GB'` with `timeZone: 'Asia/Riyadh'` (Gregorian calendar, Latin digits). Both languages show Riyadh time.
+- `riyadhDateKey` uses `Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Riyadh' })`. `formatRiyadh` on `ar` uses `RIYADH_LOCALE` with `timeZone: 'Asia/Riyadh'`; on `en` it uses `'en-GB'` with `timeZone: 'Asia/Riyadh'` and `hour12: true`, so English times are 12-hour like the Arabic (`6:00 pm`) (Gregorian calendar, Latin digits). Both languages show Riyadh time.
 - Numbers use Latin digits in both languages (Arabic through `nu-latn`), so counts passed as `t()` vars need no per-locale formatting.
 
 **Needs first:** D1-2.
@@ -411,7 +412,7 @@ export function eventButtonState(e: PublicEvent, seatsLeft: number | null,
   - `riyadhMonth('2026-11-30T21:30:00Z') === '2026-12'`
   - `formatRiyadh('2026-11-18T15:00:00Z', 'time', 'ar')` contains `'6:00'` and does not contain `'15:00'`
   - `formatRiyadh('2026-11-18T15:00:00Z', 'date', 'ar')` contains `'18'` and `'2026'` and does not contain `'1448'` (guards against the Hijri calendar default)
-  - `formatRiyadh('2026-11-18T15:00:00Z', 'time', 'en')` contains `'18:00'` (en-GB, Riyadh time) and does not contain `'15:00'`
+  - `formatRiyadh('2026-11-18T15:00:00Z', 'time', 'en')` contains `'6:00'` and `'pm'` (12-hour, Riyadh time) and contains neither `'18:00'` nor `'15:00'`
   - `formatRiyadh('2026-11-18T15:00:00Z', 'date', 'en')` contains `'18'` and `'2026'`, does not contain `'1448'`, and contains no Arabic letters (`/[؀-ۿ]/`)
   - `formatRiyadh('2026-11-30T21:30:00Z', 'date', 'en')` does not contain `'30'` (it shows the Riyadh day, 1 December)
 - `almost-full.test.ts`: `isAlmostFull(30, 6) === true`; `(30, 7) === false`; `(10, 2) === true`; `(10, 0) === false`; `(4, 1) === true`; `(null, null) === false`.

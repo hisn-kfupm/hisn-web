@@ -18,7 +18,7 @@ Design direction, briefs and the prototype stay in the design repo, [`hisn-kfupm
 | `npm run test:db` / `test:scripts` / `test:e2e` | DB, scripts and Playwright suites |
 | `npm run check:content` | Fails while any «مؤقت» draft text remains (D1-4) |
 
-Conventions (dev-1 "Rules for every task"): no literal UI text in components — every string is a key in `lib/i18n/ar.json` read with `t()`; logical properties only (`ms-*`, `pe-*`, `text-start`); wrap English names, emails and URLs inside Arabic in `<Bdi lang="en">`; times stored UTC, shown in Asia/Riyadh. Client components receive strings as props from server components, so `ar.json` stays out of the browser bundle.
+Conventions (dev-1 "Rules for every task"): the site launches in Arabic and English (public pages under `/ar` and `/en`; admin Arabic only); no literal UI text in components — every string is a key in both `lib/i18n/ar.json` and `lib/i18n/en.json` (identical keys) read with `t(locale, key, vars)`; logical properties only (`ms-*`, `pe-*`, `text-start`); wrap English names, emails and URLs inside Arabic in `<Bdi lang="en">`, and Arabic text inside English in `<Bdi lang="ar">`; times stored UTC, shown in Asia/Riyadh. Client components receive strings as props from server components, so `ar.json` and `en.json` stay out of the browser bundle.
 
 `npm run lint` enforces these through the local `hisn` ESLint plugin (`tools/eslint-rules/`) and `.stylelintrc.json`, everywhere except `tests/`, `scripts/` and `supabase/`:
 

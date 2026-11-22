@@ -15,8 +15,8 @@
 4. Strings in `ar.json` and `en.json` with **identical keys** (CI check); `t(locale, key, vars)` (§8.7, §13).
 5. `profiles.locale`; optional `events.title_en` / `events.description_en` (Arabic fallback on `/en`); `signups.locale`; `email_deliveries.locale`; `newsletter_signup(…, p_locale)`; `talent_entries.consent_locale` (§9).
 6. Every email has an Arabic and an English template, the sign-in code email included. Email language = the language the person signed up in, editable on `/account` (§10.6).
-7. Token pages, privacy, 404 and error pages in both languages (§7.9, §7.10).
-8. قاعدة المواهب labels and consent in both languages; the **Arabic consent is binding** and the English translation states that the Arabic text prevails (§7.7).
+7. Token pages, privacy, 404 and error pages in both languages (§7.9, §7.10). The Arabic privacy text prevails, and the English page says so.
+8. قاعدة المواهب labels and consent in both languages; the **Arabic consent is binding** and the English translation states that the Arabic text prevails (§7.7). The owner drafts the English translation; the founder approves it.
 9. Admin stays **Arabic only**, at `/admin` (§7.11).
 10. English copy is drafted by the developers and approved by the owner; until approved it carries «مؤقت» (§12).
 
@@ -322,7 +322,7 @@ Seat counts and waitlist position are fetched per request.
 
   Labels are string keys (`labelKey`) present in both `ar.json` and `en.json`; the table shows the Arabic.
 
-- **Consent:** a required checkbox with the founder's text, stored as versioned files in both languages: `content/talent-consent/v1.ar.md` (**binding**) and `content/talent-consent/v1.en.md` (a translation, which must state that the Arabic text prevails). `/ar/talent` shows the Arabic text; `/en/talent` shows the English translation followed by the binding Arabic text (`lang="ar" dir="rtl"`). The submission records `consent_version` (`v1` for both) and `consent_locale` (the page's language). The consent is final only when **both** files are (HR-8).
+- **Consent:** a required checkbox with the founder's text, stored as versioned files in both languages: `content/talent-consent/v1.ar.md` (**binding**) and `content/talent-consent/v1.en.md` (a translation drafted by the owner and approved by the founder, which must state that the Arabic text prevails). `/ar/talent` shows the Arabic text; `/en/talent` shows the English translation followed by the binding Arabic text (`lang="ar" dir="rtl"`). The submission records `consent_version` (`v1` for both) and `consent_locale` (the page's language). The consent is final only when **both** files are (HR-8).
 - **Success screen:** shows the submitted answers once from browser form state, with copy and print. Nothing read back.
 - **Returning person** (from `talent_submission_log`): "submitted on [date]" + resubmit (empty form) + withdraw (confirm dialog).
 
@@ -338,9 +338,9 @@ Seat counts and waitlist position are fetched per request.
 
 ### 7.10 Privacy (`/privacy`)
 
-In Arabic and English. States what the system does:
+In Arabic and English. The Arabic text is binding: the English page is a translation and says at the top that the Arabic text prevails. States what the system does:
 
-- Collected: profile (email, Arabic name, major, academic level, gender, announcements choice, email language), registrations and waitlist places, newsletter emails, قاعدة المواهب answers with consent time and version.
+- Collected: profile (email, Arabic name, major, academic level, gender, announcements choice, email language), registrations and waitlist places, newsletter emails, قاعدة المواهب answers with consent time, version and language.
 - **Use for reporting:** counts by academic level, major and gender are reported to the Deanship and partner organizations as **aggregate figures only**; individual records are not shared.
 - قاعدة المواهب: sent by Hisn to partner companies; data already sent cannot be recalled. Withdrawal removes the person from future exports; the original submission is kept as a record.
 - Retention: talent entries are kept as a record and deleted periodically. While `TALENT_RETENTION_MONTHS` is unset, the page says the schedule is set by Hisn; once set, it states the period.
@@ -441,7 +441,7 @@ Withdrawal: insert a `withdrawal` row into `hisn-talent` first, then set `withdr
 - **Routing:** public pages live under `app/[locale]/…`; the locale layout renders `<html lang dir>` and both locales are generated statically; an unknown locale is a 404. `/admin` has its own Arabic-only layout outside the locale segment; `/api` routes have no locale. Middleware redirects `/` and unprefixed paths to `/ar` (§6.6). Links are built with `localePath(locale, path)`; the switcher uses `switchLocalePath`; hreflang alternates come from `alternatesFor(path)`.
 - **Data-file labels:** `label(file, code, locale)` returns the Arabic or English label (§9.4).
 - **Event text:** `events.title_en` and `events.description_en` are optional. On `/en`, a missing one falls back to the Arabic text, rendered with `lang="ar" dir="rtl"` (wrapped in `<bdi>` when inline).
-- **Dates:** `formatRiyadh(date, style, locale)`; Arabic keeps its format, English uses `en-GB`, Gregorian, Latin digits; both in Riyadh time.
+- **Dates:** `formatRiyadh(date, style, locale)`; Arabic keeps its format, English uses `en-GB` with 12-hour time like the Arabic (`6:00 pm`), Gregorian, Latin digits; both in Riyadh time.
 
 ### 8.8 Monitoring and logging
 
@@ -560,7 +560,7 @@ Checks: a `submission` requires profile columns, `answers`, `fields_version`, `c
 
 Access: `anon` (the site's write-only key) INSERT only. Nothing else for `anon`/`authenticated`.
 
-**`private.talent_export`** (view): latest row per `user_id`; people whose latest row is a withdrawal are excluded. Schema `private` not exposed; privileges revoked from `anon`/`authenticated`. Read by `scripts/export-talent` through the owner's direct connection.
+**`private.talent_export`** (view): latest row per `user_id`; people whose latest row is a withdrawal are excluded. Includes `consent_locale`, exported as the consent language. Schema `private` not exposed; privileges revoked from `anon`/`authenticated`. Read by `scripts/export-talent` through the owner's direct connection.
 
 ### 9.3 Development
 
@@ -751,7 +751,7 @@ Tokens; announcement rules table (§10.2); audience dedup and language; Riyadh f
 
 ### Scripts
 
-- `export-talent`: `.xlsx` opens; columns = profile columns + one per field in `lib/talent/fields.ts`; row count = latest-per-person minus withdrawals; Arabic and English round-trip; labels from data files.
+- `export-talent`: `.xlsx` opens; columns = profile columns + one per field in `lib/talent/fields.ts` + consent version, consent language (Arabic / English) and consented at; row count = latest-per-person minus withdrawals; Arabic and English round-trip; labels from data files.
 - `purge-talent`: dry run changes nothing; `--expired` refuses while retention is null; `--apply` deletes only expired; `--user` only that person.
 
 ### Lint and build
@@ -823,6 +823,7 @@ Launch checklist (§17).
 | English copy (`en.json`) | Developers draft; owner approves | Before launch (`check:content`) |
 | Talent field list | Specialized committee | **No date yet.** Trigger 19 Nov |
 | Talent consent text («الشروط والأحكام») | Founder | **No date yet.** Trigger 19 Nov |
+| English translation of the talent consent | Owner drafts; founder approves | After the founder's Arabic text; both are needed before the form can open (HR-8) |
 | Retention period | Founder + owner | No date; one constant |
 | Library access (D-3) | Founder, after consulting programs head and Deanship | Before launch; one flag |
 

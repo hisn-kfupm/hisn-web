@@ -542,7 +542,7 @@ Languages (columns from A-19): users whose number is divisible by 4 (`u04`, `u08
 - Index `(user_id, created_at desc)`.
 - Access: `enable row level security`; `revoke all on talent_entries from anon, authenticated, public`; `grant insert on talent_entries to anon`; `grant usage on sequence talent_entries_id_seq to anon`; policy `talent_insert` `for insert to anon with check (true)`. **No select, update or delete for anyone but the owner's direct connection.**
 - `create schema private; revoke all on schema private from public, anon, authenticated;`
-- View `private.talent_export`: `select distinct on (user_id) * from talent_entries order by user_id, created_at desc, id desc` wrapped so that rows whose latest `kind = 'withdrawal'` are excluded. Columns: `user_id, email, full_name_ar, major_code, major_other, academic_level_code, gender, answers, fields_version, consent_version, consented_at, created_at`.
+- View `private.talent_export`: `select distinct on (user_id) * from talent_entries order by user_id, created_at desc, id desc` wrapped so that rows whose latest `kind = 'withdrawal'` are excluded. Columns: `user_id, email, full_name_ar, major_code, major_other, academic_level_code, gender, answers, fields_version, consent_version, consent_locale, consented_at, created_at`.
 - `talent/seed.sql` (fake data, never applied to `hisn-talent`): `SEED.user(1)` two submissions (older and newer), `SEED.user(2)` submission then withdrawal, `SEED.user(3)` one submission; matching `talent_submission_log` rows. Submissions of `SEED.user(1)` and `SEED.user(2)` have `consent_locale = 'ar'`; `SEED.user(3)`'s has `'en'`.
 - After review: apply `0001_talent.sql` to `hisn-talent` yourself (`psql "<hisn-talent connection string>" -f talent/migrations/0001_talent.sql`), then set its URL and anon key in Vercel production env.
 
@@ -676,8 +676,8 @@ export async function connectProd(): Promise<pg.Client>     // PROD_DB_URL, same
 // scripts/export-talent.ts
 export async function exportTalent(client: pg.Client, outPath: string): Promise<{ rows: number }>
 ```
-- Library: `exceljs`. One sheet `Talent`. Columns in this exact order: `Email`, `Name (Arabic)`, `Major`, `Academic level`, `Gender`, then one column per `talentFields` entry using `exportHeader`, then `Consent version`, `Consented at (Riyadh)`.
-- `Major` = `labelEn('majors', code)`, or `major_other` when the code is `OTHER`. `Academic level` = `labelEn('levels', code)`. `Gender` = `Male` / `Female`. `tags` values joined with `', '`. `Consented at` formatted `YYYY-MM-DD HH:mm` in Asia/Riyadh.
+- Library: `exceljs`. One sheet `Talent`. Columns in this exact order: `Email`, `Name (Arabic)`, `Major`, `Academic level`, `Gender`, then one column per `talentFields` entry using `exportHeader`, then `Consent version`, `Consent language`, `Consented at (Riyadh)`.
+- `Major` = `labelEn('majors', code)`, or `major_other` when the code is `OTHER`. `Academic level` = `labelEn('levels', code)`. `Gender` = `Male` / `Female`. `Consent language` = `Arabic` / `English` (from `consent_locale`). `tags` values joined with `', '`. `Consented at` formatted `YYYY-MM-DD HH:mm` in Asia/Riyadh.
 - Default output `talent-<today>.xlsx` in the current folder.
 
 **Needs first:** A-10, A-11.
@@ -686,7 +686,8 @@ export async function exportTalent(client: pg.Client, outPath: string): Promise<
 
 **Tests to write** (`tests/scripts/export.test.ts`, against the local database with `talent/seed.sql`):
 - The file exists and `new ExcelJS.Workbook().xlsx.readFile(path)` succeeds.
-- Header row equals `['Email','Name (Arabic)','Major','Academic level','Gender','Name (English)','Graduation year','Project title','Project description','Skills','CV / portfolio','GitHub','Consent version','Consented at (Riyadh)']`.
+- Header row equals `['Email','Name (Arabic)','Major','Academic level','Gender','Name (English)','Graduation year','Project title','Project description','Skills','CV / portfolio','GitHub','Consent version','Consent language','Consented at (Riyadh)']`.
+- `Consent language` is `English` for `user(3)` and `Arabic` for `user(1)`.
 - Data rows = 2 (`user(1)` latest, `user(3)`; `user(2)` withdrawn).
 - An Arabic name (`'عبدالعزيز'`) and an English name (`'Abdulaziz'`) read back unchanged.
 - A seed row with `major_code = 'OTHER'`, `major_other = 'Physics'` shows `Physics` under `Major`.
@@ -907,12 +908,12 @@ export function reportError(err: unknown, opts: { level: 'fatal' | 'error'; tags
 **Files:** `lib/talent/fields.ts`, `lib/i18n/ar.json`, `lib/i18n/en.json`, `content/talent-consent/v1.ar.md`, `content/talent-consent/v1.en.md`, `tests/scripts/export.test.ts`.
 
 - [ ] Replace `talentFields` (same `TalentField` type); set `FIELDS_VERSION = 'final-1'`; add label keys to `ar.json` and `en.json` (English labels approved by you).
-- [ ] Replace `content/talent-consent/v1.ar.md` with the founder's text (binding) and `content/talent-consent/v1.en.md` with its English translation, approved by you, which states that the Arabic text prevails. No «مؤقت» in either; `consentIsFinal` becomes `true` only when both are final.
+- [ ] Replace `content/talent-consent/v1.ar.md` with the founder's text (binding) and `content/talent-consent/v1.en.md` with its English translation, which you draft and the founder approves, and which states that the Arabic text prevails. No «مؤقت» in either; `consentIsFinal` becomes `true` only when both are final.
 - [ ] Update the expected header row in `tests/scripts/export.test.ts`.
 - [ ] After merge: set `TALENT_FORM_OPEN=true` in Vercel production env and redeploy.
 - If the inputs are not in by launch: skip; the site launches with the form closed («يفتح قريبًا»).
 
-**Needs first:** A-11, A-12; both inputs.
+**Needs first:** A-11, A-12; both inputs; the founder's approval of your English translation of the consent.
 
 **Done when:** `npm test && npm run test:scripts && cp tests/fixtures/talent-consent-final.ar.md content/talent-consent/v1.ar.md && cp tests/fixtures/talent-consent-final.en.md content/talent-consent/v1.en.md`, then `TALENT_FORM_OPEN=true npm run test:e2e -- --grep @talent-open` passes with the final fields (the run-2 command from A-7).
 

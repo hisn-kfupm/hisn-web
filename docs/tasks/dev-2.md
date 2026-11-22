@@ -23,7 +23,7 @@
 | `localePath`, then `eventText` (English event text with Arabic fallback) | Abdulrahman (D1-5, D1-8) | Mon 16 – Thu 19 Nov |
 
 **Waiting on you:**
-- Abdulrahman needs `getSession`/`signOut` (D2-4, Sun 15), `FieldErrors` and `saveProfile` (D2-6, Tue 17; including `locale` for the account page's "Email language" field), `useProfileGate` (D2-7, Wed 18), and the SQL functions (D2-9/D2-10, Fri 20 – Sun 22). Every public page relies on your locale middleware (D2-4).
+- Abdulrahman needs `getSession`/`signOut(locale)` (D2-4, Sun 15), `FieldErrors` and `saveProfile` (D2-6, Tue 17; including `locale` for the account page's "Email language" field), `useProfileGate` (D2-7, Wed 18), and the SQL functions (D2-9/D2-10, Fri 20 – Sun 22). Every public page relies on your locale middleware (D2-4).
 - Abdulaziz needs `reportError` (D2-5) and `verifyTokenDetailed` (D2-1). His bilingual sign-in code email (A-19) reads `user_metadata.locale`, which `sendCode` sets (D2-5) and `saveProfile` keeps equal to `profiles.locale` (D2-6).
 - Everyone needs sign-in working on a preview (D2-5, Mon 16). Abdulaziz tests it against real inboxes on Tue 17, including once from `/en/sign-in`.
 
@@ -222,7 +222,8 @@ export function subject(kind: DeliveryKind, locale: Locale, vars: { title: strin
 // lib/auth/session.ts
 export async function getSession(): Promise<{ userId: string; email: string } | null>
   // (await supabaseProdServer()).auth.getUser(); never auth.getSession() on the server
-export async function signOut(): Promise<void>   // 'use server'; auth.signOut(); redirect('/')
+export async function signOut(locale: Locale): Promise<void>   // 'use server'; auth.signOut(); redirect(`/${locale}`)
+  // so the person stays in their language; a locale that fails isLocale → redirect('/ar')
 
 // lib/auth/return-to.ts
 export function safeReturnTo(input: string | null | undefined): string
@@ -249,6 +250,7 @@ export function isInstitutionalEmail(email: string): boolean
   - `safeReturnTo(null) === '/'`; `safeReturnTo('')` → `'/'`
   - `isInstitutionalEmail('a@kfupm.edu.sa') === true`; `('a@stanford.edu') === true`; `('a@gmail.com') === false`; `('a@edu.sa.com') === false`
 - `session.test.ts` (mock `supabaseProdServer`): `auth.getUser` → `{ data: { user: { id: 'u1', email: 'a@b.com' } } }` → `{ userId: 'u1', email: 'a@b.com' }`; `{ data: { user: null } }` → `null`.
+  - `signOut('en')` → `auth.signOut` called once, then `redirect('/en')`; `signOut('ar')` → `redirect('/ar')`; `signOut('fr' as Locale)` → `redirect('/ar')` (mock `next/navigation`).
 - `middleware.test.ts` (call `middleware(new NextRequest(url))`; mock `@supabase/ssr`'s `createServerClient`):
   - `/` → status 307 or 308, `Location` ends with `/ar`.
   - `/events` → `Location` ends with `/ar/events`; `/events?m=2026-12` → ends with `/ar/events?m=2026-12`.
@@ -265,13 +267,13 @@ export function isInstitutionalEmail(email: string): boolean
 **Build:** `/[locale]/sign-in` (`/ar/sign-in` and `/en/sign-in`), two steps: email (with the personal-email hint and a university-email warning) → 6-digit code (resend after 60 seconds, junk-folder hint). Both languages. Includes the critical-failure report for codes that fail to send.
 
 **Files:**
-- `app/[locale]/sign-in/page.tsx`, `app/[locale]/sign-in/SignInForm.tsx`, `app/[locale]/sign-in/actions.ts`
+- `app/[locale]/sign-in/page.tsx`, `app/[locale]/sign-in/SignInForm.tsx`, `app/sign-in/actions.ts` (server actions stay outside `app/[locale]`; only pages move)
 - `lib/monitoring/report.ts`
 - `tests/unit/sign-in-actions.test.ts`, `tests/unit/sign-in-form.test.tsx`
 
 **Interfaces — produces:**
 ```ts
-// app/[locale]/sign-in/actions.ts ('use server')
+// app/sign-in/actions.ts ('use server')
 export async function sendCode(email: string, locale: Locale): Promise<{ ok: true } | { ok: false; reason: 'invalid' | 'rate_limited' | 'send_failed' }>
   // z.string().trim().email(); auth.signInWithOtp({ email: normalizeEmail(email), options: { shouldCreateUser: true, data: { locale } } })
   // locale = the page locale; the sign-in code email (A-19) switches on user_metadata.locale
@@ -713,7 +715,7 @@ export async function cancelAction(eventId: number): Promise<CancelResult>
 **Build:** `/[locale]/registrations/cancel?t=…` (`/ar/…` and `/en/…`), opened from the cancel or leave link in emails, which carries the email's locale. It shows what will be cancelled and a single confirm button; nothing changes until the button is pressed (spec HR-5, unchanged in both languages).
 
 **Files:**
-- `app/[locale]/registrations/cancel/page.tsx`, `app/[locale]/registrations/cancel/actions.ts`
+- `app/[locale]/registrations/cancel/page.tsx`, `app/registrations/cancel/actions.ts` (the action stays outside `app/[locale]`)
 - `components/ConfirmPage.tsx` (shared with D2-13)
 - `tests/db/cancel-token.test.ts`
 
@@ -724,7 +726,7 @@ export function ConfirmPage(props: { title: string; body: React.ReactNode; confi
   action: (formData: FormData) => Promise<void>; hidden: Record<string, string> }): JSX.Element
   // one <form> with hidden inputs and one submit button; disabled while pending
 
-// app/[locale]/registrations/cancel/actions.ts ('use server')
+// app/registrations/cancel/actions.ts ('use server')
 export async function confirmCancelByToken(token: string): Promise<'cancelled' | 'already' | 'started' | 'invalid'>
 // verifyTokenDetailed(token, 'cancel'): reason 'invalid' → 'invalid'; reason 'expired' → 'started'
 // ok → supabaseProdService().rpc('cancel_registration_by_id', { p_registration_id: Number(sub), p_version: ver })
@@ -762,7 +764,7 @@ export async function confirmCancelByToken(token: string): Promise<'cancelled' |
 - `supabase/migrations/<timestamp>_audience.sql`
 - `lib/email/audience.ts`
 - `app/api/unsubscribe/route.ts`
-- `app/[locale]/unsubscribe/page.tsx`, `app/[locale]/unsubscribe/actions.ts`
+- `app/[locale]/unsubscribe/page.tsx`, `app/unsubscribe/actions.ts` (the action stays outside `app/[locale]`)
 - `tests/db/audience.test.ts`, `tests/db/unsubscribe.test.ts`
 
 **Interfaces — produces:**
@@ -793,7 +795,7 @@ export async function POST(req: Request): Promise<Response>
 export async function GET(req: Request): Promise<Response>
   // 307 redirect to `/ar/unsubscribe?t=${t}` (the token carries no locale; the page has the language switcher); never writes
 
-// app/[locale]/unsubscribe/actions.ts ('use server')
+// app/unsubscribe/actions.ts ('use server')
 export async function confirmUnsubscribe(token: string): Promise<'done' | 'invalid'>   // → unsubscribe(sub, 'link')
 ```
 - `/[locale]/unsubscribe` page (`/ar/unsubscribe` and `/en/unsubscribe`; the email body link carries the delivery's locale, D2-8): `ConfirmPage` with `t(locale, 'unsub.title')`, the email in `<bdi>`, one button; result text via `t(locale, …)`. No write on render (HR-5 unchanged).
