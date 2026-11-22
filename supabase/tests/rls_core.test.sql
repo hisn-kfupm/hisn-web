@@ -1,7 +1,7 @@
 -- A-4 · Row-level security for profiles, events, event_private, registrations, and the tests.* helpers.
 -- Ids are kept in transaction-local settings (t.*) so they can be read under any role.
 begin;
-select plan(26);
+select plan(27);
 
 -- Fixtures (as postgres) ----------------------------------------------------------------------------------------
 do $$
@@ -198,6 +198,15 @@ select lives_ok(
   'tests.login_as works while already logged in'
 );
 select is(auth.uid(), current_setting('t.b')::uuid, 'after login_as(B), auth.uid() = B');
+
+-- TRUNCATE ignores row-level security, so it must not be granted. Kept last: without the revoke it really
+-- empties the tables (cascade reaches registrations and talent_submission_log). Everything rolls back below.
+select throws_ok(
+  $$truncate public.profiles cascade$$,
+  '42501',
+  'permission denied for table profiles',
+  'a signed-in user cannot truncate profiles'
+);
 
 select tests.logout();
 select is(auth.uid(), null, 'after logout, auth.uid() is null');

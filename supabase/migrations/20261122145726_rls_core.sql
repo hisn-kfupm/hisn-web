@@ -1,6 +1,15 @@
 -- A-4 · Row-level security for profiles, events, event_private and registrations (spec §9.1).
 -- signups, email tables and talent_submission_log are A-5.
 
+-- TRUNCATE ------------------------------------------------------------------------------------------------------
+-- Supabase's default grants give anon and authenticated TRUNCATE, which ignores row-level security. Revoke it on
+-- every hisn-prod table (P-1), including the A-5 ones.
+
+revoke truncate on
+  public.profiles, public.events, public.event_private, public.registrations,
+  public.signups, public.email_unsubscribes, public.email_deliveries, public.talent_submission_log
+from anon, authenticated;
+
 -- is_admin() ----------------------------------------------------------------------------------------------------
 -- Security definer so it can read profiles.is_admin without going through the profiles select policy.
 
