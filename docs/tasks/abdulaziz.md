@@ -25,8 +25,8 @@
 
 **Waiting on you:**
 - **Both, Thu 12 morning, before anything else:** the GitHub repo (A-1).
-- **Abdulrahman:** six department codes/slugs/icons and the majors list by **Fri 13 Nov noon**; `supabaseProdServer` (A-2, Fri 13); tables and seed (A-3 to A-6, Sat 14 – Tue 17); `newsletter_signup` (A-5, Mon 16); talent action and fields (A-11, Mon 23).
-- **Abdullah:** `lib/env.ts`, clients and `supabase/config.toml` (A-2, Fri 13); tables (A-3, Sat 14); RLS, `is_admin()` and SQL test helpers (A-4, Sun 15); seed, `tests/fixtures/seed.ts`, `tests/db/helpers.ts` (A-6, Tue 17); CI `e2e` job (A-7, Thu 19).
+- **Abdulrahman:** six department codes/slugs/icons and the majors list by **Fri 13 Nov noon**; `supabaseProdServer` (A-2, Fri 13); tables and seed (A-3 to A-6, Sat 14 – Tue 17); `newsletter_signup` (A-5, Mon 16); talent action and fields (A-11, Mon 23); locale columns, English event fields and `newsletter_signup(p_locale)` (A-19, date set by you).
+- **Abdullah:** `lib/env.ts`, clients and `supabase/config.toml` (A-2, Fri 13); tables (A-3, Sat 14); RLS, `is_admin()` and SQL test helpers (A-4, Sun 15); seed, `tests/fixtures/seed.ts`, `tests/db/helpers.ts` (A-6, Tue 17); CI `e2e` job (A-7, Thu 19); `profiles.locale`, `email_deliveries.locale`, `signups.locale` and the bilingual sign-in code email (A-19, date set by you).
 - **Both:** PR reviews every day.
 
 **Daily review window:** 21:00–22:30. Review every PR opened before 20:00 the same day. Merges to `main` deploy to the private production address (after A-8).
@@ -35,6 +35,7 @@
 
 - Write the listed tests first, see them fail, implement, see them pass, open a PR. You review your own PRs at the next window, after a second look by Abdulrahman or Abdullah for anything security-related (A-4, A-5, A-10, A-11).
 - All constraints in plan "Global Constraints" apply.
+- **Arabic and English at launch** (spec revision 2.3, D-1 = Yes): every interface string is a key in both `lib/i18n/ar.json` and `lib/i18n/en.json` (identical keys; CI fails if they differ), read with `t(locale, key, vars)`. Developers draft the English; you approve it (unapproved English keeps «مؤقت»). Public pages live under `/ar` and `/en`. **The admin area stays Arabic only** (`/admin`, `t('ar', …)`).
 - Production and talent credentials never go into the repo, GitHub repository secrets or Vercel preview env. They live in Vercel production env, the GitHub `production` environment, or your `.env.owner.local` (git-ignored).
 - Migrations: `supabase migration new <name>` → `supabase/migrations/<timestamp>_<name>.sql`. Talent migrations live in `talent/migrations/NNNN_<name>.sql` and you apply them to `hisn-talent` by hand.
 - Branch name: `abdulaziz/<task-id>-<slug>`, task id zero-padded to two digits (e.g. `abdulaziz/A-04-rls-core`). PR title: `<task-id> · <what it does>` (e.g. `A-04 · RLS for profiles, events, registrations`).
@@ -287,6 +288,61 @@ newsletter_signup(p_email text, p_source text default 'footer') returns void
 
 ---
 
+## A-19 · Locale migration and bilingual sign-in email (spec revision 2.3, D-1 = Yes)
+
+**Date:** set by you. Added on Sun 22 Nov with the decision that Hisn launches in Arabic and English. A-2 to A-5 are merged or in review, so their sections stay as they are; everything English needs from the database comes in this extra migration.
+
+**Build:** The columns and function change that English at launch needs (the person's email language, optional English event text, the language of each newsletter signup and of each queued email), and the sign-in code email in both languages.
+
+**Files:**
+- `supabase/migrations/<timestamp>_locale.sql` (`supabase migration new locale`)
+- `supabase/tests/locale.test.sql`
+- Modify `supabase/templates/otp.html` and the two `subject` lines in `supabase/config.toml` (A-2's files)
+
+**Interfaces — produces:**
+```sql
+alter table profiles add column locale text not null default 'ar' check (locale in ('ar','en'));
+  -- the person's email language: the page locale at their first profile save (D2-6), editable on /account (D1-16)
+grant insert (locale), update (locale) on profiles to authenticated;   -- A-4 grants profile columns one by one
+alter table events add column title_en text, add column description_en text;
+  -- optional; on /en a missing value falls back to the Arabic text (lib/events/text.ts)
+alter table signups add column locale text not null default 'ar' check (locale in ('ar','en'));
+  -- the page language at signup; teaser and imported rows get 'ar'
+alter table email_deliveries add column locale text not null default 'ar' check (locale in ('ar','en'));
+  -- the language the email is rendered in, set when the row is queued (D2-9, D2-10, D2-14)
+
+drop function newsletter_signup(text, text);
+newsletter_signup(p_email text, p_source text default 'footer', p_locale text default 'ar') returns void
+  -- security definer set search_path = public; grant execute to anon, authenticated
+  -- exactly A-5's body, plus, after the source check:
+  -- if p_locale is null or p_locale not in ('ar','en') then raise exception 'invalid_locale' using errcode = '22023';
+  -- insert into signups (email, source, locale) values (v, p_source, p_locale) on conflict ((lower(trim(email)))) do nothing;
+  -- Still only inserts: an existing signup keeps its locale, and nothing else changes (spec §10.2).
+```
+- **Why drop and create:** `create or replace` can't add a parameter, and keeping both versions would make a two-argument call ambiguous. The change is backward compatible: every existing call, positional or named (the teaser's `p_email`, `p_source` in A-9), still resolves and gets `'ar'`.
+- **Sign-in code email** (Supabase Auth reads the person's language from user metadata, which D2-5 sets on first sign-in and D2-6's `saveProfile` keeps equal to `profiles.locale`):
+  - `otp.html`: `{{ if eq .Data.locale "en" }}` an English block (`lang="en" dir="ltr"`) `{{ else }}` the existing Arabic block `{{ end }}`. Both show `{{ .Token }}` and no link.
+  - Both subjects: `{{ if eq .Data.locale "en" }}{{ .Token }} — your Hisn sign-in code{{ else }}{{ .Token }} — رمز الدخول إلى حصن{{ end }}`.
+  - Apply the same template and subjects to Auth on `hisn-dev` and `hisn-prod` (the A-1 settings).
+
+**Needs first:** A-5.
+
+**Blocks:** A-6 (seed locales and English event text); Abdulrahman (D1-6, D1-8 to D1-12, D1-14, D1-16); Abdullah (D2-5, D2-6, D2-8, D2-9, D2-10, D2-13, D2-14).
+
+**Tests to write** (`supabase/tests/locale.test.sql`, as `postgres` unless stated):
+- A profile inserted without `locale` has `locale = 'ar'`; `locale = 'fr'` → `throws_ok(…, '23514')`.
+- After `tests.login_as(<user without profile>)`: inserting own profile with `locale = 'en'` → `lives_ok`. After `tests.login_as(<user with profile>)`: `update profiles set locale = 'en' where id = <self>` → `lives_ok`; `update profiles set is_admin = true …` and `set email = …` still → `42501`.
+- An event with `title_en` and `description_en` null → `lives_ok`; an event with both set → `lives_ok`.
+- An `email_deliveries` row inserted without `locale` has `'ar'`; `locale = 'fr'` → `23514`.
+- A `signups` row inserted without `locale` has `'ar'`.
+- As anon: `newsletter_signup('en@x.com', 'footer', 'en')` → the row has `locale = 'en'`; `newsletter_signup('ar@x.com')` → `'ar'`; `newsletter_signup(p_email => 'n@x.com', p_source => 'teaser')` → `lives_ok`, `locale = 'ar'`; `newsletter_signup('a@x.com', 'footer', 'fr')` and `newsletter_signup('a@x.com', 'footer', null)` → `throws_ok(…, '22023', 'invalid_locale')`.
+- `newsletter_signup('en@x.com', 'footer', 'ar')` again → no error, still one row, `locale` still `'en'`.
+- A-4's and A-5's pgTAP files pass unchanged.
+
+**Done when:** `supabase db reset && supabase test db` passes, and in the local mail catcher a sign-in code requested with `signInWithOtp({ email, options: { data: { locale: 'en' } } })` arrives in English, and one requested with `locale: 'ar'` arrives in Arabic, each with a 6-digit code and no link.
+
+---
+
 ## A-6 · Seed data, test fixtures and database test helpers (plan T3, T6)
 
 **Date:** Tue 17 Nov.
@@ -337,9 +393,11 @@ Seed contents (all times relative to `now()` so the seed never goes stale):
 
 Online events get `event_private` rows `https://meet.example/<id>`. Users: admin + `u01`–`u30`; majors cycle through all codes, with `u10`, `u20`, `u30` = `OTHER` (`major_other` `'Mechanical Engineering'`, `'Physics'`, `'Law'`); levels cycle `BACHELOR`, `MASTER`, `PHD`; gender alternates `male`/`female`; `announcements_opt_in = true` for odd numbers. Signups: `s01@signup.test` … `s10@signup.test` plus `u02@test.local`. Unsubscribes: `u03@test.local` (`link`), `s02@signup.test` (`header`), `nobody@test.local` (`profile`). Event ids are inserted with `overriding system value`, then the identity sequence is reset past 1000.
 
-**Real-inbox test (same day):** on Abdullah's preview, request a sign-in code to your Gmail and to your `@kfupm.edu.sa` address. Record for each: seconds to arrive, inbox or junk, and whether the Arabic subject displays correctly. Post the results in the WhatsApp group.
+Languages (columns from A-19): users whose number is divisible by 4 (`u04`, `u08`, … `u28`) have `locale = 'en'`; everyone else, including the admin, `'ar'`. Events 101, 102 and 110 have `title_en` and `description_en`; the others have none, so `/en` shows their Arabic fallback. Signup `s05@signup.test` has `locale = 'en'`; the other signups `'ar'`.
 
-**Needs first:** A-5; D2-5 on a preview for the inbox test.
+**Real-inbox test (same day):** on Abdullah's preview, request a sign-in code to your Gmail and to your `@kfupm.edu.sa` address. Record for each: seconds to arrive, inbox or junk, and whether the Arabic subject displays correctly. Repeat once from `/en/sign-in` with a new address and check the English subject and body (A-19). Post the results in the WhatsApp group.
+
+**Needs first:** A-5, A-19; D2-5 on a preview for the inbox test.
 
 **Blocks:** Abdulrahman (D1-8 onwards), Abdullah (D2-6 onwards).
 
@@ -347,6 +405,7 @@ Online events get `event_private` rows `https://meet.example/<id>`. Users: admin
 - `clientAs(SEED.admin)` selects event `SEED.events.draft` → 1 row; `anonClient()` → 0 rows.
 - Event 102 has exactly 10 `registered` and 3 `waitlisted` rows.
 - `createEvent({ capacity: 1 })` returns an id > 1000; `addRegistration` on it returns an id.
+- `SEED.user(4)` has `locale = 'en'` and `SEED.user(1)` has `'ar'`; event 101 has a `title_en`, event 103 has none.
 
 **Done when:** `npm run db:reset && npm run test:db -- tests/db/seed.test.ts` passes, and the inbox results are posted.
 
@@ -361,7 +420,7 @@ Online events get `event_private` rows `https://meet.example/<id>`. Users: admin
 **Files:**
 - Modify `.github/workflows/pr.yml` (add jobs `db` and `e2e`)
 - `scripts/ci/apply-talent.sh`, `scripts/ci/write-env.sh`
-- `tests/fixtures/talent-consent-final.md` (two short Arabic paragraphs, no «مؤقت»)
+- `tests/fixtures/talent-consent-final.ar.md` (two short Arabic paragraphs, no «مؤقت») and `tests/fixtures/talent-consent-final.en.md` (their English translation, including a sentence that the Arabic text prevails; no «مؤقت»)
 - Modify `package.json`: `db:reset` → `supabase db reset && bash scripts/ci/apply-talent.sh`; add `env:local` → `bash scripts/ci/write-env.sh`
 
 **Interfaces — produces:**
@@ -370,7 +429,7 @@ Online events get `event_private` rows `https://meet.example/<id>`. Users: admin
 - Job `db`: `supabase/setup-cli@v1` → `supabase start` → `npm run db:reset` → `npm run env:local` → `supabase test db` → `npm run test:db` → `npm run test:scripts`.
 - Job `e2e`: same start + reset + env → `npx playwright install --with-deps chromium`, then two runs in sequence:
   - **Run 1 (talent form closed):** `npm run test:e2e -- --grep-invert @talent-open --pass-with-no-tests` (uses `TALENT_FORM_OPEN=false` from `.env.local`).
-  - **Run 2 (talent form open):** `cp tests/fixtures/talent-consent-final.md content/talent-consent/v1.md` → `TALENT_FORM_OPEN=true npm run test:e2e -- --grep @talent-open --pass-with-no-tests`. Playwright's `webServer` rebuilds the app, so the copied consent is compiled in. The copy exists only inside the CI job; it is never committed. (The process environment wins over `.env.local`.)
+  - **Run 2 (talent form open):** `cp tests/fixtures/talent-consent-final.ar.md content/talent-consent/v1.ar.md && cp tests/fixtures/talent-consent-final.en.md content/talent-consent/v1.en.md` (both are needed: the form opens only when both are final, A-11) → `TALENT_FORM_OPEN=true npm run test:e2e -- --grep @talent-open --pass-with-no-tests`. Playwright's `webServer` rebuilds the app, so the copied consent is compiled in. The copy exists only inside the CI job; it is never committed. (The process environment wins over `.env.local`.)
   - Which spec belongs to which run is set in D2-16 (`talent-closed.spec.ts` → run 1, `talent-open.spec.ts` → run 2).
 - Add `db` and `e2e` to the required checks on `main`.
 - Until this merges, PRs with database tests include pasted local output of `supabase test db` in the description.
@@ -424,7 +483,7 @@ Online events get `event_private` rows `https://meet.example/<id>`. Users: admin
 
 **Files:** teaser repo `js/script.js` (outside this repo).
 
-**Interfaces:** `signups (email, source = 'import')`.
+**Interfaces:** `signups (email, source = 'import')`. Imported rows get `locale = 'ar'` from the column default (A-19); the teaser's `newsletter_signup` call needs no change and also stores `'ar'`.
 - [ ] Export the old `signups`; normalize `lower(trim(email))`; drop case-duplicates; import into `hisn-prod` with `source = 'import'`.
 - [ ] Edit the teaser's `js/script.js`: `hisn-prod` URL and **public** anon key, and replace the direct table insert with `supabase.rpc('newsletter_signup', { p_email, p_source: 'teaser' })` (the teaser's own variable name is outside this repo's lint). Redeploy the teaser; submit a test email → it appears in `hisn-prod.signups` with `source = 'teaser'`; submit `not-an-email` → rejected.
 - [ ] Remove the insert policy on the old project; submit again → rejected.
@@ -475,15 +534,16 @@ Online events get `event_private` rows `https://meet.example/<id>`. Users: admin
 - `supabase/tests/talent.test.sql`
 
 **Interfaces — produces:**
-- `talent_entries(id bigint identity pk, user_id uuid not null, kind text not null check (kind in ('submission','withdrawal')), email text, full_name_ar text, major_code text check (major_code in (<majors codes>)), major_other text, academic_level_code text check (academic_level_code in ('BACHELOR','MASTER','PHD')), gender text check (gender in ('male','female')), answers jsonb, fields_version text, consent boolean, consent_version text, consented_at timestamptz not null default now(), created_at timestamptz not null default now())`.
+- `talent_entries(id bigint identity pk, user_id uuid not null, kind text not null check (kind in ('submission','withdrawal')), email text, full_name_ar text, major_code text check (major_code in (<majors codes>)), major_other text, academic_level_code text check (academic_level_code in ('BACHELOR','MASTER','PHD')), gender text check (gender in ('male','female')), answers jsonb, fields_version text, consent boolean, consent_version text, consent_locale text check (consent_locale in ('ar','en')), consented_at timestamptz not null default now(), created_at timestamptz not null default now())`.
 - Check `talent_kind_shape`:
   - `kind = 'submission'` → `email, full_name_ar, major_code, academic_level_code, gender, answers, fields_version, consent_version` not null, `consent = true`, `jsonb_typeof(answers) = 'object'`, `pg_column_size(answers) < 20000`, and the same `major_other` rule as `profiles`.
   - `kind = 'withdrawal'` → `email, full_name_ar, major_code, major_other, academic_level_code, gender, answers, fields_version, consent, consent_version` all null.
+  - Also in `talent_kind_shape`: `consent_locale` is not null for a submission and null for a withdrawal. It records which language's consent text the person agreed on (`ar` or `en`). The Arabic text is binding; the English text is a translation that says the Arabic prevails (spec revision 2.3).
 - Index `(user_id, created_at desc)`.
 - Access: `enable row level security`; `revoke all on talent_entries from anon, authenticated, public`; `grant insert on talent_entries to anon`; `grant usage on sequence talent_entries_id_seq to anon`; policy `talent_insert` `for insert to anon with check (true)`. **No select, update or delete for anyone but the owner's direct connection.**
 - `create schema private; revoke all on schema private from public, anon, authenticated;`
 - View `private.talent_export`: `select distinct on (user_id) * from talent_entries order by user_id, created_at desc, id desc` wrapped so that rows whose latest `kind = 'withdrawal'` are excluded. Columns: `user_id, email, full_name_ar, major_code, major_other, academic_level_code, gender, answers, fields_version, consent_version, consented_at, created_at`.
-- `talent/seed.sql` (fake data, never applied to `hisn-talent`): `SEED.user(1)` two submissions (older and newer), `SEED.user(2)` submission then withdrawal, `SEED.user(3)` one submission; matching `talent_submission_log` rows.
+- `talent/seed.sql` (fake data, never applied to `hisn-talent`): `SEED.user(1)` two submissions (older and newer), `SEED.user(2)` submission then withdrawal, `SEED.user(3)` one submission; matching `talent_submission_log` rows. Submissions of `SEED.user(1)` and `SEED.user(2)` have `consent_locale = 'ar'`; `SEED.user(3)`'s has `'en'`.
 - After review: apply `0001_talent.sql` to `hisn-talent` yourself (`psql "<hisn-talent connection string>" -f talent/migrations/0001_talent.sql`), then set its URL and anon key in Vercel production env.
 
 **Needs first:** A-7 (`apply-talent.sh`).
@@ -497,6 +557,7 @@ Online events get `event_private` rows `https://meet.example/<id>`. Users: admin
 - A submission with `consent = false` → `23514`; with `consent_version = null` → `23514`.
 - A withdrawal with `answers = '{}'` → `23514`.
 - A submission with `answers = '[]'` → `23514`.
+- A submission with `consent_locale = null` → `23514`; with `consent_locale = 'fr'` → `23514`; with `'en'` → `lives_ok`. A withdrawal with `consent_locale = 'ar'` → `23514`.
 - As postgres, `private.talent_export` returns exactly one row for `SEED.user(1)` (the newer submission), none for `SEED.user(2)`, one for `SEED.user(3)`.
 
 **Done when:** `npm run db:reset && supabase test db` passes.
@@ -507,11 +568,12 @@ Online events get `event_private` rows `https://meet.example/<id>`. Users: admin
 
 **Date:** Mon 23 Nov.
 
-**Build:** The single module that defines the talent fields (provisional set), the versioned consent text, the open/closed flag that can never open without final consent, and the submit and withdraw actions in the order spec §8.6 fixes.
+**Build:** The single module that defines the talent fields (provisional set), the versioned consent text in Arabic (binding) and English (a translation that says the Arabic prevails), the open/closed flag that can never open without final consent in both languages, and the submit and withdraw actions in the order spec §8.6 fixes.
 
 **Files:**
 - `lib/talent/fields.ts`, `lib/talent/consent.ts`
-- `content/talent-consent/v1.md` (placeholder containing «مؤقت»)
+- `content/talent-consent/v1.ar.md` and `content/talent-consent/v1.en.md` (placeholders containing «مؤقت»; the English one includes the sentence that the Arabic text prevails)
+- Modify `lib/db/talent.ts`: add `consent_locale?: 'ar' | 'en'` to `TalentRow` (type only; the HR-1 rules and the insert stay exactly as they are)
 - Modify `lib/config/flags.ts` (Abdulrahman created it in D1-12)
 - `app/talent/actions.ts`
 - `tests/unit/talent-fields.test.ts`, `tests/unit/talent-flags.test.ts`, `tests/db/talent-action.test.ts`
@@ -528,6 +590,8 @@ export type TalentField = {
 export const talentFields: TalentField[]
 export const talentAnswersSchema: z.ZodType<Record<string, unknown>>   // built from talentFields; unknown keys stripped
 ```
+Every `labelKey` (and each field's error keys) exists in both `ar.json` and `en.json`; the key-parity test (D1-2) enforces it.
+
 Provisional `talentFields` (spec §7.7), in order:
 
 | key | kind | required | rules | exportHeader |
@@ -543,14 +607,16 @@ Provisional `talentFields` (spec §7.7), in order:
 ```ts
 // lib/talent/consent.ts ('server-only')
 export const CONSENT_VERSION = 'v1'
-export const consentIsFinal: boolean       // false while content/talent-consent/v1.md contains «مؤقت»
-export function consentHtml(): string      // paragraphs split on blank lines, HTML-escaped, wrapped in <p>
+export const consentIsFinal: boolean       // false while EITHER v1.ar.md or v1.en.md contains «مؤقت»
+export function consentHtml(locale: Locale): string   // that language's file: paragraphs split on blank lines, HTML-escaped, wrapped in <p>
+// CONSENT_VERSION 'v1' covers both files: the English file is a translation of the same terms.
 
 // lib/config/flags.ts (add)
 export const TALENT_FORM_OPEN = process.env.TALENT_FORM_OPEN === 'true' && consentIsFinal
 
 // app/talent/actions.ts ('use server') — the ONLY importer of lib/db/talent
-export async function submitTalent(answers: unknown, consent: boolean): Promise<
+// locale = the language of the page the form was submitted from; it is the consent text the person saw
+export async function submitTalent(answers: unknown, consent: boolean, locale: Locale): Promise<
   { ok: true } | { ok: false; reason: 'closed' | 'needs_profile' | 'invalid' | 'failed'; errors?: FieldErrors }>
 export async function withdrawTalent(): Promise<{ ok: boolean }>
 ```
@@ -558,12 +624,12 @@ export async function withdrawTalent(): Promise<{ ok: boolean }>
 1. `!TALENT_FORM_OPEN` → `{ ok: false, reason: 'closed' }`.
 2. `getSession()`; none → `throw new Error('unauthenticated')`.
 3. Read the caller's profile with `supabaseProdServer()`; none → `{ ok: false, reason: 'needs_profile' }`. There is **no email-domain check**: anyone with a complete profile may submit (spec §7.7, founder decision of 12 Nov).
-4. `consent !== true` → `{ ok: false, reason: 'invalid', errors: { consent: 'talent.error.consent' } }`; `talentAnswersSchema` fails → `{ ok: false, reason: 'invalid', errors }`.
-5. `insertTalentEntry({ user_id, kind: 'submission', email, full_name_ar, major_code, major_other, academic_level_code, gender` — **all from the profile** `, answers: parsed, fields_version: FIELDS_VERSION, consent: true, consent_version: CONSENT_VERSION })`; error → `reportError(err, { level: 'error', tags: { area: 'talent' } })` → `{ ok: false, reason: 'failed' }`.
+4. `!isLocale(locale)` → `{ ok: false, reason: 'invalid' }`; `consent !== true` → `{ ok: false, reason: 'invalid', errors: { consent: 'talent.error.consent' } }`; `talentAnswersSchema` fails → `{ ok: false, reason: 'invalid', errors }`.
+5. `insertTalentEntry({ user_id, kind: 'submission', email, full_name_ar, major_code, major_other, academic_level_code, gender` — **all from the profile** `, answers: parsed, fields_version: FIELDS_VERSION, consent: true, consent_version: CONSENT_VERSION, consent_locale: locale })`; error → `reportError(err, { level: 'error', tags: { area: 'talent' } })` → `{ ok: false, reason: 'failed' }`.
 6. **Then** upsert `talent_submission_log { user_id, submitted_at: now, withdrawn_at: null }` with `supabaseProdService()`; error → report → `{ ok: false, reason: 'failed' }`.
-7. `revalidatePath('/account')`, `revalidatePath('/talent')` → `{ ok: true }`.
+7. `revalidatePath` for `/ar/account`, `/en/account`, `/ar/talent` and `/en/talent` → `{ ok: true }`.
 
-`withdrawTalent` (allowed even when the form is closed): session required; `insertTalentEntry({ user_id, kind: 'withdrawal' })` **first**, then upsert the log `withdrawn_at = now`; any error → `{ ok: false }`.
+`withdrawTalent` (allowed even when the form is closed): session required; `insertTalentEntry({ user_id, kind: 'withdrawal' })` **first** (no `consent_locale`; the A-10 check requires it null), then upsert the log `withdrawn_at = now`; revalidate the same four paths; any error → `{ ok: false }`.
 
 **Needs first:** A-10, D2-5 (`reportError`), D2-7.
 
@@ -571,7 +637,7 @@ export async function withdrawTalent(): Promise<{ ok: boolean }>
 
 **Tests to write:**
 - `talent-fields.test.ts`: valid answers for all seven fields parse; `graduation_year: 1979` fails; `skills: []` fails; `cv_url: 'http://x.com'` fails; `github_url: 'https://gitlab.com/a'` fails; `github_url` missing passes; `{ ...valid, email: 'x@y.com' }` parses without `email`.
-- `talent-flags.test.ts`: env `TALENT_FORM_OPEN='true'` with the placeholder consent file → `TALENT_FORM_OPEN === false`; with a fixture consent file without «مؤقت» → `true`.
+- `talent-flags.test.ts`: env `TALENT_FORM_OPEN='true'` with the placeholder consent files → `TALENT_FORM_OPEN === false`; with a final Arabic file and the placeholder English file → `false`; with a placeholder Arabic file and a final English file → `false`; with both fixture files free of «مؤقت» → `true`. `consentHtml('en')` returns the English file's paragraphs, `consentHtml('ar')` the Arabic file's.
 - `tests/db/talent-action.test.ts` (flag forced open via `vi.mock('@/lib/config/flags')`):
   - flag closed → `{ ok: false, reason: 'closed' }`; `insertTalentEntry` not called.
   - user without profile → `needs_profile`.
@@ -579,7 +645,8 @@ export async function withdrawTalent(): Promise<{ ok: boolean }>
   - valid submit with `answers` containing `email: 'attacker@x.com'` → the inserted talent row has `email` = the profile's email and its `answers` has no `email` key.
   - call order: `insertTalentEntry` before the log upsert (spy order).
   - `insertTalentEntry` rejects → result `failed` and **no** log row written.
-  - `withdrawTalent` → a `withdrawal` row inserted, then `withdrawn_at` set in the log.
+  - a valid submit with `locale = 'en'` → the inserted row has `consent_locale = 'en'`; with `'ar'` → `'ar'`; with `'fr'` → `{ ok: false, reason: 'invalid' }` and `insertTalentEntry` not called.
+  - `withdrawTalent` → a `withdrawal` row inserted (without `consent_locale`), then `withdrawn_at` set in the log.
 
 **Done when:** `npm test -- tests/unit/talent-fields.test.ts tests/unit/talent-flags.test.ts tests/unit/talent-isolation.test.ts && npm run test:db -- tests/db/talent-action.test.ts` passes.
 
@@ -743,7 +810,8 @@ export async function GET(req: Request, ctx: { params: Promise<{ kind: string }>
 // Content-Disposition attachment; filename="registrations-<id>.csv" | "accounts-<YYYY-MM-DD>.csv"
 ```
 - Reads with `supabaseProdServer()` (the admin's own session; admin policies grant access).
-- `event-registrations` columns (header text from `ar.json`): name, email, major (Arabic label, or `major_other` for `OTHER`), academic level (Arabic label), gender (ذكر/أنثى), status (Arabic label), registered at (`formatRiyadh(created_at, 'datetime')`), waitlist position (number for waitlisted rows, else empty). Rows ordered: registered by `created_at`, then waitlisted by position, then cancelled.
+- **Admin is Arabic only**, so both exports are Arabic whatever language the people in them use: header text via `t('ar', …)`, labels via `label(file, code, 'ar')`, dates via `formatRiyadh(…, 'ar')`.
+- `event-registrations` columns (header text from `ar.json`): name, email, major (Arabic label, or `major_other` for `OTHER`), academic level (Arabic label), gender (ذكر/أنثى), status (Arabic label), registered at (`formatRiyadh(created_at, 'datetime', 'ar')`), waitlist position (number for waitlisted rows, else empty). Rows ordered: registered by `created_at`, then waitlisted by position, then cancelled.
 - `all-accounts` columns: name, email, major, academic level, gender, announcements opt-in (نعم/لا), created at (Riyadh).
 
 **Needs first:** D1-13 (`requireAdmin` pattern), D1-7 (`formatRiyadh`).
@@ -791,7 +859,8 @@ export function reportError(err: unknown, opts: { level: 'fatal' | 'error'; tags
 - Sentry alert rules: `level:fatal AND alert:sign-in` → email you immediately; other errors → daily digest.
 
 **Launch preparation (same day):**
-- [ ] Paste final department copy and hero content into `ar.json`; set `HERO_IMAGE` if cleared. `npm run check:content` passes; make `check:content` a required check (remove `continue-on-error`).
+- [ ] Paste final department copy and hero content into `ar.json`; set `HERO_IMAGE` if cleared.
+- [ ] Approve the English: review the developers' drafts in `en.json` (including the English department copy and hero content) and remove «مؤقت» from each string you approve. `npm run check:content` passes (it scans both files); make `check:content` a required check (remove `continue-on-error`).
 - [ ] Production env reviewed against spec §5.4.
 - [ ] Prepare the bug-bash checklist for Sun 29 from spec §17 and share it in the WhatsApp group.
 
@@ -817,9 +886,10 @@ export function reportError(err: unknown, opts: { level: 'fatal' | 'error'; tags
   - each developer account has no access to Hisn Prod, Hisn Talent or production env vars (check each member list);
   - run `scripts/export-talent.ts` and open the file in Excel.
 - [ ] Switch hisn-sa.org following `docs/launch-runbook.md`. Set `SITE_URL=https://hisn-sa.org` in Vercel production env and redeploy.
-- [ ] Send one real announcement to the team; press Gmail's own unsubscribe button; confirm the row in `email_unsubscribes`.
+- [ ] Both languages: `https://hisn-sa.org/` redirects to `/ar`; `/en` pages read left to right and the language switcher keeps you on the same page; `/admin` stays Arabic.
+- [ ] Send one real announcement to the team, with at least one team account set to English on `/account`: the Arabic and the English versions arrive in the right inboxes. Press Gmail's own unsubscribe button; confirm the row in `email_unsubscribes`.
 - [ ] Update the Resend webhook URL to `https://hisn-sa.org/api/webhooks/resend`; send one email to `bounced@resend.dev` → a `bounce` row appears in `email_unsubscribes`.
-- [ ] If the talent form is open: submit once from a Gmail account → success.
+- [ ] If the talent form is open: submit once from a Gmail account → success; once from `/en/talent` → success, and the row has `consent_locale = 'en'` (read through your own connection).
 - [ ] Confirm the flush cron is running (Vercel → Cron Jobs) and `Contact@Hisn-sa.org` receives mail.
 
 **Needs first:** A-16, D2-16, all `launch` issues closed.
@@ -832,19 +902,19 @@ export function reportError(err: unknown, opts: { level: 'fatal' | 'error'; tags
 
 **Date:** the day after **both** inputs arrive, not before Mon 23 Nov. If they arrive before Mon 23, fold this into A-11.
 
-**Build:** Replace the provisional fields with the committee's list and the placeholder consent with the founder's text, then open the form.
+**Build:** Replace the provisional fields with the committee's list and the placeholder consent with the founder's text and its English translation, then open the form.
 
-**Files:** `lib/talent/fields.ts`, `lib/i18n/ar.json`, `content/talent-consent/v1.md`, `tests/scripts/export.test.ts`.
+**Files:** `lib/talent/fields.ts`, `lib/i18n/ar.json`, `lib/i18n/en.json`, `content/talent-consent/v1.ar.md`, `content/talent-consent/v1.en.md`, `tests/scripts/export.test.ts`.
 
-- [ ] Replace `talentFields` (same `TalentField` type); set `FIELDS_VERSION = 'final-1'`; add label keys to `ar.json`.
-- [ ] Replace `content/talent-consent/v1.md` with the founder's text (no «مؤقت»); `consentIsFinal` becomes `true`.
+- [ ] Replace `talentFields` (same `TalentField` type); set `FIELDS_VERSION = 'final-1'`; add label keys to `ar.json` and `en.json` (English labels approved by you).
+- [ ] Replace `content/talent-consent/v1.ar.md` with the founder's text (binding) and `content/talent-consent/v1.en.md` with its English translation, approved by you, which states that the Arabic text prevails. No «مؤقت» in either; `consentIsFinal` becomes `true` only when both are final.
 - [ ] Update the expected header row in `tests/scripts/export.test.ts`.
 - [ ] After merge: set `TALENT_FORM_OPEN=true` in Vercel production env and redeploy.
 - If the inputs are not in by launch: skip; the site launches with the form closed («يفتح قريبًا»).
 
 **Needs first:** A-11, A-12; both inputs.
 
-**Done when:** `npm test && npm run test:scripts && cp tests/fixtures/talent-consent-final.md content/talent-consent/v1.md`, then `TALENT_FORM_OPEN=true npm run test:e2e -- --grep @talent-open` passes with the final fields (the run-2 command from A-7).
+**Done when:** `npm test && npm run test:scripts && cp tests/fixtures/talent-consent-final.ar.md content/talent-consent/v1.ar.md && cp tests/fixtures/talent-consent-final.en.md content/talent-consent/v1.en.md`, then `TALENT_FORM_OPEN=true npm run test:e2e -- --grep @talent-open` passes with the final fields (the run-2 command from A-7).
 
 ---
 

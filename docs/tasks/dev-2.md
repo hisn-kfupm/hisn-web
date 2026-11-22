@@ -6,30 +6,34 @@
 
 ## Summary
 
-**You own:** signed tokens; all email (templates, `.ics`, the outbox that sends them, the cron, announcements with unsubscribe); sign-in; the profile step and announcement-consent rules; the registration and waitlist database functions and the server actions that call them; the signed cancel and unsubscribe pages; the admin notice actions; and the end-to-end tests.
+**You own:** signed tokens; all email in Arabic and English (templates, `.ics`, the outbox that sends them, the cron, announcements with unsubscribe); the middleware (locale redirect and cookie refresh); sign-in; the profile step and announcement-consent rules; the registration and waitlist database functions and the server actions that call them; the signed cancel and unsubscribe pages (both languages); the admin notice actions (Arabic only); and the end-to-end tests.
 
 **You need from others before you can start:**
 
 | You need | From | Expected |
 |---|---|---|
-| Bare app, npm scripts, `t()` | Abdulrahman (D1-1, D1-2) | Thu 12 – Fri 13 Nov |
+| Bare app, npm scripts, `t(locale, key, vars)`, `en.json`, `lib/i18n/locale.ts`, the `app/[locale]` layout | Abdulrahman (D1-1, D1-2) | Thu 12 – Fri 13 Nov |
 | `lib/env.ts`, `supabaseProdServer`, `supabaseProdService` | Abdulaziz (A-2) | Fri 13 Nov |
 | Tables incl. `profiles`, `events`, `event_private`, `registrations`, `email_deliveries`, `email_unsubscribes` | Abdulaziz (A-3) | Sat 14 Nov |
 | Row-level security, `is_admin()`, SQL test helpers `tests.*` | Abdulaziz (A-4) | Sun 15 Nov |
 | Seed data, `tests/fixtures/seed.ts`, `tests/db/helpers.ts` | Abdulaziz (A-6) | Tue 17 Nov |
 | `RegisterButton` (calls your actions) | Abdulrahman (D1-11) | Sun 22 Nov |
 | `requireAdmin`, `setStatus`, admin event page | Abdulrahman (D1-13 – D1-15) | Tue 24 – Thu 26 Nov |
+| Locale migration: `profiles.locale`, `signups.locale`, `email_deliveries.locale`, `events.title_en` / `events.description_en`, `newsletter_signup(…, p_locale)`, bilingual sign-in code email | Abdulaziz (A-19) | set by Abdulaziz |
+| `localePath`, then `eventText` (English event text with Arabic fallback) | Abdulrahman (D1-5, D1-8) | Mon 16 – Thu 19 Nov |
 
 **Waiting on you:**
-- Abdulrahman needs `getSession`/`signOut` (D2-4, Sun 15), `FieldErrors` and `saveProfile` (D2-6, Tue 17), `useProfileGate` (D2-7, Wed 18), and the SQL functions (D2-9/D2-10, Fri 20 – Sun 22).
-- Abdulaziz needs `reportError` (D2-5) and `verifyTokenDetailed` (D2-1).
-- Everyone needs sign-in working on a preview (D2-5, Mon 16). Abdulaziz tests it against real inboxes on Tue 17.
+- Abdulrahman needs `getSession`/`signOut` (D2-4, Sun 15), `FieldErrors` and `saveProfile` (D2-6, Tue 17; including `locale` for the account page's "Email language" field), `useProfileGate` (D2-7, Wed 18), and the SQL functions (D2-9/D2-10, Fri 20 – Sun 22). Every public page relies on your locale middleware (D2-4).
+- Abdulaziz needs `reportError` (D2-5) and `verifyTokenDetailed` (D2-1). His bilingual sign-in code email (A-19) reads `user_metadata.locale`, which `sendCode` sets (D2-5) and `saveProfile` keeps equal to `profiles.locale` (D2-6).
+- Everyone needs sign-in working on a preview (D2-5, Mon 16). Abdulaziz tests it against real inboxes on Tue 17, including once from `/en/sign-in`.
 
 ### Rules for every task
 
 - Write the listed tests first, see them fail, implement, see them pass, open a PR. One task = one PR, opened the same day.
-- All constraints in plan "Global Constraints" apply. In particular: no literal UI text in components (keys into `lib/i18n/ar.json`; add your keys under your own prefix, e.g. `email.*`, `signin.*`, `waitlist.*`); never name a variable `supabase`; times stored UTC, shown `Asia/Riyadh`; wrap emails, URLs and English names inside Arabic text in `<Bdi>`/`<bdi>`.
-- `supabaseProdServer()` is **async** (current Next.js `cookies()` is async): `const db = await supabaseProdServer()`. `supabaseProdService()` (service key, server only) is sync and used only for the outbox, announcements, the token flows and `email_unsubscribes`.
+- All constraints in plan "Global Constraints" apply. In particular: no literal UI text in components (keys into `lib/i18n/ar.json` **and** `lib/i18n/en.json`, identical key sets, read with `t(locale, key, vars)`, locale first; add your keys under your own prefix, e.g. `email.*`, `signin.*`, `waitlist.*`); never name a variable `supabase`; times stored UTC, shown `Asia/Riyadh` (`formatRiyadh(…, locale)`); wrap emails, URLs and English names inside Arabic text, and Arabic names or fallback Arabic event text inside English text, in `<Bdi>`/`<bdi>`.
+- Every key you add goes into both string files. You draft the English text under your prefixes; each English value carries «مؤقت» until Abdulaziz approves it (so `check:content` keeps failing until then).
+- Every public page lives under `app/[locale]/…` (`/ar/...` and `/en/...`) and is built in both languages; the locale comes from the route param; internal links go through `localePath(locale, path)` (D1-5). Admin (`/admin`) stays **Arabic only**, outside the locale segment, using `t('ar', …)`. `app/api/...` routes have no locale.
+- `supabaseProdServer()` is **async** (current Next.js `cookies()` is async): `const db = await supabaseProdServer()`. `supabaseProdService()` (service key, server only) is sync and used only for the outbox, announcements, the token flows, `email_unsubscribes` and mirroring the profile locale into auth metadata (D2-6).
 - Database migrations: create with `supabase migration new <name>`; the file is `supabase/migrations/<timestamp>_<name>.sql`. Never change the schema in the dashboard.
 - Database tests:
   - **pgTAP** in `supabase/tests/*.test.sql`, run with `supabase test db`. Each file starts with `begin; select plan(N);` and ends with `select * from finish(); rollback;`. Use the helpers from A-4/A-6: `tests.create_user(email, with_profile, is_admin) returns uuid`, `tests.create_event(capacity, status, starts_in, closes_in, format) returns bigint`, `tests.add_registration(user_id, event_id, status) returns bigint`, `tests.login_as(uuid)`, `tests.login_anon()`, `tests.logout()`.
@@ -113,6 +117,8 @@ export function unsubscribeHeaders(email: string): Record<'List-Unsubscribe' | '
 // 'List-Unsubscribe-Post' → 'List-Unsubscribe=One-Click'
 ```
 - `.ics` content, lines joined with `\r\n`, in this order: `BEGIN:VCALENDAR`, `VERSION:2.0`, `PRODID:-//Hisn//Events//AR`, `METHOD:PUBLISH`, `BEGIN:VEVENT`, `UID:event-{id}@hisn-sa.org`, `DTSTAMP:{now UTC, YYYYMMDDTHHMMSSZ}`, `DTSTART:{startsAt}`, `DTEND:{endsAt}`, `SUMMARY:{title}`, `LOCATION:{location ?? url}`, `URL:{url}`, `END:VEVENT`, `END:VCALENDAR`. Escape `\`, `,`, `;` and newlines in text values as `\\`, `\,`, `\;`, `\n`.
+- Language: `buildIcs` itself is locale-free. The caller (D2-8) passes the title in the delivery's locale (`eventText(toPublicEvent(row), locale).title`, so an English delivery for an event without `title_en` gets the Arabic title) and `url = ${SITE_URL}/${locale}/events/${id}`.
+- The headers carry no locale: the RFC 8058 one-click endpoint `/api/unsubscribe` stays locale-free. Only the unsubscribe link in the email body (D2-8) carries the locale (`/${locale}/unsubscribe?t=…`).
 
 **Needs first:** D2-1.
 
@@ -124,9 +130,10 @@ export function unsubscribeHeaders(email: string): Record<'List-Unsubscribe' | '
   - Two calls for `id: 7` both contain `UID:event-7@hisn-sa.org`.
   - Output contains `\r\n` and no bare `\n` outside `\r\n`.
   - `title: 'ورشة, الطائرات'` → contains `SUMMARY:ورشة\, الطائرات`.
-  - `location: null`, `url: 'https://hisn-sa.org/events/7'` → contains `LOCATION:https://hisn-sa.org/events/7`.
+  - `location: null`, `url: 'https://hisn-sa.org/ar/events/7'` → contains `LOCATION:https://hisn-sa.org/ar/events/7`.
+  - `title: 'Drone workshop'`, `url: 'https://hisn-sa.org/en/events/7'` → contains `SUMMARY:Drone workshop` and `URL:https://hisn-sa.org/en/events/7`.
 - `headers.test.ts` (with `SITE_URL=https://x.test`):
-  - `unsubscribeHeaders('A@B.com')['List-Unsubscribe']` matches `/^<https:\/\/x\.test\/api\/unsubscribe\?t=[^>]+>$/`.
+  - `unsubscribeHeaders('A@B.com')['List-Unsubscribe']` matches `/^<https:\/\/x\.test\/api\/unsubscribe\?t=[^>]+>$/` (no `/ar/` or `/en/` in it).
   - The token inside verifies (`verifyToken(token, 'unsub')`) to `{ sub: 'a@b.com' }`.
   - `['List-Unsubscribe-Post'] === 'List-Unsubscribe=One-Click'`.
 
@@ -138,11 +145,12 @@ export function unsubscribeHeaders(email: string): Record<'List-Unsubscribe' | '
 
 **Date:** Sat 14 Nov. ⇄ Needs only D1-2 (`t()`); independent of the database.
 
-**Build:** Seven React Email templates with one shared RTL layout, plus the subject helper. Templates take plain props; loading the data is D2-8's job.
+**Build:** Seven React Email templates in Arabic and the same seven in English, each language with its own layout (RTL / LTR), plus the subject helper. Templates take plain props; loading the data and choosing the language is D2-8's job.
 
 **Files:**
 - `lib/email/types.ts`
-- `lib/email/templates/Layout.tsx`, `Confirmation.tsx`, `Promoted.tsx`, `WaitlistJoined.tsx`, `CancelConfirmation.tsx`, `EventCancelled.tsx`, `EventChanged.tsx`, `Announcement.tsx`
+- `lib/email/templates/ar/Layout.tsx`, `Confirmation.tsx`, `Promoted.tsx`, `WaitlistJoined.tsx`, `CancelConfirmation.tsx`, `EventCancelled.tsx`, `EventChanged.tsx`, `Announcement.tsx`
+- `lib/email/templates/en/` — the same eight files
 - `lib/email/subject.ts`
 - `tests/unit/templates.test.tsx`
 
@@ -154,10 +162,11 @@ export type DeliveryKind = 'announcement' | 'confirmation' | 'promoted' | 'waitl
 export type EventEmailData = {
   id: number; title: string; startsAt: string; endsAt: string;
   format: 'in_person' | 'online'; location: string | null; meetingUrl: string | null;
-  presenter: string | null; url: string          // `${SITE_URL}/events/${id}`
+  presenter: string | null; url: string          // `${SITE_URL}/${locale}/events/${id}`
+  titleLang: Locale                              // 'ar' when an English email falls back to the Arabic title
 }
 
-// templates (default exports), exact props:
+// templates (default exports in both ar/ and en/), exact props, the same in both languages:
 Confirmation(props: { name: string; event: EventEmailData; cancelUrl: string })
 Promoted(props: { name: string; event: EventEmailData; cancelUrl: string })
 WaitlistJoined(props: { name: string; event: EventEmailData; position: number; leaveUrl: string })
@@ -167,24 +176,31 @@ EventChanged(props: { name: string; event: EventEmailData; cancelUrl: string }) 
 Announcement(props: { event: EventEmailData; unsubscribeUrl: string })
 
 // lib/email/subject.ts
-export function subjectFor(kind: DeliveryKind, eventTitle: string): string   // t(`email.${kind}.subject`, { title })
+export function subject(kind: DeliveryKind, locale: Locale, vars: { title: string }): string
+  // t(locale, `email.${kind}.subject`, vars); vars.title is the title shown in that locale (with the Arabic fallback)
 ```
-- `Layout`: `<Html lang="ar" dir="rtl">`, font stack `'IBM Plex Sans Arabic', Tahoma, Arial, sans-serif`, Hisn header, footer with `Contact@Hisn-sa.org` in `<bdi>`.
-- Dates and times with `formatRiyadh` (Abdulrahman, D1-7). **Stub until D1-7 merges:** use `new Date(iso).toISOString()` and switch the import when D1-7 lands.
-- Meeting link appears **only** in `Confirmation`, `Promoted` and `EventChanged`, and only when `format === 'online'` and `meetingUrl` is set. `WaitlistJoined` never shows it.
-- Names, emails and URLs in body text are wrapped in `<bdi>`.
+- One template per kind per locale. `ar/*` call `t('ar', …)`, `en/*` call `t('en', …)`; text comes from `email.*` keys in both string files.
+- `ar/Layout`: `<Html lang="ar" dir="rtl">`; `en/Layout`: `<Html lang="en" dir="ltr">`. Both: font stack `'IBM Plex Sans Arabic', Tahoma, Arial, sans-serif`, Hisn header, footer with `Contact@Hisn-sa.org` in `<bdi>`. Sender stays `حصن <noreply@hisn-sa.org>` (D2-8).
+- Dates and times with `formatRiyadh(date, style, locale)` (Abdulrahman, D1-7): Riyadh time in both languages. **Stub until D1-7 merges:** use `new Date(iso).toISOString()` and switch the import when D1-7 lands.
+- Meeting link appears **only** in `Confirmation`, `Promoted` and `EventChanged`, and only when `format === 'online'` and `meetingUrl` is set. `WaitlistJoined` never shows it. Same rule in both languages.
+- Names, emails and URLs in Arabic body text are wrapped in `<bdi>`; in English templates, Arabic names (e.g. `full_name_ar`) are wrapped in `<bdi>`, and a fallback Arabic title (`titleLang === 'ar'`) is rendered with `lang="ar" dir="rtl"` (in `<bdi>` when inline).
+- Links come in as props (`event.url`, `cancelUrl`, `leaveUrl`, `unsubscribeUrl`); D2-8 builds them with the delivery's locale.
 
-**Needs first:** D1-2.
+**Needs first:** D1-2 (`t(locale, …)`, `en.json`), D1-1 (`lib/i18n/locale.ts`).
 
 **Blocks:** D2-8.
 
-**Tests to write** (render with `@react-email/render`):
+**Tests to write** (render with `@react-email/render`; `ar/` templates unless stated):
 - `Confirmation` with an online event and `meetingUrl: 'https://meet.example/abc'` → html contains `dir="rtl"` and `https://meet.example/abc`.
 - `Confirmation` with `format: 'in_person'` and `meetingUrl: 'https://meet.example/abc'` → html does **not** contain `meet.example`.
 - `Confirmation` with `name: 'Ali Ahmed'` → html matches `/<bdi[^>]*>Ali Ahmed<\/bdi>/`.
 - `WaitlistJoined` with `position: 3` and an online event with a meeting URL → contains `3`, does not contain the meeting URL, contains `leaveUrl`.
 - `Announcement` → html contains `unsubscribeUrl`.
-- `subjectFor('confirmation', 'ورشة الأمن السيبراني')` contains `'ورشة الأمن السيبراني'`.
+- `subject('confirmation', 'ar', { title: 'ورشة الأمن السيبراني' })` contains `'ورشة الأمن السيبراني'`; `subject('confirmation', 'en', { title: 'Cyber workshop' })` contains `'Cyber workshop'` and differs from the Arabic subject.
+- Every kind in both locales (loop over the 7 kinds × `ar`, `en` with sample props) renders without error; every `ar` html contains `lang="ar"` and `dir="rtl"`, every `en` html contains `lang="en"` and `dir="ltr"`.
+- `en/Confirmation` with `event.url: 'https://x.test/en/events/7'` and `cancelUrl: 'https://x.test/en/registrations/cancel?t=abc'` → html contains both URLs (links carry the locale they are given).
+- `en/Confirmation` with `name: 'علي أحمد'` → html matches `/<bdi[^>]*>علي أحمد<\/bdi>/`.
+- `en/Confirmation` with `titleLang: 'ar'` and an Arabic title → the title is inside an element with `lang="ar"` and `dir="rtl"`.
 
 **Done when:** `npm test -- tests/unit/templates.test.tsx` passes.
 
@@ -194,12 +210,12 @@ export function subjectFor(kind: DeliveryKind, eventTitle: string): string   // 
 
 **Date:** Sun 15 Nov.
 
-**Build:** Server helpers to read the signed-in user and sign out, safe `returnTo` handling, the university-email check, and the Supabase cookie-refresh middleware.
+**Build:** Server helpers to read the signed-in user and sign out, safe `returnTo` handling, the university-email check, and the middleware: locale redirect plus Supabase cookie refresh.
 
 **Files:**
 - `lib/auth/session.ts`, `lib/auth/return-to.ts`
 - `middleware.ts`
-- `tests/unit/return-to.test.ts`, `tests/unit/session.test.ts`
+- `tests/unit/return-to.test.ts`, `tests/unit/session.test.ts`, `tests/unit/middleware.test.ts`
 
 **Interfaces — produces:**
 ```ts
@@ -211,24 +227,34 @@ export async function signOut(): Promise<void>   // 'use server'; auth.signOut()
 // lib/auth/return-to.ts
 export function safeReturnTo(input: string | null | undefined): string
   // returns input only if it starts with '/', does not start with '//' or '/\\', contains no ':' before the first '/', and length ≤ 512; else '/'
+  // locale-prefixed paths (/ar/..., /en/...) pass; still same-site relative paths only
 export function isInstitutionalEmail(email: string): boolean
   // domain = part after '@', lowercased; true iff domain === 'edu' or ends with '.edu' or '.edu.sa'
 ```
-- `middleware.ts`: the standard `@supabase/ssr` cookie-refresh middleware; `matcher` excludes `_next/static`, `_next/image`, `favicon.ico`, `api/cron`.
+- `middleware.ts`, in this order:
+  1. **Locale redirect:** `/` → redirect (`NextResponse.redirect`, 307) to `/ar` (always; no browser-language detection). A path without a locale prefix that is not `/admin…`, `/api…`, `/_next…` or a static file (last segment contains a `.`) → redirect to `/ar` + path, query kept (`/events?m=2026-12` → `/ar/events?m=2026-12`). `/ar…`, `/en…`, `/admin…` and `/api…` pass through. Use `isLocale` from `lib/i18n/locale.ts` (D1-1).
+  2. The standard `@supabase/ssr` cookie refresh on everything that passes through.
+  - `matcher` excludes `_next/static`, `_next/image`, `favicon.ico`, `api/cron`.
 
-**Needs first:** A-2.
+**Needs first:** A-2; D1-1 (`lib/i18n/locale.ts`).
 
-**Blocks:** D2-5 (yours); Abdulrahman (D1-5 header, D1-13 admin guard).
+**Blocks:** D2-5 (yours); Abdulrahman (D1-5 header, D1-13 admin guard; unprefixed links reach `/ar` through the locale redirect).
 
 **Tests to write:**
 - `return-to.test.ts`:
   - `safeReturnTo('/events/3') === '/events/3'`; `safeReturnTo('/events?m=2026-11') === '/events?m=2026-11'`
+  - `safeReturnTo('/ar/events/3') === '/ar/events/3'`; `safeReturnTo('/en/events?m=2026-11') === '/en/events?m=2026-11'`
+  - `safeReturnTo('/admin') === '/admin'` (the admin guard sends people to `/ar/sign-in?returnTo=/admin`, D1-13)
   - `'//evil.com'`, `'https://evil.com'`, `'/\\evil.com'`, `'javascript:alert(1)'` → `'/'`
   - `safeReturnTo(null) === '/'`; `safeReturnTo('')` → `'/'`
   - `isInstitutionalEmail('a@kfupm.edu.sa') === true`; `('a@stanford.edu') === true`; `('a@gmail.com') === false`; `('a@edu.sa.com') === false`
 - `session.test.ts` (mock `supabaseProdServer`): `auth.getUser` → `{ data: { user: { id: 'u1', email: 'a@b.com' } } }` → `{ userId: 'u1', email: 'a@b.com' }`; `{ data: { user: null } }` → `null`.
+- `middleware.test.ts` (call `middleware(new NextRequest(url))`; mock `@supabase/ssr`'s `createServerClient`):
+  - `/` → status 307 or 308, `Location` ends with `/ar`.
+  - `/events` → `Location` ends with `/ar/events`; `/events?m=2026-12` → ends with `/ar/events?m=2026-12`.
+  - `/ar/events`, `/en/events`, `/admin`, `/admin/events/3`, `/api/unsubscribe?t=x` and `/robots.txt` → not redirected (no `Location` header).
 
-**Done when:** `npm test -- tests/unit/return-to.test.ts tests/unit/session.test.ts` passes.
+**Done when:** `npm test -- tests/unit/return-to.test.ts tests/unit/session.test.ts tests/unit/middleware.test.ts` passes.
 
 ---
 
@@ -236,18 +262,19 @@ export function isInstitutionalEmail(email: string): boolean
 
 **Date:** Mon 16 Nov.
 
-**Build:** `/sign-in`, two steps: email (with the personal-email hint and a university-email warning) → 6-digit code (resend after 60 seconds, junk-folder hint). Includes the critical-failure report for codes that fail to send.
+**Build:** `/[locale]/sign-in` (`/ar/sign-in` and `/en/sign-in`), two steps: email (with the personal-email hint and a university-email warning) → 6-digit code (resend after 60 seconds, junk-folder hint). Both languages. Includes the critical-failure report for codes that fail to send.
 
 **Files:**
-- `app/sign-in/page.tsx`, `app/sign-in/SignInForm.tsx`, `app/sign-in/actions.ts`
+- `app/[locale]/sign-in/page.tsx`, `app/[locale]/sign-in/SignInForm.tsx`, `app/[locale]/sign-in/actions.ts`
 - `lib/monitoring/report.ts`
 - `tests/unit/sign-in-actions.test.ts`, `tests/unit/sign-in-form.test.tsx`
 
 **Interfaces — produces:**
 ```ts
-// app/sign-in/actions.ts ('use server')
-export async function sendCode(email: string): Promise<{ ok: true } | { ok: false; reason: 'invalid' | 'rate_limited' | 'send_failed' }>
-  // z.string().trim().email(); auth.signInWithOtp({ email: normalizeEmail(email), options: { shouldCreateUser: true } })
+// app/[locale]/sign-in/actions.ts ('use server')
+export async function sendCode(email: string, locale: Locale): Promise<{ ok: true } | { ok: false; reason: 'invalid' | 'rate_limited' | 'send_failed' }>
+  // z.string().trim().email(); auth.signInWithOtp({ email: normalizeEmail(email), options: { shouldCreateUser: true, data: { locale } } })
+  // locale = the page locale; the sign-in code email (A-19) switches on user_metadata.locale
   // error.status === 429 → 'rate_limited'; any other error → 'send_failed' + reportError(err, { level: 'fatal', tags: { alert: 'sign-in' } })
 export async function verifyCode(email: string, code: string, returnTo?: string): Promise<{ ok: false; reason: 'wrong' | 'expired' } | never>
   // auth.verifyOtp({ email: normalizeEmail(email), token: code, type: 'email' })
@@ -258,29 +285,32 @@ export async function verifyCode(email: string, code: string, returnTo?: string)
 export function reportError(err: unknown, opts: { level: 'fatal' | 'error'; tags?: Record<string, string> }): void
   // now: console.error('[reportError]', opts.level, opts.tags, err)
 ```
-- Page reads `returnTo` from the query string and passes it through both steps.
-- Step 1: hint `t('signin.personalHint')` («استخدم بريدك الشخصي — يبقى معك بعد التخرج»); when `isInstitutionalEmail(value)`, an inline warning `t('signin.institutionalWarning')` that does **not** block submit.
-- Step 2: `<input inputMode="numeric" autoComplete="one-time-code" maxLength={6}>`; resend button disabled for 60 s after each send (countdown shown); text `t('signin.checkJunk')`.
-- Errors shown with `t('signin.error.<reason>')`.
+- Page reads `returnTo` from the query string and passes it through both steps; when it is absent, the page passes `` `/${locale}` `` (so `/en/sign-in` returns to `/en`). The page passes its `locale` to `SignInForm` (prop `locale: Locale`), which passes it to `sendCode`.
+- Step 1: hint `t(locale, 'signin.personalHint')` («استخدم بريدك الشخصي — يبقى معك بعد التخرج»); when `isInstitutionalEmail(value)`, an inline warning `t(locale, 'signin.institutionalWarning')` that does **not** block submit.
+- Step 2: `<input inputMode="numeric" autoComplete="one-time-code" maxLength={6}>`; resend button disabled for 60 s after each send (countdown shown); text `t(locale, 'signin.checkJunk')`.
+- Errors shown with `t(locale, 'signin.error.<reason>')`.
+- All `signin.*` keys in both string files (English drafted by you, «مؤقت» until approved).
 
-**Needs first:** D2-4. For the preview test: Abdulaziz has set `hisn-dev` Auth to send through Resend (A-1).
+**Needs first:** D2-4. For the preview test: Abdulaziz has set `hisn-dev` Auth to send through Resend (A-1). For the English code email: A-19 (the action and its tests don't wait for it).
 
 **Blocks:** everyone (sign-in on previews). Abdulaziz's real-inbox test on Tue 17.
 
 **Tests to write:**
 - `sign-in-actions.test.ts` (mock client and `redirect`):
-  - `sendCode('bad')` → `{ ok: false, reason: 'invalid' }`; `signInWithOtp` not called.
-  - `sendCode(' A@Gmail.com ')` → `signInWithOtp` called with `{ email: 'a@gmail.com', options: { shouldCreateUser: true } }`.
+  - `sendCode('bad', 'ar')` → `{ ok: false, reason: 'invalid' }`; `signInWithOtp` not called.
+  - `sendCode(' A@Gmail.com ', 'ar')` → `signInWithOtp` called with `{ email: 'a@gmail.com', options: { shouldCreateUser: true, data: { locale: 'ar' } } }`.
+  - `sendCode('a@gmail.com', 'en')` → `signInWithOtp` called with `options: { shouldCreateUser: true, data: { locale: 'en' } }`.
   - error `{ status: 429 }` → `rate_limited`.
   - error `{ status: 500 }` → `send_failed`, and `reportError` called with `{ level: 'fatal', tags: { alert: 'sign-in' } }`.
   - `verifyOtp` error `{ message: 'Token has expired or is invalid' }` → `{ ok: false, reason: 'expired' }`.
   - `verifyOtp` error `{ message: 'Invalid token' }` → `{ ok: false, reason: 'wrong' }`.
-  - success with `returnTo: '//evil.com'` → `redirect('/')`; with `'/events/3'` → `redirect('/events/3')`.
+  - success with `returnTo: '//evil.com'` → `redirect('/')`; with `'/events/3'` → `redirect('/events/3')`; with `'/en/events/3'` → `redirect('/en/events/3')`.
 - `sign-in-form.test.tsx` (fake timers):
   - After sending, the resend button is disabled; after `vi.advanceTimersByTime(60_000)` it is enabled.
   - Typing `x@kfupm.edu.sa` shows the warning text; the submit button stays enabled.
+  - Rendered with `locale="en"`: shows the `en.json` value of `signin.personalHint`; typing `x@kfupm.edu.sa` shows the `en.json` value of `signin.institutionalWarning`; submitting calls `sendCode` with `(…, 'en')`.
 
-**Done when:** `npm test -- tests/unit/sign-in-actions.test.ts tests/unit/sign-in-form.test.tsx` passes, and on your preview you sign in with your own Gmail and land back on the page you came from.
+**Done when:** `npm test -- tests/unit/sign-in-actions.test.ts tests/unit/sign-in-form.test.tsx` passes, and on your preview you sign in with your own Gmail and land back on the page you came from; once A-19 is merged, a new address signed in from `/en/sign-in` gets the English code email.
 
 ---
 
@@ -288,12 +318,12 @@ export function reportError(err: unknown, opts: { level: 'fatal' | 'error'; tags
 
 **Date:** Tue 17 Nov.
 
-**Build:** The profile validation schema, the save action (insert on first save, update after), and the announcement-consent rules from spec §10.2, exactly as written.
+**Build:** The profile validation schema, the save action (insert on first save, update after), the person's email language (`profiles.locale`, mirrored into the auth user's metadata), and the announcement-consent rules from spec §10.2, exactly as written.
 
 **Files:**
 - `lib/forms/types.ts`
 - `lib/profile/schema.ts`, `lib/profile/announcements.ts`
-- `app/account/actions.ts` (profile part; Abdulrahman builds the account page on it)
+- `app/account/actions.ts` (profile part; Abdulrahman builds the account page on it). Server actions stay at their current paths outside `app/[locale]`; only pages move.
 - `tests/unit/profile-schema.test.ts`, `tests/db/announcements.test.ts`, `tests/db/save-profile.test.ts`
 
 **Interfaces — produces:**
@@ -304,21 +334,28 @@ export type FieldErrors = Partial<Record<string, StringKey>>
 // lib/profile/schema.ts
 export type ProfileInput = {
   full_name_ar: string; major_code: string; major_other?: string | null;
-  academic_level_code: string; gender: 'male' | 'female'; announcements_opt_in: boolean
+  academic_level_code: string; gender: 'male' | 'female'; announcements_opt_in: boolean;
+  locale: Locale                                   // email language
 }
 export const profileSchema: z.ZodType<ProfileInput>
 // full_name_ar: trim, 2–100 chars; major_code ∈ majors codes; major_code === 'OTHER' → major_other trim 2–80 required;
 // otherwise major_other is set to null; academic_level_code ∈ academicLevels codes; gender ∈ {'male','female'};
-// announcements_opt_in: boolean, default false. Unknown keys are stripped (so { is_admin: true } is dropped).
+// announcements_opt_in: boolean, default false; locale ∈ LOCALES ('ar' | 'en'), required.
+// Unknown keys are stripped (so { is_admin: true } is dropped).
 
 // app/account/actions.ts ('use server')
 export async function saveProfile(input: ProfileInput): Promise<{ ok: true } | { ok: false; errors: FieldErrors }>
 // no session → throw Error('unauthenticated')
 // no profile row → INSERT { id: userId, email: session.email, ...parsed, announcements_updated_at: now }
+//   (parsed.locale is the page locale: the overlay, D2-7, sends it on the first save)
 //   then applyAnnouncementChoice(session.email, parsed.announcements_opt_in, 'signup')
+//   then mirror the locale into auth (below)
 // existing row → UPDATE parsed fields (never email); if announcements_opt_in changed: set announcements_updated_at = now
-//   and applyAnnouncementChoice(email, newValue, 'account')
-// revalidatePath('/account')
+//   and applyAnnouncementChoice(email, newValue, 'account'); if locale changed (the "Email language" field on /account, D1-16):
+//   mirror the new locale into auth (below)
+// mirror = supabaseProdService().auth.admin.updateUserById(userId, { user_metadata: { locale } }), so the sign-in code
+//   email (A-19) follows profiles.locale; a failure is reported with reportError(err, { level: 'error' }) and does not fail the save
+// revalidatePath('/ar/account') and revalidatePath('/en/account')
 
 // lib/profile/announcements.ts  ('server-only'; uses supabaseProdService())
 export async function applyAnnouncementChoice(email: string, optIn: boolean, context: 'signup' | 'account'): Promise<void>
@@ -336,9 +373,9 @@ export async function applyAnnouncementChoice(email: string, optIn: boolean, con
 
 This function is the **only** way an unsubscribe is reversed. `newsletter_signup` (A-5) inserts into `signups` and nothing else: it is open to `anon` and cannot prove the caller owns the address, so letting it remove unsubscribes would let a stranger re-subscribe someone by typing their email into the footer. A person who unsubscribed opts back in by ticking the box in `/account` (context `account`), from a signed-in, code-verified session.
 
-**Needs first:** A-2, A-3, A-4, A-6 (helpers).
+**Needs first:** A-2, A-3, A-4, A-6 (helpers), A-19 (`profiles.locale` and its column grants).
 
-**Blocks:** D2-7 (yours); Abdulrahman (D1-14 uses `FieldErrors`, D1-16 uses `saveProfile`).
+**Blocks:** D2-7 (yours); Abdulrahman (D1-14 uses `FieldErrors`, D1-16 uses `saveProfile`, including its "Email language" field).
 
 **Tests to write:**
 - `profile-schema.test.ts`:
@@ -348,6 +385,7 @@ This function is the **only** way an unsubscribe is reversed. `newsletter_signup
   - `gender: 'x'` → error.
   - input without `announcements_opt_in` → parsed value `false`.
   - input with `is_admin: true` → parsed object has no `is_admin` key.
+  - input without `locale` → error on `locale`; `locale: 'fr'` → error; `locale: 'en'` → parses.
 - `tests/db/announcements.test.ts`:
   - signup, `true`, with an existing `email_unsubscribes` row for `a@x.com` → row deleted.
   - signup, `false`, with an existing row → row still present.
@@ -359,6 +397,9 @@ This function is the **only** way an unsubscribe is reversed. `newsletter_signup
   - first save inserts a row whose `email` equals the session email and `is_admin === false`.
   - second save with a different `full_name_ar` updates it; `email` unchanged.
   - passing `{ ..., is_admin: true }` → stored `is_admin === false`.
+  - first save with `locale: 'en'` → `profiles.locale = 'en'` and the auth user's metadata locale is `'en'` (`select raw_user_meta_data->>'locale' from auth.users where id = $1` via `pgAdmin()`).
+  - a later save with `locale: 'ar'` → `profiles.locale = 'ar'` and the metadata locale is `'ar'`.
+  - a later save that changes only `full_name_ar` → `profiles.locale` unchanged.
 
 **Done when:** `npm test -- tests/unit/profile-schema.test.ts && npm run test:db -- tests/db/announcements.test.ts tests/db/save-profile.test.ts` passes.
 
@@ -368,13 +409,13 @@ This function is the **only** way an unsubscribe is reversed. `newsletter_signup
 
 **Date:** Wed 18 Nov.
 
-**Build:** The profile overlay that opens when a signed-in person without a profile tries an action, and runs that action once the profile is saved. Also the server-side guard that tells the client a profile is needed.
+**Build:** The profile overlay, in both languages, that opens when a signed-in person without a profile tries an action, and runs that action once the profile is saved. Also the server-side guard that tells the client a profile is needed.
 
 **Files:**
 - `components/ProfileOverlay.tsx`
 - `lib/profile/gate.tsx` (client provider + hook)
 - `lib/profile/guard.ts` (server)
-- Modify `app/layout.tsx` (wrap children in `ProfileGateProvider`; Abdulrahman owns the file, so keep the change to that one wrapper)
+- Modify `app/[locale]/layout.tsx` (wrap children in `<ProfileGateProvider locale={locale}>`; Abdulrahman owns the file, so keep the change to that one wrapper)
 - `tests/unit/profile-overlay.test.tsx`, `tests/unit/profile-guard.test.ts`
 
 **Interfaces — produces:**
@@ -385,12 +426,14 @@ export async function withProfile<T>(action: () => Promise<T>): Promise<T | { ne
   // no session → throw Error('unauthenticated'); no profile row → { needsProfile: true } (action not called); else return await action()
 
 // lib/profile/gate.tsx ('use client')
-export function ProfileGateProvider(props: { children: React.ReactNode }): JSX.Element
+export function ProfileGateProvider(props: { children: React.ReactNode; locale: Locale }): JSX.Element
 export function useProfileGate(): (action: () => Promise<void>) => void
   // gate(action): opens the overlay; after saveProfile returns { ok: true }, closes it and calls action() exactly once.
   // Closing the overlay without saving discards the action.
 ```
-- Overlay fields (spec §7.2): الاسم بالعربية (text); التخصص (select from `majors`; choosing `OTHER` reveals a required text input `major_other`); المرحلة العلمية (select from `academicLevels`); الجنس (two radios, `male` ذكر / `female` أنثى, **none selected**); announcements checkbox, **unchecked**, labelled with `t('profile.announcements')`, whose value in `ar.json` is exactly «لقاءات مع قادة القطاع، وورش تقرّبك من دورك فيه، تصلك أولًا بأول على بريدك.»
+- Overlay fields (spec §7.2): الاسم بالعربية (text); التخصص (select from `majors`; choosing `OTHER` reveals a required text input `major_other`); المرحلة العلمية (select from `academicLevels`); الجنس (two radios, `male` ذكر / `female` أنثى, **none selected**); announcements checkbox, **unchecked**, labelled with `t(locale, 'profile.announcements')`, whose value in `ar.json` is exactly «لقاءات مع قادة القطاع، وورش تقرّبك من دورك فيه، تصلك أولًا بأول على بريدك.» (the English value is your draft, «مؤقت» until approved).
+- Both languages: every label via `t(locale, …)`; select options via `label(file, code, locale)` (D1-2). On `/en` the name field is still the Arabic name (`full_name_ar`).
+- The overlay sends the page locale with the first save: `saveProfile({ ...fields, locale })` (this sets `profiles.locale`; later changes come from `/account`). There is no language field in the overlay.
 - Field errors shown from `FieldErrors`.
 
 **Needs first:** D2-6.
@@ -405,6 +448,8 @@ export function useProfileGate(): (action: () => Promise<void>) => void
   - Selecting `OTHER` shows an input named `major_other`; selecting `SWE` hides it.
   - With `saveProfile` mocked to `{ ok: true }`, calling `gate(action)` then submitting → `action` called exactly once.
   - With `saveProfile` mocked to `{ ok: false, errors: { full_name_ar: 'profile.error.name' } }` → `action` not called and the error text renders.
+  - Provider with `locale="en"`: the `en.json` value of `profile.announcements` renders; the `SWE` option shows `label('majors', 'SWE', 'en')`; submitting calls `saveProfile` with an object containing `locale: 'en'`.
+  - Provider with `locale="ar"`: submitting calls `saveProfile` with `locale: 'ar'`.
 - `profile-guard.test.ts` (mock session and client):
   - no profile → returns `{ needsProfile: true }` and the action spy was not called.
   - profile exists → returns the action's value.
@@ -418,7 +463,7 @@ export function useProfileGate(): (action: () => Promise<void>) => void
 
 **Date:** Thu 19 Nov.
 
-**Build:** The code that turns `queued` rows in `email_deliveries` into sent emails: a transport switch (local mail catcher or Resend), a renderer that loads each delivery's data, flush functions called right after actions, and a cron route that sends anything left behind.
+**Build:** The code that turns `queued` rows in `email_deliveries` into sent emails: a transport switch (local mail catcher or Resend), a renderer that loads each delivery's data and renders it in the delivery's language, flush functions called right after actions, and a cron route that sends anything left behind.
 
 **Files:**
 - `lib/email/send.ts`, `lib/email/render.ts`, `lib/email/outbox.ts`
@@ -440,7 +485,7 @@ export async function sendBatch(ms: OutgoingEmail[], idempotencyKey: string): Pr
 
 // lib/email/outbox.ts ('server-only'; supabaseProdService())
 export type DeliveryRow = { id: number; event_id: number | null; registration_id: number | null; kind: DeliveryKind;
-  email: string; status: 'queued' | 'sent' | 'failed' | 'skipped'; batch_key: string | null;
+  email: string; locale: Locale; status: 'queued' | 'sent' | 'failed' | 'skipped'; batch_key: string | null;
   created_at: string; attempted_at: string | null }
 export async function flushOutboxFor(registrationIds: number[]): Promise<void>
 export async function flushQueuedForEvent(eventId: number): Promise<void>
@@ -453,13 +498,14 @@ export async function renderDelivery(d: DeliveryRow): Promise<OutgoingEmail>
 ```
 - **Claiming rows (prevents double sending when the action and the cron run together):** before sending, run `update email_deliveries set attempted_at = now() where id = any($ids) and status = 'queued' and (attempted_at is null or attempted_at < now() - interval '5 minutes') returning *`, and send only the returned rows.
 - After sending: `status = 'sent'`, `provider_message_id`; on error: `status = 'failed'`, `error` = message (first 500 chars), and `reportError(err, { level: 'error', tags: { kind } })`. `{ skipped: true }` from `sendEmail` → `status = 'skipped'`.
+- **Language:** `renderDelivery` uses `d.locale` (`email_deliveries.locale`, snapshotted when the row was queued) for everything: the template from `lib/email/templates/${d.locale}/`, `subject(kind, d.locale, { title })`, the event text via `eventText(toPublicEvent(row), d.locale)` (D1-8: map the loaded event row with `toPublicEvent`; English falls back to the Arabic title/description, with `titleLang`), `event.url = ${SITE_URL}/${d.locale}/events/${id}`, and every link below. Tokens carry no locale. **Stub until D1-8 merges:** `title_en ?? title` inline, with `titleLang` set to match.
 - `renderDelivery` has two branches:
-  - **`kind = 'announcement'`:** load the event only (by `event_id`). **No** registration or profile lookup: `registration_id` is null and the recipient may be a newsletter email with no account. Template `Announcement` with props `{ event, unsubscribeUrl }`, where `unsubscribeUrl = ${SITE_URL}/unsubscribe?t=${signToken({ kind: 'unsub', sub: normalizeEmail(email) })}`. `headers: unsubscribeHeaders(email)`. No `.ics` attachment.
-  - **every other kind:** load the registration (including `registration_version`), profile (`full_name_ar`), event and, for `confirmation`, `promoted` and `event_changed`, `event_private.meeting_url`. Cancel/leave URL: `${SITE_URL}/registrations/cancel?t=${signToken({ kind: 'cancel', sub: String(registration_id), ver: registration_version, exp: Math.floor(Date.parse(starts_at) / 1000) })}`. Attachment `hisn-event-{id}.ics` (via `buildIcs`) for `confirmation`, `promoted` and `event_changed`. `CancelConfirmation.wasWaitlisted` is true when the registration has `waitlisted_at` set and `promoted_at` null.
+  - **`kind = 'announcement'`:** load the event only (by `event_id`). **No** registration or profile lookup: `registration_id` is null and the recipient may be a newsletter email with no account. Template `Announcement` with props `{ event, unsubscribeUrl }`, where `unsubscribeUrl = ${SITE_URL}/${d.locale}/unsubscribe?t=${signToken({ kind: 'unsub', sub: normalizeEmail(email) })}`. `headers: unsubscribeHeaders(email)` (locale-free `/api/unsubscribe`, D2-2). No `.ics` attachment.
+  - **every other kind:** load the registration (including `registration_version`), profile (`full_name_ar`), event (including `title_en`, `description_en`) and, for `confirmation`, `promoted` and `event_changed`, `event_private.meeting_url`. Cancel/leave URL: `${SITE_URL}/${d.locale}/registrations/cancel?t=${signToken({ kind: 'cancel', sub: String(registration_id), ver: registration_version, exp: Math.floor(Date.parse(starts_at) / 1000) })}`. Attachment `hisn-event-{id}.ics` (via `buildIcs`, with the title in `d.locale` and the `/${d.locale}/events/${id}` URL) for `confirmation`, `promoted` and `event_changed`. `CancelConfirmation.wasWaitlisted` is true when the registration has `waitlisted_at` set and `promoted_at` null.
 - Cron route: `GET`; header `Authorization: Bearer ${CRON_SECRET}` required, else `401`; returns `Response.json(await flushStale())`.
 - `vercel.json`: `{ "crons": [{ "path": "/api/cron/flush-email", "schedule": "*/10 * * * *" }] }`.
 
-**Needs first:** D2-1, D2-2, D2-3, A-3/A-5 (tables), A-6 (helpers).
+**Needs first:** D2-1, D2-2, D2-3, A-3/A-5 (tables), A-6 (helpers), A-19 (`email_deliveries.locale`, `events.title_en` / `description_en`).
 
 **Blocks:** D2-11, D2-12, D2-14 (yours).
 
@@ -477,6 +523,10 @@ export async function renderDelivery(d: DeliveryRow): Promise<OutgoingEmail>
   - kind `waitlist_joined` → no attachment and no meeting URL.
   - a queued `announcement` row for `nobody-here@test.local` (no profile; `registration_id` null) → renders without error; html contains `/unsubscribe?t=`; `headers['List-Unsubscribe-Post'] === 'List-Unsubscribe=One-Click'`; `attachments` empty or undefined.
   - kind `confirmation` for a registration with `registration_version = 2` → the token in the cancel URL verifies to `{ sub: String(id), ver: 2 }`.
+  - kind `confirmation`, `locale = 'ar'` → html contains `dir="rtl"` and `/ar/registrations/cancel?t=`; `subject === subject('confirmation', 'ar', { title })`.
+  - kind `confirmation`, `locale = 'en'`, event with `title_en` (seed 101) → html contains `dir="ltr"`, `/en/registrations/cancel?t=` and `/en/events/101`; `subject === subject('confirmation', 'en', { title: title_en })`; the `.ics` contains `SUMMARY:<title_en>` and `URL:<SITE_URL>/en/events/101`.
+  - kind `confirmation`, `locale = 'en'`, event without `title_en` → html contains the Arabic title inside an element with `lang="ar"`; the `.ics` `SUMMARY` is the Arabic title.
+  - kind `announcement`, `locale = 'en'` → html contains `/en/unsubscribe?t=`; `headers['List-Unsubscribe']` contains `/api/unsubscribe?t=` and no `/en/`.
 - `cron-route.test.ts`: no header → status `401`; `Authorization: Bearer <CRON_SECRET>` → status `200` with JSON keys `sent`, `failed`.
 
 **Done when:** `npm test -- tests/unit/cron-route.test.ts && npm run test:db -- tests/db/outbox.test.ts tests/db/render.test.ts` passes.
@@ -497,7 +547,8 @@ export async function renderDelivery(d: DeliveryRow): Promise<OutgoingEmail>
 **Interfaces — produces** (all `language plpgsql security definer set search_path = public`):
 ```sql
 queue_delivery(p_registration_id bigint, p_kind text) returns void
-  -- inserts email_deliveries (event_id, registration_id, kind, email, status 'queued') with email from profiles;
+  -- inserts email_deliveries (event_id, registration_id, kind, email, locale, status 'queued') with email and locale
+  -- from the registrant's profiles row (locale snapshotted now; a later change on /account does not alter queued rows);
   -- revoke execute from public, anon, authenticated
 
 register_for_event(p_event_id bigint) returns text
@@ -525,7 +576,7 @@ promote_waitlist(p_event_id bigint) returns bigint[]
 
 `seats_left`: event not found or `draft` → `null`; `capacity is null` → `null`; else `greatest(0, capacity - <count of registered>)`.
 
-**Needs first:** A-3, A-4, A-6.
+**Needs first:** A-3, A-4, A-6, A-19 (`email_deliveries.locale`, `profiles.locale`).
 
 **Blocks:** D2-10, D2-11 (yours); Abdulrahman's badges and button show live data once this merges (no change needed on their side).
 
@@ -537,7 +588,8 @@ promote_waitlist(p_event_id bigint) returns bigint[]
   - event with `starts_in = '1 day'`, `closes_in = '-1 hour'` → `'closed'`.
   - capacity 1 with 1 registered → `'full'`.
   - same user twice → `'registered'` then `'already_registered'`; `count(*)` of that user's rows for the event = 1.
-  - after a successful register: exactly 1 `email_deliveries` row with `kind = 'confirmation'`, `status = 'queued'`, `registration_id` = that row.
+  - after a successful register: exactly 1 `email_deliveries` row with `kind = 'confirmation'`, `status = 'queued'`, `registration_id` = that row, `locale = 'ar'` (profile default).
+  - a user whose profile has `locale = 'en'` (set as postgres) registers → the confirmation row has `locale = 'en'`; then cancels → the `cancel_confirmation` row has `locale = 'en'`.
   - `seats_left`: capacity 5 with 2 registered → `3`; capacity null → `null`; draft → `null`; works after `tests.login_anon()`.
   - `cancel_my_registration` → `'cancelled'`, row `status = 'cancelled'`, 1 `cancel_confirmation` delivery queued; calling again → `'not_found'`.
   - event with `starts_in = '-1 hour'` and a registered row → `cancel_my_registration` returns `'started'`.
@@ -556,7 +608,7 @@ promote_waitlist(p_event_id bigint) returns bigint[]
 
 **Date:** Sat 21 Nov – Sun 22 Nov.
 
-**Build:** Join the waitlist, read your position, automatic promotion when a seat frees, and the admin capacity change that promotes people in order. Every promotion queues a "you have a seat" email in the same transaction.
+**Build:** Join the waitlist, read your position, automatic promotion when a seat frees, and the admin capacity change that promotes people in order. Every promotion queues a "you have a seat" email in the same transaction, in the registrant's language (`queue_delivery` from D2-9 copies `profiles.locale` into `email_deliveries.locale`).
 
 **Files:**
 - `supabase/migrations/<timestamp>_waitlist.sql` (`supabase migration new waitlist`)
@@ -588,7 +640,7 @@ Position = 1 + the number of `waitlisted` rows for the event ordered before the 
 
 `set_event_capacity`: `not public.is_admin()` → `raise exception 'forbidden' using errcode = '42501'`; `p_capacity is not null and p_capacity < 1` → `raise exception 'invalid_capacity' using errcode = '22023'`; lock; update `capacity`; `return promote_waitlist(p_event_id)`. Lowering capacity never changes any registration.
 
-**Needs first:** D2-9.
+**Needs first:** D2-9, A-19 (`email_deliveries.locale`, `profiles.locale`).
 
 **Blocks:** D2-11 (yours); Abdulrahman (D1-14 capacity save, D1-11 position).
 
@@ -597,8 +649,8 @@ Position = 1 + the number of `waitlisted` rows for the event ordered before the 
 - capacity null → `('no_capacity', null)`.
 - capacity 1 full; users A, B, C join in that order → positions `1`, `2`, `3`; `waitlist_position` as C → `3`.
 - C joining again → `('already_waitlisted', 3)`.
-- each join queues 1 `waitlist_joined` delivery.
-- capacity 1, registered R, waitlisted A then B; R cancels (before close) → A becomes `registered`, `promoted_at` not null; B still `waitlisted`; exactly 1 `promoted` delivery queued for A.
+- each join queues 1 `waitlist_joined` delivery; for a user whose profile has `locale = 'en'` its `locale = 'en'`, otherwise `'ar'`.
+- capacity 1, registered R, waitlisted A then B; R cancels (before close) → A becomes `registered`, `promoted_at` not null; B still `waitlisted`; exactly 1 `promoted` delivery queued for A, with A's profile locale (make A `'en'` → the row has `locale = 'en'`).
 - same setup with `closes_in = '-1 hour'` (still before start) → R cancels → nobody promoted; A still `waitlisted`.
 - A leaves the waitlist via `cancel_my_registration` → `'cancelled'`; no promotion happens; B's position becomes `1`.
 - as admin: capacity 2 with 2 registered and 3 waitlisted (W1, W2, W3) → `set_event_capacity(e, 4)` returns W1's and W2's ids in that order; W3 still waitlisted.
@@ -620,8 +672,8 @@ Position = 1 + the number of `waitlisted` rows for the event ordered before the 
 **Build:** The three server actions behind the event page buttons. Each wraps the SQL function, sends the queued emails right away, and refreshes the pages. Replace Abdulrahman's stub with these.
 
 **Files:**
-- `app/events/[id]/actions.ts`
-- Modify `app/events/[id]/page.tsx`: import from `./actions` instead of `@/lib/events/actions-stub`; delete `lib/events/actions-stub.ts`
+- `app/events/[id]/actions.ts` (server actions stay outside `app/[locale]`; only pages move)
+- Modify `app/[locale]/events/[id]/page.tsx`: import from `@/app/events/[id]/actions` instead of `@/lib/events/actions-stub`; delete `lib/events/actions-stub.ts`
 - `tests/unit/register-action.test.ts`, `tests/db/register-action.test.ts`
 
 **Interfaces:**
@@ -632,7 +684,7 @@ export async function joinWaitlistAction(eventId: number): Promise<JoinWaitlistR
 export async function cancelAction(eventId: number): Promise<CancelResult>
 ```
 - `registerAction` and `joinWaitlistAction` run inside `withProfile`; `cancelAction` does not.
-- Steps: rpc (`register_for_event` / `join_waitlist` / `cancel_my_registration`) with `{ p_event_id: eventId }` → `await flushQueuedForEvent(eventId)` inside `try/catch` (a failure is reported with `reportError(err, { level: 'error' })` and **never** changes the returned result) → `revalidatePath('/events/' + eventId)` and `revalidatePath('/account')` → return.
+- Steps: rpc (`register_for_event` / `join_waitlist` / `cancel_my_registration`) with `{ p_event_id: eventId }` → `await flushQueuedForEvent(eventId)` inside `try/catch` (a failure is reported with `reportError(err, { level: 'error' })` and **never** changes the returned result) → for both locales, `revalidatePath('/ar/events/' + eventId)`, `revalidatePath('/en/events/' + eventId)`, `revalidatePath('/ar/account')` and `revalidatePath('/en/account')` → return. The actions take no locale; the emails they flush use each delivery's locale (D2-8).
 - `join_waitlist` returns a row set: map `data[0]` to `{ result, position: position ?? undefined }`.
 - Consumes: `withProfile` (D2-7), `flushQueuedForEvent` (D2-8), D2-9/D2-10 functions, `RegisterButton` (D1-11).
 
@@ -646,10 +698,11 @@ export async function cancelAction(eventId: number): Promise<CancelResult>
   - with profile → rpc called with `('register_for_event', { p_event_id: 7 })`, then `flushQueuedForEvent(7)`, in that order.
   - `flushQueuedForEvent` rejects → `registerAction` still returns `'registered'`; `reportError` called once.
   - rpc `join_waitlist` returns `data: [{ result: 'waitlisted', position: 2 }]` → `{ result: 'waitlisted', position: 2 }`.
+  - after `registerAction(7)`, `revalidatePath` was called with `'/ar/events/7'`, `'/en/events/7'`, `'/ar/account'` and `'/en/account'`.
 - `tests/db/register-action.test.ts`: calling `registerAction` twice for the same user and event → `'registered'` then `'already_registered'`; one row.
 - Re-run Abdulrahman's `tests/unit/register-button.test.tsx` after switching the import; it must still pass.
 
-**Done when:** `npm test -- tests/unit/register-action.test.ts tests/unit/register-button.test.tsx && npm run test:db -- tests/db/register-action.test.ts` passes; on the preview, registering sends a confirmation email.
+**Done when:** `npm test -- tests/unit/register-action.test.ts tests/unit/register-button.test.tsx && npm run test:db -- tests/db/register-action.test.ts` passes; on the preview, registering sends a confirmation email (in English for a profile whose email language is English).
 
 ---
 
@@ -657,10 +710,10 @@ export async function cancelAction(eventId: number): Promise<CancelResult>
 
 **Date:** Tue 24 Nov.
 
-**Build:** `/registrations/cancel?t=…`, opened from the cancel or leave link in emails. It shows what will be cancelled and a single confirm button; nothing changes until the button is pressed (spec HR-5).
+**Build:** `/[locale]/registrations/cancel?t=…` (`/ar/…` and `/en/…`), opened from the cancel or leave link in emails, which carries the email's locale. It shows what will be cancelled and a single confirm button; nothing changes until the button is pressed (spec HR-5, unchanged in both languages).
 
 **Files:**
-- `app/registrations/cancel/page.tsx`, `app/registrations/cancel/actions.ts`
+- `app/[locale]/registrations/cancel/page.tsx`, `app/[locale]/registrations/cancel/actions.ts`
 - `components/ConfirmPage.tsx` (shared with D2-13)
 - `tests/db/cancel-token.test.ts`
 
@@ -671,15 +724,15 @@ export function ConfirmPage(props: { title: string; body: React.ReactNode; confi
   action: (formData: FormData) => Promise<void>; hidden: Record<string, string> }): JSX.Element
   // one <form> with hidden inputs and one submit button; disabled while pending
 
-// app/registrations/cancel/actions.ts ('use server')
+// app/[locale]/registrations/cancel/actions.ts ('use server')
 export async function confirmCancelByToken(token: string): Promise<'cancelled' | 'already' | 'started' | 'invalid'>
 // verifyTokenDetailed(token, 'cancel'): reason 'invalid' → 'invalid'; reason 'expired' → 'started'
 // ok → supabaseProdService().rpc('cancel_registration_by_id', { p_registration_id: Number(sub), p_version: ver })
 //      → 'cancelled' → 'cancelled'; 'not_found' → 'already'; 'started' → 'started'
 // then flushQueuedForEvent(event_id) (failure reported, not thrown)
 ```
-- Page (GET): `verifyTokenDetailed`; invalid → `t('cancel.invalid')`; expired → `t('cancel.started')`; otherwise load the registration with the service client and show event title, Riyadh date/time and whether it is a registration or a waitlist place (`t('cancel.registration')` / `t('cancel.waitlist')`), then `ConfirmPage`. **The page component performs no writes.**
-- After the action: a result state with `t('cancel.result.<result>')`.
+- Page (GET): `verifyTokenDetailed`; invalid → `t(locale, 'cancel.invalid')`; expired → `t(locale, 'cancel.started')`; otherwise load the registration with the service client and show event title (`eventText(toPublicEvent(row), locale)`; an Arabic fallback on `/en` rendered with `lang="ar" dir="rtl"`), Riyadh date/time (`formatRiyadh(…, locale)`) and whether it is a registration or a waitlist place (`t(locale, 'cancel.registration')` / `t(locale, 'cancel.waitlist')`), then `ConfirmPage`. **The page component performs no writes.**
+- After the action: a result state with `t(locale, 'cancel.result.<result>')`. `locale` is the route param; the action itself takes no locale (the cancel confirmation email uses the delivery's locale, D2-9).
 
 **Needs first:** D2-1, D2-8, D2-9.
 
@@ -687,6 +740,7 @@ export async function confirmCancelByToken(token: string): Promise<'cancelled' |
 
 **Tests to write** (`tests/db/cancel-token.test.ts`):
 - Rendering the page component with a valid token → the registration row is still `registered`.
+- Rendering it with `params.locale = 'en'` and a valid token → output contains the `en.json` value of `cancel.registration`; the row is still `registered`. With `'ar'` → the `ar.json` value.
 - `confirmCancelByToken(valid)` → `'cancelled'`; row `status = 'cancelled'`.
 - Calling it again with the same token → `'already'`.
 - A token with one changed character → `'invalid'`.
@@ -702,45 +756,49 @@ export async function confirmCancelByToken(token: string): Promise<'cancelled' |
 
 **Date:** Wed 25 Nov.
 
-**Build:** The announcement audience (spec §10.2 formula), unsubscribing by email, the one-click POST endpoint mail clients call, and the confirm page the email link opens.
+**Build:** The announcement audience (spec §10.2 formula) with each recipient's email language, unsubscribing by email, the one-click POST endpoint mail clients call, and the confirm page the email link opens, in both languages.
 
 **Files:**
 - `supabase/migrations/<timestamp>_audience.sql`
 - `lib/email/audience.ts`
 - `app/api/unsubscribe/route.ts`
-- `app/unsubscribe/page.tsx`, `app/unsubscribe/actions.ts`
+- `app/[locale]/unsubscribe/page.tsx`, `app/[locale]/unsubscribe/actions.ts`
 - `tests/db/audience.test.ts`, `tests/db/unsubscribe.test.ts`
 
 **Interfaces — produces:**
 ```sql
-announcement_audience() returns table(email text)
+announcement_audience() returns table(email text, locale text)
   -- security definer; revoke from public, anon, authenticated; grant to service_role
-  -- (select lower(trim(email)) from profiles where announcements_opt_in)
-  -- union (select lower(trim(s.email)) from signups s
-  --        where not exists (select 1 from profiles p where lower(trim(p.email)) = lower(trim(s.email))))
-  -- except (select email from email_unsubscribes)   -- this column is always stored normalized (A-3 check)
+  -- select a.email, a.locale from (
+  --   (select lower(trim(p.email)) as email, p.locale from profiles p where p.announcements_opt_in)
+  --   union
+  --   (select lower(trim(s.email)), s.locale from signups s
+  --      where not exists (select 1 from profiles p where lower(trim(p.email)) = lower(trim(s.email))))
+  -- ) a
+  -- where not exists (select 1 from email_unsubscribes u where u.email = a.email)   -- u.email is always stored normalized (A-3 check)
   -- When an account exists for an email, its checkbox decides; a newsletter signup for that email is ignored.
+  -- locale: the profile's when an account exists for that email, otherwise signups.locale (the page language at signup).
 ```
 ```ts
 // lib/email/audience.ts ('server-only')
-export async function announcementAudience(): Promise<string[]>   // sorted ascending, unique
+export async function announcementAudience(): Promise<{ email: string; locale: Locale }[]>   // sorted by email ascending, one entry per email
 export async function unsubscribe(email: string, source: 'link' | 'header'): Promise<void>
   // upsert email_unsubscribes { email: normalizeEmail(email), source };
   // update profiles set announcements_opt_in = false, announcements_updated_at = now() where lower(email) = normalized
 
-// app/api/unsubscribe/route.ts
+// app/api/unsubscribe/route.ts — unchanged and locale-free (the RFC 8058 one-click endpoint)
 export async function POST(req: Request): Promise<Response>
   // token from the URL query ?t= (the RFC 8058 body is 'List-Unsubscribe=One-Click'; ignore it)
   // valid → unsubscribe(sub, 'header') → new Response(null, { status: 200 }); invalid → new Response(null, { status: 400 })
 export async function GET(req: Request): Promise<Response>
-  // 307 redirect to `/unsubscribe?t=${t}`; never writes
+  // 307 redirect to `/ar/unsubscribe?t=${t}` (the token carries no locale; the page has the language switcher); never writes
 
-// app/unsubscribe/actions.ts ('use server')
+// app/[locale]/unsubscribe/actions.ts ('use server')
 export async function confirmUnsubscribe(token: string): Promise<'done' | 'invalid'>   // → unsubscribe(sub, 'link')
 ```
-- `/unsubscribe` page: `ConfirmPage` with `t('unsub.title')`, the email in `<bdi>`, one button. No write on render.
+- `/[locale]/unsubscribe` page (`/ar/unsubscribe` and `/en/unsubscribe`; the email body link carries the delivery's locale, D2-8): `ConfirmPage` with `t(locale, 'unsub.title')`, the email in `<bdi>`, one button; result text via `t(locale, …)`. No write on render (HR-5 unchanged).
 
-**Needs first:** D2-1, D2-12 (`ConfirmPage`), A-5.
+**Needs first:** D2-1, D2-12 (`ConfirmPage`), A-5, A-19 (`profiles.locale`, `signups.locale`, `newsletter_signup(…, p_locale)`).
 
 **Blocks:** D2-14.
 
@@ -753,12 +811,14 @@ export async function confirmUnsubscribe(token: string): Promise<'done' | 'inval
   - a signup with no account and no unsubscribe row → in the audience.
   - an unsubscribe row for `u@x.com`, then `newsletter_signup('U@x.com')` → the unsubscribe row is still present and `u@x.com` is **not** in the audience (A-5's `newsletter_signup` never reverses an unsubscribe).
   - profile opted in, no signup, no unsubscribe row → in the audience.
+  - an account email gets the profile's locale: profile `e@x.com` opted in with `locale = 'en'` + a signup for `e@x.com` with `locale = 'ar'` → exactly one entry, `{ email: 'e@x.com', locale: 'en' }`.
+  - a newsletter-only email gets `signups.locale`: `newsletter_signup('n@x.com', 'footer', 'en')` with no account → `{ email: 'n@x.com', locale: 'en' }`; `newsletter_signup('m@x.com')` → `{ email: 'm@x.com', locale: 'ar' }`.
 - `unsubscribe.test.ts`:
-  - `GET /api/unsubscribe?t=<valid>` → status `307`, `Location` ends with `/unsubscribe?t=<valid>`; `email_unsubscribes` unchanged.
+  - `GET /api/unsubscribe?t=<valid>` → status `307`, `Location` ends with `/ar/unsubscribe?t=<valid>`; `email_unsubscribes` unchanged.
   - `POST /api/unsubscribe?t=<valid for a@x.com>` with body `List-Unsubscribe=One-Click` → status `200`, empty body; row `{ email: 'a@x.com', source: 'header' }` exists; the matching profile has `announcements_opt_in = false`.
   - `POST` with a tampered token → status `400`; no row.
   - `confirmUnsubscribe(<valid>)` → `'done'`; row `source = 'link'`.
-  - Rendering `/unsubscribe` with a valid token → no row written.
+  - Rendering `/[locale]/unsubscribe` with a valid token → no row written; with `params.locale = 'en'` the output contains the `en.json` value of `unsub.title`, with `'ar'` the `ar.json` value.
 
 **Done when:** `npm run db:reset && npm run test:db -- tests/db/audience.test.ts tests/db/unsubscribe.test.ts` passes.
 
@@ -791,13 +851,13 @@ export async function announcementProgress(eventId: number, kind: NoticeKind):
   - `event_cancelled`: recipients = profiles of rows with `status in ('registered','waitlisted')`.
   - `event_changed`: recipients = profiles of rows with `status = 'registered'`.
   - For `event_cancelled`/`event_changed`, if `queued` rows of that kind already exist for the event → `throw new Error('in_progress')`.
-  - Insert one `queued` row per recipient (`event_id`, `kind`, `email`, and `registration_id` for the two notice kinds). Return `{ total }`.
+  - Insert one `queued` row per recipient (`event_id`, `kind`, `email`, `locale`, and `registration_id` for the two notice kinds). `locale` = the audience entry's locale for `announcement`; the registrant's `profiles.locale` for the two notice kinds. Return `{ total }`.
 - `continueAnnouncement`:
   - Run number `r`: `1` for the first run; with `failedOnly: true`, `r = <highest run in this event+kind's batch_keys> + 1`, and the `failed` rows are set back to `queued` first.
-  - Repeat up to 20 batches per call: take up to `BATCH_SIZE` `queued` rows ordered by `id`. For `announcement` only, mark rows whose email is now in `email_unsubscribes` as `skipped`. Render the rest with `renderDelivery` (its announcement branch already sets the unsubscribe headers; D2-8). Call `sendBatch(ms, batchKey(kind, eventId, r, n))` with up to 3 attempts reusing **the same key**. Success → rows `sent` with ids; failure after 3 attempts → rows `failed` with the error. Store `batch_key` on each row. `n` starts at 1 per run and continues across calls in the same run.
+  - Repeat up to 20 batches per call: take up to `BATCH_SIZE` `queued` rows ordered by `id`. For `announcement` only, mark rows whose email is now in `email_unsubscribes` as `skipped`. Render the rest with `renderDelivery` (its announcement branch already sets the unsubscribe headers; D2-8). Call `sendBatch(ms, batchKey(kind, eventId, r, n))` with up to 3 attempts reusing **the same key**. Batches are taken by `id` regardless of language: a batch may mix Arabic and English emails, each rendered in its row's locale, and the key format is unchanged. Success → rows `sent` with ids; failure after 3 attempts → rows `failed` with the error. Store `batch_key` on each row. `n` starts at 1 per run and continues across calls in the same run.
   - `remaining` = `queued` rows left after this call.
 
-**Needs first:** D2-8, D2-13.
+**Needs first:** D2-8, D2-13, A-19 (`email_deliveries.locale`).
 
 **Blocks:** D2-15.
 
@@ -809,6 +869,8 @@ export async function announcementProgress(eventId: number, kind: NoticeKind):
 - `startAnnouncement(e, 'announcement')` twice → the second rejects with `'already_started'`.
 - An email unsubscribed after `startAnnouncement` and before `continueAnnouncement` → its row is `skipped` and it is not in any `sendBatch` call.
 - `event_cancelled` with 2 registered, 1 waitlisted, 1 cancelled → `{ total: 3 }`.
+- Audience with one `'en'` and one `'ar'` recipient → each queued row's `locale` matches its audience entry; both go in one `sendBatch` call with key `announcement-event-<id>-run-1-batch-1`; the English email's html contains `dir="ltr"` and `/en/unsubscribe?t=`, the Arabic one `dir="rtl"` and `/ar/unsubscribe?t=`.
+- `event_changed` for a registrant whose profile has `locale = 'en'` → that row's `locale = 'en'`.
 - After sending all 250: `announcementProgress` → `{ total: 250, sent: 250, failed: 0, queued: 0 }`.
 
 **Done when:** `npm run test:db -- tests/db/announce.test.ts` passes.
@@ -819,7 +881,7 @@ export async function announcementProgress(eventId: number, kind: NoticeKind):
 
 **Date:** Fri 27 Nov.
 
-**Build:** The admin controls that send emails: send announcement (preview → recipient count → confirm → live progress → resend to failed only), cancel & notify, and notify registrants of a change. Replace Abdulrahman's announcement-status stub and enable the "notify registrants" button.
+**Build:** The admin controls that send emails: send announcement (preview → recipient count → confirm → live progress → resend to failed only), cancel & notify, and notify registrants of a change. Replace Abdulrahman's announcement-status stub and enable the "notify registrants" button. The admin panel is **Arabic only** (`/admin`, `t('ar', …)`, like all admin pages); only the email preview shows both language versions, because recipients get the email in their own language.
 
 **Files:**
 - Modify `app/admin/actions.ts` (add a `// notices` group; Abdulrahman's `// events` group stays as is)
@@ -829,7 +891,10 @@ export async function announcementProgress(eventId: number, kind: NoticeKind):
 
 **Interfaces — produces** (`'use server'`; every function calls `requireAdmin()` first):
 ```ts
-export async function previewNotice(eventId: number, kind: NoticeKind): Promise<{ subject: string; html: string; recipients: number }>
+export async function previewNotice(eventId: number, kind: NoticeKind):
+  Promise<{ previews: Record<Locale, { subject: string; html: string }>; recipients: number }>
+  // previews.ar and previews.en: the kind's template rendered in each locale for this event (English with the
+  // Arabic fallback where title_en is missing); recipients = total across both languages
 export async function sendAnnouncementAction(eventId: number): Promise<{ total: number } | { error: 'already_started' }>
 export async function continueAction(eventId: number, kind: NoticeKind, failedOnly: boolean):
   Promise<{ sent: number; failed: number; remaining: number }>
@@ -838,7 +903,7 @@ export async function cancelAndNotifyAction(eventId: number): Promise<{ ok: true
 export async function notifyChangeAction(eventId: number): Promise<{ total: number }>
   // startAnnouncement(eventId, 'event_changed')
 ```
-- `NoticePanel` flow: preview (subject, rendered html in a sandboxed `<iframe srcDoc>`, recipient count) → `ConfirmDialog` → start → call `continueAction` in a loop while `remaining > 0`, showing `t('admin.progress', { sent, total })` → when `failed > 0`, a «resend to failed only» button that calls `continueAction(…, true)`. All buttons are disabled while a call is pending.
+- `NoticePanel` (Arabic UI only, `t('ar', 'admin.*')`) flow: preview (for each of Arabic and English: subject and rendered html in a sandboxed `<iframe srcDoc>`; recipient count) → `ConfirmDialog` → start → call `continueAction` in a loop while `remaining > 0`, showing `t('ar', 'admin.progress', { sent, total })` → when `failed > 0`, a «resend to failed only» button that calls `continueAction(…, true)`. All buttons are disabled while a call is pending.
 - Admin list column: `announcementProgress(id, 'announcement')` → "not sent" / "sending" / `sent of total` / "complete".
 
 **Needs first:** D2-14, D1-13, D1-15.
@@ -851,7 +916,10 @@ export async function notifyChangeAction(eventId: number): Promise<{ total: numb
   - as admin, `sendAnnouncementAction` twice → the second returns `{ error: 'already_started' }`.
   - as admin, an event with 2 registered and 1 waitlisted → `cancelAndNotifyAction` returns `{ ok: true, total: 3 }` and the event `status = 'cancelled'`.
   - `previewNotice(e, 'announcement').recipients` equals `(await announcementAudience()).length`.
-- `tests/unit/notice-panel.test.tsx`: after confirm, with `continueAction` mocked as a never-resolving promise, the confirm and resend buttons are `disabled`.
+  - `previewNotice(SEED.events.open, 'announcement')` → `previews.ar.html` contains `dir="rtl"`, `previews.en.html` contains `dir="ltr"`, and `previews.en.subject` contains the event's `title_en`.
+- `tests/unit/notice-panel.test.tsx`:
+  - after confirm, with `continueAction` mocked as a never-resolving promise, the confirm and resend buttons are `disabled`.
+  - with `previewNotice` mocked, the preview shows two `<iframe>`s (Arabic and English); the panel's own labels are the `ar.json` values.
 
 **Done when:** `npm test -- tests/unit/notice-panel.test.tsx && npm run test:db -- tests/db/admin-notices.test.ts` passes.
 
@@ -861,12 +929,12 @@ export async function notifyChangeAction(eventId: number): Promise<{ total: numb
 
 **Date:** Sat 28 Nov.
 
-**Build:** Three Playwright journeys from spec §15 that run against a production build and local Supabase, reading sign-in codes and emails from the local mail catcher.
+**Build:** Three Playwright journeys from spec §15, plus one English journey and a language-switcher check, that run against a production build and local Supabase, reading sign-in codes and emails from the local mail catcher.
 
 **Files:**
 - `playwright.config.ts` (`webServer: { command: 'npm run build && npm start', port: 3000 }`, `use.baseURL: 'http://localhost:3000'`, one worker)
 - `tests/e2e/helpers/mail.ts`
-- `tests/e2e/journey.spec.ts`, `tests/e2e/waitlist.spec.ts`, `tests/e2e/talent-closed.spec.ts`, `tests/e2e/talent-open.spec.ts`
+- `tests/e2e/journey.spec.ts`, `tests/e2e/waitlist.spec.ts`, `tests/e2e/talent-closed.spec.ts`, `tests/e2e/talent-open.spec.ts`, `tests/e2e/english.spec.ts`
 
 **Interfaces — produces:**
 ```ts
@@ -879,25 +947,29 @@ export async function waitForEmail(email: string, subjectIncludes: string, timeo
 - The test app runs with `EMAIL_TRANSPORT=smtp` (local mail catcher) and `TOKEN_SECRET`, `CRON_SECRET` set in the CI env file.
 
 **Journeys (each a `test()`; emails unique per run, e.g. `e2e-${Date.now()}@test.local`):**
-- `journey.spec.ts`: visit `/events/<SEED.events.open>` → click register → redirected to `/sign-in?returnTo=…` → enter email → read code with `latestCodeFor` → enter code → back on the event page → click register → profile overlay → fill name, choose major `OTHER` + text, level, gender (checkbox left unticked) → save → **without a second click**, the button shows registered → `waitForEmail(email, <confirmation subject>)` → take the cancel link from its html → `page.goto(link)` → the registration is still active (the event page still shows registered in a second tab) → click confirm → result shows cancelled → the event page shows the register button again.
-- `waitlist.spec.ts`: user A registers for an event created with capacity 1; user B opens it → sees «اكتملت المقاعد» and join waitlist → joins → sees position 1; A cancels from `/account` → B receives the "you have a seat" email (`waitForEmail`) → B's event page shows registered.
-- `talent-closed.spec.ts`, tag `@talent-closed`, **run 1** (form closed: `TALENT_FORM_OPEN=false`, placeholder consent): `/talent` signed out and signed in both show `t('talent.opensSoon')` and no `<form>`.
-- `talent-open.spec.ts`, tag `@talent-open`, **run 2** (form open: `TALENT_FORM_OPEN=true` with the fixture consent file; see A-7): sign in a new user with a **non-university** address (`e2e-<timestamp>@gmail.test`), complete the profile, fill every field in `talentFields`, tick consent, submit → success screen contains the English name typed → `/account` shows `t('talent.status.submitted', …)`. This also proves there is no email-domain gate.
+- `journey.spec.ts`: visit `/ar/events/<SEED.events.open>` → click register → redirected to `/ar/sign-in?returnTo=…` → enter email → read code with `latestCodeFor` → enter code → back on the event page → click register → profile overlay → fill name, choose major `OTHER` + text, level, gender (checkbox left unticked) → save → **without a second click**, the button shows registered → `waitForEmail(email, <confirmation subject>)` → take the cancel link from its html → `page.goto(link)` → the registration is still active (the event page still shows registered in a second tab) → click confirm → result shows cancelled → the event page shows the register button again.
+- `waitlist.spec.ts`: user A registers for an event created with capacity 1; user B opens it (`/ar/events/<id>`) → sees «اكتملت المقاعد» and join waitlist → joins → sees position 1; A cancels from `/ar/account` → B receives the "you have a seat" email (`waitForEmail`) → B's event page shows registered.
+- `talent-closed.spec.ts`, tag `@talent-closed`, **run 1** (form closed: `TALENT_FORM_OPEN=false`, placeholder consent): `/ar/talent` and `/en/talent`, signed out and signed in, all show `t(locale, 'talent.opensSoon')` and no `<form>`.
+- `talent-open.spec.ts`, tag `@talent-open`, **run 2** (form open: `TALENT_FORM_OPEN=true` with the fixture consent files; see A-7): on `/ar`, sign in a new user with a **non-university** address (`e2e-<timestamp>@gmail.test`), complete the profile, fill every field in `talentFields`, tick consent, submit → success screen contains the English name typed → `/ar/account` shows `t('ar', 'talent.status.submitted', …)`. This also proves there is no email-domain gate.
+- `english.spec.ts` (runs in run 1):
+  - **English journey:** visit `/en/events/<SEED.events.open>` → `<html lang="en" dir="ltr">` → click register → redirected to `/en/sign-in?returnTo=/en/events/…` → enter a new email → the code email is the English version (subject from A-19: contains `your Hisn sign-in code`) → read the code with `latestCodeFor` → enter it → back on `/en/events/<id>` → click register → the profile overlay is in English → fill it (checkbox left unticked) → save → **without a second click**, the button shows registered → `waitForEmail(email, <English confirmation subject>)` → its html has `dir="ltr"` and its cancel link contains `/en/registrations/cancel?t=` → `/en/account` shows the email language as English.
+  - **Switcher:** on `/ar/events?m=2026-12`, click the language switcher → URL is `/en/events?m=2026-12` and `<html lang="en" dir="ltr">`; click it again → back on `/ar/events?m=2026-12` with `lang="ar" dir="rtl"`.
+  - **Root:** visiting `/` lands on `/ar` with `<html lang="ar" dir="rtl">`.
 - Tags use Playwright's `test('…', { tag: '@talent-open' }, async ({ page }) => …)`. Run 1 command: `npm run test:e2e -- --grep-invert @talent-open`. Run 2 command: `TALENT_FORM_OPEN=true npm run test:e2e -- --grep @talent-open`.
 
-**Needs first:** everything above; A-7 (the CI `e2e` job).
+**Needs first:** everything above; A-7 (the CI `e2e` job); A-19 (the English code email); D1-5 (`LanguageSwitcher`).
 
 **Blocks:** launch (Abdulaziz's checklist).
 
-**Tests to write:** the three journeys above.
+**Tests to write:** the journeys above, including `english.spec.ts`.
 
-**Done when:** both runs pass locally — run 1 as above; run 2 after `cp tests/fixtures/talent-consent-final.md content/talent-consent/v1.md` (restore afterwards with `git checkout content/talent-consent/v1.md`; never commit the copy) — and both runs of the `e2e` job are green on the PR.
+**Done when:** both runs pass locally — run 1 as above (it includes `english.spec.ts`); run 2 after `cp tests/fixtures/talent-consent-final.ar.md content/talent-consent/v1.ar.md && cp tests/fixtures/talent-consent-final.en.md content/talent-consent/v1.en.md` (both are needed: the form opens only when both are final; restore afterwards with `git checkout content/talent-consent/`; never commit the copies) — and both runs of the `e2e` job are green on the PR.
 
 ---
 
 ## Sun 29 – Mon 30 Nov · Bug bash and fixes
 
-- **Sun 29:** whole-team bug bash on the private production address. Every bug becomes a GitHub issue labelled `launch`.
+- **Sun 29:** whole-team bug bash on the private production address, in both `/ar` and `/en` (every page, the switcher, and each of your emails in both languages: sign-in code, confirmation, waitlist, promoted, cancel, announcement with its unsubscribe link). Every bug becomes a GitHub issue labelled `launch`.
 - **Mon 30:** fix `launch` issues assigned to you; one PR per issue.
 
 ---
