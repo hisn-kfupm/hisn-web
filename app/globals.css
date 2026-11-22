@@ -1,0 +1,883 @@
+@import "tailwindcss";
+
+/*
+  Hisn design tokens — values from the brand kit (04-web/tokens/tokens.css), roles from the
+  brand guide (pp. 11–16). Semantic names follow dev-1 D1-1 so teammates' classes keep working.
+  Light only at launch: no dark-mode block (discovery §5 #3).
+*/
+@theme {
+  /* Tailwind's own palette is removed so off-brand colours can't be used by accident. */
+  --color-*: initial;
+  --color-white: #ffffff;
+  --color-black: #000000;
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
+  --color-deep-50: #F0F2F3;  --color-deep-100: #DCE1E2;  --color-deep-200: #B3C0C2;  --color-deep-300: #819699;  --color-deep-400: #416166;
+  --color-deep-500: #022C33; --color-deep-600: #02272D;  --color-deep-700: #012227;  --color-deep-800: #011D21;  --color-deep-900: #01181C;
+  --color-mid-50: #F0F4F4;   --color-mid-100: #DCE5E6;   --color-mid-200: #B4C6C9;   --color-mid-300: #82A1A6;   --color-mid-400: #437179;
+  --color-mid-500: #04424C;  --color-mid-600: #033A42;   --color-mid-700: #033139;   --color-mid-800: #02292F;   --color-mid-900: #022026;
+  --color-teal-50: #F0F5F6;  --color-teal-100: #DCE9EB;  --color-teal-200: #B3CFD3;  --color-teal-300: #81B0B6;  --color-teal-400: #428892;
+  --color-teal-500: #03606D; --color-teal-600: #03535E;  --color-teal-700: #024650;  --color-teal-800: #023941;  --color-teal-900: #012C33;
+  --color-green-50: #F1F8F6; --color-green-100: #DDEFEA; --color-green-200: #B7DCD3; --color-green-300: #87C5B5; --color-green-400: #4AA890;
+  --color-green-500: #0E8B6B; --color-green-600: #0C785D; --color-green-700: #0A644F; --color-green-800: #085140; --color-green-900: #063E32;
+  --color-mint-50: #F5FCFA;  --color-mint-100: #E9F9F3;  --color-mint-200: #CFF2E6;  --color-mint-300: #AFEAD5;  --color-mint-400: #87DFBF;
+  --color-mint-500: #5FD4AA; --color-mint-600: #51B692;  --color-mint-700: #43977B;  --color-mint-800: #347963;  --color-mint-900: #265B4B;
+
+  /* core names (guide p.11) */
+  --color-deep: #022C33;
+  --color-mid: #04424C;
+  --color-teal: #03606D;
+  --color-green: #0E8B6B;
+  --color-mint: #5FD4AA;
+  --color-box: #EDF4F2;
+  --color-page: #F7FAF9;
+
+  /* semantic — dev-1 D1-1 names; values from the kit */
+  --color-bg: #F7FAF9;
+  --color-surface: #EDF4F2;
+  --color-primary: #03606D;
+  --color-accent: #5FD4AA;          /* DECORATIVE ONLY: lines, glows, marks. Never text on light (1.7:1). */
+  --color-accent-strong: #0A644F;   /* green text at any size (6.8:1 on page) */
+  --color-text: #022C33;
+  --color-heading: #03606D;
+  --color-muted: #416166;           /* 6.4:1 on page */
+  --color-line: #DCE1E2;            /* decorative dividers */
+  --color-field: #428892;           /* input borders, 3.9:1 (WCAG 1.4.11) */
+  --color-on-dark: #DCE9EB;         /* secondary text on deep/mid/teal (≥5.8:1) */
+  /* not in the guide — flagged for the brand owner (discovery G-7) */
+  --color-danger: #B42318;
+  --color-danger-bg: #FCEEEC;
+  --color-warning: #8A5A00;
+  --color-warning-bg: #FBF3E1;
+  --color-success: #0A644F;
+
+  /* type scale (guide p.16); mobile floors are an assumption (discovery §3) */
+  --text-display: clamp(2.5rem, 1.9rem + 2.4vw, 3.5rem);
+  --text-display--line-height: 1.25;
+  --text-display--font-weight: 700;
+  --text-h1: clamp(1.75rem, 1.3rem + 1.8vw, 2.5rem);
+  --text-h1--line-height: 1.35;
+  --text-h1--font-weight: 700;
+  --text-h2: clamp(1.375rem, 1.2rem + 0.7vw, 1.75rem);
+  --text-h2--line-height: 1.4;
+  --text-h2--font-weight: 700;
+  --text-h3: clamp(1.125rem, 1.08rem + 0.2vw, 1.25rem);
+  --text-h3--line-height: 1.5;
+  --text-h3--font-weight: 600;
+  --text-body: 1rem;
+  --text-body--line-height: 1.7;
+  --text-small: 0.875rem;
+  --text-small--line-height: 1.65;
+  --text-label: 0.8125rem;
+  --text-label--line-height: 1.4;
+  --text-label--font-weight: 600;
+  --text-figure: clamp(3rem, 2.2rem + 3.2vw, 4.5rem);
+  --text-figure--line-height: 1.1;
+  --text-figure--font-weight: 700;
+
+  /* square brand: no rounded corners except true circles */
+  --radius-*: initial;
+  --radius-none: 0;
+  --radius-full: 9999px;
+
+  /* redesign display sizes (02-redesign §2): fluid far past the guide's 56 px */
+  --text-hero: clamp(3.375rem, 0.55rem + 8.1vw, 8.25rem);
+  --text-hero--line-height: 1.16;
+  --text-hero--font-weight: 700;
+  --text-kinetic: clamp(3.5rem, 0.5rem + 11vw, 12vw);
+  --text-kinetic--line-height: 1.15;
+  --text-kinetic--font-weight: 700;
+  --text-mega: clamp(2.25rem, 0.9rem + 5.6vw, 6.5rem);
+  --text-mega--line-height: 1.22;
+  --text-mega--font-weight: 700;
+
+  /* motion (02-redesign §4): transform, opacity, clip-path. Same curves as lib/motion/eases.ts */
+  --ease-brand: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-settle: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+  /* brick-drop: a fast fall that lands at 58% and rebounds once */
+  --ease-drop: linear(0, 0.04 10%, 0.16 22%, 0.38 36%, 0.7 48%, 1 58%, 0.955 67%, 0.94 71%, 0.96 76%, 1 86%, 0.993 93%, 1);
+
+  --animate-rise: rise 180ms var(--ease-brand) both;
+  @keyframes rise {
+    from { transform: scaleY(0); }
+    to { transform: scaleY(1); }
+  }
+}
+
+/* next/font sets --font-plex on <html>; `inline` makes utilities read it directly. */
+@theme inline {
+  --font-sans: var(--font-plex), system-ui, sans-serif;
+}
+
+:root {
+  color-scheme: light;
+  --header-h: 64px;   /* phones: a compact sticky bar (04 §6) */
+  --plate-h: 960px;   /* one gradient canvas shared by the header and the page head, so they read as one plate */
+  --sq: 16px;         /* battlement square */
+  --dir: -1;          /* RTL: "forward" motion runs toward inline-end, i.e. negative X */
+  --start: 100%;      /* the inline-start edge as a transform-origin x (RTL: the right edge) */
+  --to-end: to left;  /* a gradient direction from the inline start to the inline end (RTL: right to left) */
+  --course: 30px;     /* height of one course of the hero wall; the canvas reads it */
+}
+[dir="ltr"] {
+  --dir: 1;
+  --start: 0%;
+  --to-end: to right;
+}
+@media (min-width: 48rem) {
+  :root { --sq: 24px; --course: 36px; }
+}
+@media (min-width: 64rem) {
+  :root { --header-h: 84px; --course: 40px; }
+}
+/* in-page anchors glide, except under reduced motion; Next turns it off during route changes
+   (data-scroll-behavior on <html>) */
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: smooth; }
+}
+
+/* official gradient (guide p.13): 120°, teal → mid → deep, with a 22% mint glow */
+@utility bg-brand {
+  background-color: var(--color-deep);
+  background-image:
+    radial-gradient(60% 70% at 25% 18%, rgb(95 212 170 / 0.22), transparent 60%),
+    linear-gradient(120deg, #03606D 0%, #04424C 50%, #022C33 100%);
+  background-repeat: no-repeat;
+  background-size: 100% var(--plate-h);
+}
+/* the mint–teal hairline across the top of every page; mint sits at the inline start */
+@utility hairline {
+  background-image: linear-gradient(var(--to-end), #5FD4AA, #03606D);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-padding-top: calc(var(--header-h) + 1rem);
+  }
+  body {
+    background-color: var(--color-page);
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
+  }
+  /* visible focus everywhere: teal on light (6.9:1), mint on dark (8.1:1) */
+  :focus-visible {
+    outline: 3px solid var(--color-teal);
+    outline-offset: 2px;
+  }
+  .on-dark :focus-visible {
+    outline-color: var(--color-mint);
+  }
+  ::selection {
+    background-color: var(--color-mint-200);
+    color: var(--color-deep);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+}
+
+/* page container: 1200 px max, 20 px side margin on phones, 32 px from 640 px */
+@utility wrap {
+  inline-size: min(1200px, 100% - 40px);
+  margin-inline: auto;
+  @media (min-width: 40rem) {
+    inline-size: min(1200px, 100% - 64px);
+  }
+}
+
+/* ───────────────────────── redesign system (02-redesign §4) ───────────────────────── */
+
+/* grain: a very subtle noise layer for dark bands (inside a `relative` band). Revision 04 §3: no
+   blend mode (overlay on large bands was the main scroll jank), just a faint static texture. */
+@utility grain-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.045;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* dark band: white text, mint focus. Every page head carries data-band="dark" for the header. */
+@utility band-dark {
+  background-color: var(--color-deep);
+  color: var(--color-white);
+}
+
+/* the hairline as the scroll-progress bar: grows from the inline-start with page scroll */
+.progress-hairline {
+  transform-origin: var(--start) 50%;
+  transform: scaleX(var(--progress, 0));
+}
+@supports (animation-timeline: scroll()) {
+  .progress-hairline {
+    animation: progress-grow linear both;
+    animation-timeline: scroll(root block);
+  }
+}
+@keyframes progress-grow {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@layer components {
+  /* Button: a fill wipes in from the inline-start on hover; 1 px press. Colours come from the
+     tone/variant classes below (see components/ui/button.ts). */
+  .btn {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    white-space: nowrap;
+    border: 1.5px solid var(--btn-line, transparent);
+    background-color: var(--btn-bg, transparent);
+    color: var(--btn-fg);
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.34s var(--ease-settle), border-color 0.34s var(--ease-settle), transform 75ms linear;
+  }
+  .btn::before {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    z-index: -1;
+    background-color: var(--btn-wipe);
+    transform: scaleX(0);
+    transform-origin: var(--start) 50%;
+    transition: transform 0.46s var(--ease-settle);
+  }
+  .btn:hover::before,
+  .btn:focus-visible::before,
+  .btn[aria-expanded="true"]::before {
+    transform: scaleX(1);
+  }
+  .btn:hover,
+  .btn:focus-visible,
+  .btn[aria-expanded="true"] {
+    color: var(--btn-wipe-fg);
+    border-color: var(--btn-wipe-line, var(--btn-line, transparent));
+  }
+  .btn:active { transform: translateY(1px); }
+  .btn:disabled { cursor: progress; opacity: 0.8; }
+
+  .btn-light-primary { --btn-bg: var(--color-teal); --btn-fg: #fff; --btn-wipe: var(--color-deep); --btn-wipe-fg: #fff; }
+  .btn-light-secondary { --btn-line: var(--color-teal); --btn-fg: var(--color-teal); --btn-wipe: var(--color-teal); --btn-wipe-fg: #fff; }
+  .btn-dark-primary { --btn-bg: var(--color-page); --btn-fg: var(--color-deep); --btn-wipe: var(--color-mint); --btn-wipe-fg: var(--color-deep); }
+  .btn-dark-secondary { --btn-line: rgb(220 233 235 / 0.6); --btn-fg: #fff; --btn-wipe: var(--color-page); --btn-wipe-fg: var(--color-deep); --btn-wipe-line: var(--color-page); }
+
+  /* arrows nudge forward (toward the inline-end) when their link or button is hovered */
+  .nudge { transition: transform 0.38s var(--ease-settle); }
+  :is(a, button, .group):hover > .nudge,
+  :is(a, button, .group):focus-visible > .nudge,
+  .group:hover .nudge {
+    transform: translateX(calc(var(--dir) * 5px));
+  }
+
+  /* underline that draws from the inline-start */
+  .draw-line {
+    background-image: linear-gradient(currentColor, currentColor);
+    background-repeat: no-repeat;
+    background-size: 0% 1.5px;
+    background-position: var(--start) 100%;
+    transition: background-size 0.42s var(--ease-settle);
+    text-decoration: none;
+  }
+  :is(a, button):hover .draw-line,
+  :is(a, button):focus-visible .draw-line,
+  a.draw-line:hover,
+  a.draw-line:focus-visible,
+  .draw-line[data-current] {
+    background-size: 100% 1.5px;
+  }
+
+  /* seat meter: ten bricks, filled start → end */
+  .seat-brick { background-color: currentColor; opacity: 0.18; }
+  .seat-brick[data-on] { opacity: 1; }
+  .seat-meter[data-reveal] .seat-brick[data-on] {
+    animation: seat-lay 0.42s var(--ease-drop) both;
+    animation-delay: calc(var(--i) * 45ms + 120ms);
+  }
+}
+@keyframes seat-lay {
+  from { opacity: 0.18; transform: translateY(-6px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progress-hairline { animation: none; transform: scaleX(1); }
+}
+
+/* fixed header (components/HeaderShell.tsx) */
+.site-header {
+  transition: transform 0.55s var(--ease-settle), background-color 0.3s linear, box-shadow 0.3s linear;
+}
+.site-header[data-solid] {
+  background-color: rgb(1 29 33 / 0.97);
+  box-shadow: 0 1px 0 rgb(95 212 170 / 0.14);
+}
+.site-header[data-hidden] {
+  transform: translateY(-100%);
+  transition-timing-function: var(--ease-exit);
+}
+html[data-menu="open"] .site-header,
+.site-header:focus-within {
+  transform: none;
+}
+html[data-menu="open"] .site-header {
+  background-color: transparent;
+  box-shadow: none;
+}
+
+/* dropdown and menu items drop in like bricks (stagger with --i) */
+@keyframes brick-in {
+  from { opacity: 0; transform: translateY(-14px); }
+  to { opacity: 1; transform: none; }
+}
+.drop-in > * {
+  animation: brick-in 0.5s var(--ease-drop) both;
+  animation-delay: calc(var(--i, 0) * 38ms);
+}
+.mobile-panel:not([hidden]) {
+  animation: panel-wipe 0.42s var(--ease-settle) both;
+}
+@keyframes panel-wipe {
+  from { clip-path: inset(0 0 100% 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+.mobile-panel .drop-in > * { animation-delay: calc(var(--i, 0) * 45ms + 160ms); }
+
+/* hero (revision 04 §4.1): the wall lays itself in course by course from the bottom (--k), then
+   the mint «لبنة» brick drops into the slogan, the word turns deep as it lands, the lines take the
+   knock and two chips fly off. CSS only, once; the global reduced-motion rule ends every animation
+   at once, so the composed state shows. Transform and opacity only. */
+.mosaic { --mg: 4px; }
+@media (min-width: 64rem) {
+  .mosaic { --mg: 6px; }
+}
+.mosaic-crenels { block-size: calc(var(--course) * 0.6); margin-block-end: var(--mg); }
+.mosaic-brick {
+  animation: brick-lay 0.55s var(--ease-drop) both;
+  animation-delay: calc(var(--k, 0) * 85ms + 120ms);
+}
+@keyframes brick-lay {
+  from { opacity: 0; transform: translateY(-32px); }
+  to { opacity: 1; transform: none; }
+}
+.mosaic-tone {
+  display: grid;
+  place-items: center;
+  padding-inline: 6px;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07), inset 0 -2px 0 rgb(0 0 0 / 0.18);
+  transition: background-color 0.3s var(--ease-settle), color 0.3s var(--ease-settle);
+}
+.mosaic-tone[data-tone="0"] { background-color: var(--color-deep-700); }
+.mosaic-tone[data-tone="1"] { background-color: var(--color-mid); }
+.mosaic-tone[data-tone="2"] { background-color: var(--color-teal-800); }
+.mosaic-tone[data-tone="3"] { background-color: var(--color-deep-600); }
+.mosaic-label {
+  display: none;
+  font-size: 0.75rem;
+  line-height: 1.35;
+  font-weight: 600;
+  text-align: center;
+  text-wrap: balance;
+  color: rgb(220 233 235 / 0.72);
+}
+@media (min-width: 64rem) {
+  .mosaic-label { display: block; font-size: 0.8125rem; }
+}
+.mosaic-tone[data-lit] { background-color: var(--color-teal); }
+.mosaic-tone[data-lit] .mosaic-label { color: #fff; }
+.mosaic-tone[data-picked] { background-color: var(--color-mint); }
+.mosaic-tone[data-picked] .mosaic-label { color: var(--color-deep); }
+.mosaic-socket { box-shadow: inset 0 0 0 1.5px rgb(95 212 170 / 0.45), inset 0 6px 12px rgb(0 0 0 / 0.35); background-color: rgb(1 24 28 / 0.55); }
+.mosaic-photo .photo { position: absolute; inset: 0; }
+
+.hero-mint {
+  box-shadow: inset 0 2px 0 rgb(255 255 255 / 0.5), inset 0 -4px 0 #43977B;
+  transform-origin: 50% 100%;
+  animation: mint-drop 0.75s var(--ease-drop) 0.95s both;
+}
+.hero-word { animation: word-land 0.75s linear 0.95s both; }
+.hero-title [data-line] { animation: line-knock 0.45s var(--ease-settle) 1.38s both; }
+@keyframes mint-drop {
+  from { transform: translateY(-700%) scaleY(1.1); }
+  to { transform: none; }
+}
+@keyframes word-land {
+  0%, 57% { color: #fff; }
+  58%, 100% { color: var(--color-deep); }
+}
+@keyframes line-knock {
+  0% { transform: none; }
+  20% { transform: translateY(4px); }
+  100% { transform: none; }
+}
+/* two chips knocked off at impact, from the brick's lower corners */
+.hero-dust::before,
+.hero-dust::after {
+  content: "";
+  position: absolute;
+  inset-block-end: 0.02em;
+  inline-size: 0.09em;
+  block-size: 0.09em;
+  background-color: var(--color-mint);
+  opacity: 0;
+  animation: chip 0.6s var(--ease-settle) 1.38s both;
+}
+.hero-dust::before { inset-inline-start: -0.04em; --cx: 0.35em; }
+.hero-dust::after { inset-inline-end: -0.04em; --cx: -0.35em; }
+[dir="rtl"] .hero-dust::before { --cx: -0.35em; }
+[dir="rtl"] .hero-dust::after { --cx: 0.35em; }
+@keyframes chip {
+  0% { opacity: 1; transform: none; }
+  100% { opacity: 0; transform: translate(var(--cx), -0.3em) rotate(40deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-dust { display: none; }
+}
+
+/* ───────────────────────── homepage sections (02-redesign §5.2–5.7) ───────────────────────── */
+
+/* §5.4 the events timetable: teal fills the row from the inline-start on hover or focus */
+.tt-fill {
+  transform: scaleX(0);
+  transform-origin: var(--start) 50%;
+  transition: transform 0.55s var(--ease-settle);
+}
+.tt-row :is(.tt-ink, .tt-soft, .tt-dept, .tt-hot, .seat-meter > span) {
+  transition: color 0.3s var(--ease-settle);
+}
+.tt-row .tt-arrow { transition: background-color 0.3s var(--ease-settle), color 0.3s var(--ease-settle), border-color 0.3s var(--ease-settle); }
+/* keyboard focus always fills the row; hover only where a real pointer can hover, so a tap or a
+   scroll-stop on a phone never leaves a row stuck teal */
+.tt-row:has(:focus-visible) .tt-fill { transform: scaleX(1); }
+.tt-row:has(:focus-visible) :is(.tt-ink, .seat-meter > span:last-child) { color: #fff; }
+.tt-row:has(:focus-visible) .tt-soft { color: var(--color-on-dark); }
+.tt-row:has(:focus-visible) :is(.tt-dept, .tt-hot, .seat-meter > span:first-child) { color: var(--color-mint); }
+.tt-row:has(:focus-visible) .tt-hot i { background-color: var(--color-mint); }
+.tt-row:has(:focus-visible) .tt-arrow { background-color: var(--color-mint); border-color: var(--color-mint); color: var(--color-deep); }
+@media (hover: hover) and (pointer: fine) {
+  .tt-row:hover .tt-fill { transform: scaleX(1); }
+  .tt-row:hover :is(.tt-ink, .seat-meter > span:last-child) { color: #fff; }
+  .tt-row:hover .tt-soft { color: var(--color-on-dark); }
+  .tt-row:hover :is(.tt-dept, .tt-hot, .seat-meter > span:first-child) { color: var(--color-mint); }
+  .tt-row:hover .tt-hot i { background-color: var(--color-mint); }
+  .tt-row:hover .tt-arrow { background-color: var(--color-mint); border-color: var(--color-mint); color: var(--color-deep); }
+}
+.tt-row:focus-within :focus-visible { outline-color: var(--color-mint); }
+/* the "all events" course: arrow square slides forward */
+.tt-all .tt-arrow { transition: transform 0.45s var(--ease-settle), background-color 0.3s linear; }
+.tt-all:is(:hover, :focus-visible) .tt-arrow { transform: translateX(calc(var(--dir) * 10px)); background-color: var(--color-deep); }
+/* while LayCourses waits to lay a row, its meter shows empty, then fills on data-reveal */
+.timetable[data-armed] .seat-meter:not([data-reveal]) .seat-brick[data-on] { opacity: 0.18; }
+
+/* homepage cards (revision 04 §4.3–4.5) */
+/* a native snap row on phones and tablets (layered, so a section's sm:/lg: grid utilities win) */
+@layer components {
+  .snap-row {
+    display: flex;
+    gap: 16px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    margin-inline: -20px;
+    padding-inline: 20px;
+    scroll-padding-inline: 20px;
+  }
+  .snap-row::-webkit-scrollbar { display: none; }
+  .snap-row > .snap-item { flex: 0 0 min(82vw, 22rem); scroll-snap-align: start; }
+  @media (min-width: 40rem) {
+    .snap-row { margin-inline: -32px; padding-inline: 32px; scroll-padding-inline: 32px; }
+  }
+}
+/* a Photo that fills a sized box (its own ratio box gives way) */
+.photo.photo-fill { position: absolute; inset: 0; }
+/* event card: lifts a little; the title's underline draws */
+.ev-card { box-shadow: 0 1px 0 var(--color-line); transition: transform 0.4s var(--ease-settle), box-shadow 0.4s var(--ease-settle); }
+.ev-card:has(:focus-visible) { transform: translateY(-4px); box-shadow: 0 18px 30px -20px rgb(2 44 51 / 0.45); }
+.ev-card :focus-visible { outline-offset: 4px; }
+@media (hover: hover) and (pointer: fine) {
+  .ev-card:hover { transform: translateY(-4px); box-shadow: 0 18px 30px -20px rgb(2 44 51 / 0.45); }
+}
+/* department tiles, desktop with a mouse: the summary waits under the name and slides up on hover
+   or focus (the photo zooms through Photo's own hover rule) */
+@media (hover: hover) and (pointer: fine) and (min-width: 64rem) {
+  .dept-tile { display: block; }
+  .dept-tile .dept-panel {
+    position: absolute;
+    inset-inline: 0;
+    inset-block-end: 0;
+    z-index: 10;
+    transform: translateY(calc(100% - 4.25rem));
+    transition: transform 0.5s var(--ease-settle);
+  }
+  .dept-tile .dept-sum { opacity: 0; transition: opacity 0.3s linear; }
+  .dept-tile:is(:hover, :focus-within) .dept-panel { transform: none; }
+  .dept-tile:is(:hover, :focus-within) .dept-sum { opacity: 1; }
+}
+.next-card .next-go { transition: background-color 0.3s var(--ease-settle), color 0.3s var(--ease-settle); }
+.next-card:is(:hover, :focus-within) .next-go { background-color: var(--color-mint); color: var(--color-deep); }
+.rec-play { transition: transform 0.45s var(--ease-settle); transform-origin: var(--start) 100%; }
+article:is(:hover, :focus-within) > div > .rec-play { transform: scale(1.15); }
+
+/* §6 /events, the calendar (D1-10) */
+/* head: the month drops in again whenever it changes (keyed in CalendarHead) */
+.cal-head-title > * {
+  display: inline-block;
+  animation: cal-title-drop 0.8s var(--ease-drop) both;
+  animation-delay: calc(var(--i, 0) * 110ms + 60ms);
+}
+@keyframes cal-title-drop {
+  from { opacity: 0; transform: translateY(-0.45em); }
+  to { opacity: 1; transform: none; }
+}
+.cal-today {
+  background-color: rgb(1 24 28 / 0.55);
+  border-top: 3px solid var(--color-mint);
+  box-shadow: 0 4px 0 rgb(1 24 28 / 0.6);
+}
+a.cal-today { transition: transform 0.45s var(--ease-drop), box-shadow 0.45s var(--ease-settle); }
+a.cal-today:is(:hover, :focus-visible) { transform: translateY(-3px); box-shadow: 0 7px 0 rgb(1 24 28 / 0.6); }
+/* the month as a little wall: a brick per day, event days lit, today mint; re-laid per month */
+.cal-glyph i {
+  background-color: rgb(255 255 255 / 0.1);
+  box-shadow: inset 0 -2px 0 rgb(0 0 0 / 0.25);
+  animation: cal-glyph-lay 0.5s var(--ease-drop) both;
+  animation-delay: calc(var(--i, 0) * 16ms + 200ms);
+}
+.cal-glyph i[data-outside] { background-color: transparent; box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.08); }
+.cal-glyph i[data-on] { background-color: rgb(220 233 235 / 0.82); }
+.cal-glyph i[data-today] { background-color: var(--color-mint); box-shadow: 0 0 0 3px rgb(95 212 170 / 0.22); }
+@keyframes cal-glyph-lay {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: none; }
+}
+[data-month-link]:is(:hover, :focus-visible) .btn::before { transform: scaleX(1); }
+[data-month-link]:is(:hover, :focus-visible) .btn { color: var(--btn-wipe-fg); border-color: var(--btn-wipe-line); }
+[data-month-link]:focus-visible { outline-offset: 6px; }
+
+/* the wall of day bricks: white bricks with a lit top edge and a shaded foot; the weekend is
+   tinted; days outside the month are recessed into the wall; past days are quieter */
+.cal-day {
+  background-color: #fff;
+  box-shadow: inset 0 1px 0 #fff, inset 0 -2px 0 rgb(2 44 51 / 0.07);
+}
+.cal-day[data-weekend] { background-color: var(--color-box); }
+.cal-day[data-outside] {
+  background-color: rgb(2 44 51 / 0.05);
+  box-shadow: inset 0 4px 0 rgb(2 44 51 / 0.07), inset 0 -1px 0 #fff;
+}
+.cal-day .cal-num { color: var(--color-deep); }
+.cal-day[data-past] .cal-num { color: var(--color-deep-300); }
+.cal-day[data-outside] .cal-num { color: var(--color-deep-200); }
+.cal-day[data-today] { box-shadow: inset 0 4px 0 var(--color-deep), inset 0 -2px 0 rgb(2 44 51 / 0.07); }
+.cal-day[data-today] .cal-num { color: var(--color-deep); }
+
+/* an event: a brick with a teal bar on the inline-start; hover or focus lifts it onto a solid
+   ledge and fills it with teal from the inline-start, like the homepage timetable rows */
+.cal-ev {
+  background-color: var(--color-teal-50);
+  border-inline-start: 4px solid var(--color-teal);
+  box-shadow: 0 0 0 transparent;
+  transition: transform 0.5s var(--ease-drop), box-shadow 0.4s var(--ease-settle);
+}
+.cal-fill {
+  background-color: var(--color-teal);
+  transform: scaleX(0);
+  transform-origin: var(--start) 50%;
+  transition: transform 0.5s var(--ease-settle);
+}
+.cal-ev .cal-time { color: var(--color-teal); }
+.cal-ev .cal-title { color: var(--color-deep); }
+.cal-ev .cal-dept { color: var(--color-accent-strong); }
+.cal-ev .cal-flag { color: var(--color-muted); }
+.cal-ev[data-status="almostFull"] .cal-flag { color: var(--color-warning); }
+.cal-ev :is(.cal-time, .cal-title, .cal-dept, .cal-flag) { transition: color 0.3s var(--ease-settle); }
+.cal-day[data-past] .cal-ev { background-color: var(--color-box); border-inline-start-color: var(--color-deep-200); }
+.cal-day[data-past] .cal-ev .cal-time { color: var(--color-muted); }
+.cal-day[data-past] .cal-ev .cal-title { color: var(--color-deep-600); }
+.cal-ev[data-status="cancelled"] { background-color: transparent; border-inline-start-color: var(--color-deep-200); outline: 1px dashed var(--color-deep-200); outline-offset: -1px; }
+.cal-ev[data-status="cancelled"] :is(.cal-time, .cal-title, .cal-dept) { color: var(--color-muted); }
+.cal-ev[data-status="cancelled"] .cal-title { text-decoration: line-through; text-decoration-thickness: 1.5px; }
+.cal-ev[data-status="cancelled"] .cal-flag { color: var(--color-danger); }
+.cal-ev:has(:focus-visible) { transform: translateY(-4px); box-shadow: 0 4px 0 var(--color-deep); }
+.cal-ev:has(:focus-visible) .cal-fill { transform: scaleX(1); }
+.cal-ev:has(:focus-visible) :is(.cal-time, .cal-title) { color: #fff; }
+.cal-ev:has(:focus-visible) :is(.cal-dept, .cal-flag) { color: var(--color-mint); }
+.cal-ev:focus-within :focus-visible { outline-color: var(--color-mint); outline-offset: 2px; }
+@media (hover: hover) and (pointer: fine) {
+  .cal-ev:hover { transform: translateY(-4px); box-shadow: 0 4px 0 var(--color-deep); z-index: 1; }
+  .cal-ev:hover .cal-fill { transform: scaleX(1); }
+  .cal-ev:hover :is(.cal-time, .cal-title) { color: #fff; }
+  .cal-ev:hover :is(.cal-dept, .cal-flag) { color: var(--color-mint); }
+}
+
+/* the next-event banner: a raised deep brick with a mint edge on the inline-start */
+.cal-banner {
+  background-color: var(--color-deep);
+  background-image: radial-gradient(60% 120% at 0% 0%, rgb(3 96 109 / 0.55), transparent 70%);
+  border-inline-start: 6px solid var(--color-mint);
+  box-shadow: 0 8px 0 var(--color-deep-900);
+  transform: translateY(-8px);
+  transition: transform 0.55s var(--ease-drop), box-shadow 0.45s var(--ease-settle);
+}
+.cal-banner:is(:hover, :focus-within) { transform: translateY(-12px); box-shadow: 0 12px 0 var(--color-deep-900); }
+.cal-banner .cal-banner-go { transition: transform 0.45s var(--ease-settle); }
+.cal-banner:is(:hover, :focus-within) .cal-banner-go { transform: translateX(calc(var(--dir) * 8px)); }
+.cal-banner :focus-visible { outline-color: var(--color-mint); }
+
+/* the empty month's short wall, with one brick missing */
+.cal-brick {
+  background-color: #e3edea;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.8), inset 0 -3px 0 rgb(2 44 51 / 0.1);
+}
+.cal-brick[data-hole] {
+  background-color: var(--color-deep);
+  box-shadow: inset 0 8px 0 rgb(0 0 0 / 0.35), inset 0 0 0 1.5px rgb(95 212 170 / 0.5);
+}
+
+/* §6 /events/[id], the event page (D1-11) */
+/* head: the day figure drops in like a brick */
+.ev-day {
+  display: inline-block;
+  animation: ev-day-drop 0.9s var(--ease-drop) both;
+  animation-delay: 0.12s;
+}
+@keyframes ev-day-drop {
+  from { opacity: 0; transform: translateY(-0.4em); }
+  to { opacity: 1; transform: none; }
+}
+/* the ledger under the description: light bricks in running bond */
+.ev-brick {
+  background-color: #fff;
+  box-shadow: inset 0 1px 0 #fff, inset 0 -3px 0 rgb(2 44 51 / 0.08);
+}
+.ev-brick-half { background-color: var(--color-box); }
+
+/* the register block: a deep brick with a mint top course. Phones: a bar stuck to the bottom of
+   the screen while the description is read (it settles at the end of it); desktop: sticky beside
+   the description, set into the head's wall */
+.reg-block {
+  position: sticky;
+  inset-block-end: 0;
+  z-index: 30;
+  margin-inline: -20px;
+  padding: 12px 20px calc(12px + env(safe-area-inset-bottom));
+  background-color: var(--color-deep);
+  background-image: radial-gradient(80% 140% at 100% 0%, rgb(3 96 109 / 0.55), transparent 70%);
+  border-block-start: 4px solid var(--color-mint);
+  box-shadow: 0 -16px 36px -22px rgb(2 44 51 / 0.7);
+}
+@media (min-width: 40rem) {
+  .reg-block { margin-inline: -32px; padding-inline: 32px; }
+}
+@media (min-width: 64rem) {
+  .reg-block {
+    inset-block-start: calc(var(--header-h) + 1.25rem);
+    inset-block-end: auto;
+    margin-inline: 0;
+    margin-block-start: -9rem;
+    padding: 2rem 2rem 1.75rem;
+    border-block-start-width: 6px;
+    box-shadow: 0 10px 0 var(--color-deep-900);
+  }
+}
+.reg-block .reg-note, .reg-block .reg-extra { display: none; }
+@media (min-width: 64rem) {
+  .reg-block .reg-note { display: block; }
+  .reg-block .reg-extra { display: block; margin-block-start: 1.25rem; padding-block-start: 1rem; border-block-start: 1px solid rgb(220 233 235 / 0.14); }
+}
+
+/* the seat wall: holes are seats left, laid bricks are seats taken, the visitor's brick is mint */
+.sw { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-block-end: 10px; }
+.sw-count { font-size: 0.9375rem; line-height: 1.4; font-weight: 600; color: #fff; }
+.sw-figure { font-size: 1.25rem; font-weight: 700; color: #fff; }
+.sw-wall {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(10, 12px);
+  grid-auto-rows: 9px;
+  gap: 3px;
+  margin-inline-start: auto;
+}
+.sw-wall > i { grid-row: 1; grid-column: var(--pc); }
+.sw-half, .sw-tag { display: none; }
+.sw-brick {
+  background-color: rgb(0 0 0 / 0.3);
+  box-shadow: inset 0 3px 0 rgb(0 0 0 / 0.3), inset 0 0 0 1px rgb(95 212 170 / 0.3);
+}
+.sw-brick[data-on], .sw-half {
+  background-color: var(--color-teal);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.18), inset 0 -2px 0 rgb(0 0 0 / 0.3);
+}
+.sw-half { background-color: var(--color-mid); }
+.sw-own {
+  position: relative;
+  z-index: 1;
+  background-color: var(--color-mint);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.6), inset 0 -2px 0 rgb(0 0 0 / 0.2), 0 0 18px rgb(95 212 170 / 0.45);
+}
+.sw-puff { position: absolute; inset-block-start: 0; inset-inline-start: 0; inline-size: 7px; block-size: 7px; background-color: var(--color-mint); pointer-events: none; }
+/* settled (closed, ended): a finished wall of calm stone; void (cancelled): the outline of a wall never built */
+.sw[data-tone="settled"] :is(.sw-brick, .sw-half) { background-color: rgb(220 233 235 / 0.14); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), inset 0 -2px 0 rgb(0 0 0 / 0.25); }
+.sw[data-tone="void"] :is(.sw-brick, .sw-half) { background-color: transparent; box-shadow: none; outline: 1px dashed rgb(220 233 235 / 0.32); outline-offset: -1px; }
+@media (min-width: 64rem) {
+  .sw { display: block; margin-block-end: 1.75rem; }
+  .sw-count { font-size: 1.375rem; line-height: 1.3; }
+  .sw-count-text { font-size: 1.75rem; font-weight: 700; }
+  .sw-figure { display: inline-block; font-size: clamp(4.5rem, 2.5rem + 3.4vw, 6.25rem); line-height: 1.05; animation: sw-thud 0.7s var(--ease-drop) both; }
+  .sw-wall { grid-template-columns: repeat(11, minmax(0, 1fr)); grid-auto-rows: 2.75rem; gap: 4px; margin-block-start: 2.75rem; margin-inline-start: 0; }
+  .sw-wall > i { grid-row: var(--r); grid-column: var(--c) / span 2; }
+  .sw-wall > .sw-half { display: block; grid-column: var(--c) / span 1; }
+  .sw-brick { box-shadow: inset 0 7px 0 rgb(0 0 0 / 0.3), inset 0 0 0 1px rgb(95 212 170 / 0.3); }
+  .sw-brick[data-on], .sw-half { box-shadow: inset 0 2px 0 rgb(255 255 255 / 0.16), inset 0 -4px 0 rgb(0 0 0 / 0.3); }
+  .sw-own { box-shadow: inset 0 2px 0 rgb(255 255 255 / 0.6), inset 0 -4px 0 rgb(0 0 0 / 0.2), 0 0 0 4px rgb(95 212 170 / 0.16), 0 0 34px rgb(95 212 170 / 0.5); }
+  .sw-tag {
+    display: block;
+    position: absolute;
+    inset-block-end: calc(100% + 10px);
+    inset-inline: 0;
+    inline-size: max-content;
+    margin-inline: auto;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--color-mint);
+  }
+  .sw-tag::after { content: ""; position: absolute; inset-block-start: calc(100% + 2px); inset-inline-start: calc(50% - 0.5px); inline-size: 1px; block-size: 6px; background-color: var(--color-mint); }
+}
+@keyframes sw-thud {
+  from { opacity: 0; transform: translateY(-0.3em); }
+  to { opacity: 1; transform: none; }
+}
+
+/* the button's states: registered is a mint plate laid in from the inline-start; ended, closed and
+   cancelled are a calm settled plate with a pale bar, never an error */
+.reg-done {
+  background-color: var(--color-mint);
+  color: var(--color-deep);
+  animation: reg-plate 0.6s var(--ease-settle) both;
+}
+@keyframes reg-plate {
+  from { clip-path: inset(0 0 0 100%); }
+  to { clip-path: inset(0 0 0 0); }
+}
+[dir="ltr"] .reg-done { animation-name: reg-plate-ltr; }
+@keyframes reg-plate-ltr {
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+.reg-settled { background-color: rgb(255 255 255 / 0.06); border-inline-start: 4px solid rgb(220 233 235 / 0.5); }
+.reg-figure { animation: sw-thud 0.7s var(--ease-drop) both; }
+@media (max-width: 63.99rem) {
+  .reg { gap: 10px; }
+  .reg .reg-act { min-block-size: 3.25rem; font-size: 1.0625rem; }
+  .reg :is(.reg-done, .reg-settled) { min-block-size: 3.25rem; font-size: 1.125rem; }
+  .reg-position .reg-figure { font-size: 2.75rem; }
+  .reg-position p { padding-block-end: 0.25rem; font-size: 1rem; }
+}
+
+/* the confirm dialog: a deep brick that drops in over a dimmed page */
+.confirm {
+  border: 0;
+  max-inline-size: none;
+  border-block-start: 6px solid var(--color-mint);
+  box-shadow: 0 12px 0 var(--color-deep-900);
+}
+.confirm::backdrop { background-color: rgb(1 24 28 / 0.8); }
+.confirm[open] { animation: confirm-drop 0.6s var(--ease-drop) both; }
+@keyframes confirm-drop {
+  from { opacity: 0; transform: translateY(-48px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* photos (components/ui/Photo.tsx): fixed-ratio frame, brand grade, hover zoom, square reveal */
+.photo {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background-color: var(--color-deep);
+  --cell: var(--color-page);
+}
+.photo[data-tone="dark"] { --cell: var(--color-deep); }
+.photo-img { transition: transform 1.2s var(--ease-settle); }
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  :is(a, .group, .photo):hover .photo-img { transform: scale(1.04); }
+}
+/* teal multiply at 38 %: contained to the frame, static, never animated */
+.photo-grade {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background-color: var(--color-teal);
+  opacity: 0.38;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+.photo-glint {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  z-index: 3;
+  inline-size: 14px;
+  block-size: 14px;
+  background-color: var(--color-mint);
+}
+.photo-cells {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(var(--cols, 4), 1fr);
+  grid-template-rows: repeat(var(--rows, 3), 1fr);
+  pointer-events: none;
+}
+/* cells overlap by a pixel (negative margin, not a transform) so no hairline seams show. They
+   clear by opacity only: measured on the production build, a scale on ~24 promoted cells per
+   photo cost 7–12 % slow frames during a desktop scroll, opacity alone 2–3 % (home2 perf notes). */
+.photo-cells > i {
+  margin: -1px;
+  background-color: var(--cell);
+  transition: opacity 0.5s var(--ease-settle) var(--d, 0ms);
+}
+.photo-cells[data-play] > i { opacity: 0; }
+@media print {
+  .photo-cells { display: none; }
+}
+
+/* library cards (dev-1 D1-12): the play square grows on hover or focus; a card opened from a
+   /library#recording-<id> link is marked with a mint outline */
+.video-play { transition: transform 0.45s var(--ease-settle); transform-origin: var(--start) 100%; }
+.video-card:is(:hover, :focus-within) .video-play { transform: scale(1.12); }
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .video-card:hover .photo-img { transform: scale(1.04); }
+}
+.recording-item:target .video-card { outline: 3px solid var(--color-mint); outline-offset: 8px; }
+
+/* /talent: a short wall in running bond with one empty socket, the brick still to be laid */
+.socket-wall { display: grid; gap: 6px; inline-size: min(100%, 17rem); }
+.socket-row { display: flex; gap: 6px; }
+.socket-row:nth-child(2) { margin-inline-start: 2.1rem; }
+.socket-brick { flex: 0 0 auto; block-size: 2.25rem; inline-size: 4.25rem; background-color: var(--color-mid); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.12), inset 0 -2px 0 rgb(0 8 10 / 0.35); }
+.socket-brick:nth-child(odd) { background-color: var(--color-teal-800); }
+.socket-brick.is-empty { background: transparent; box-shadow: none; outline: 2px dashed var(--color-mint); outline-offset: -2px; }
+
+/* a page head over a photo (the event page): deep behind the text at the inline-start, letting the
+   photo through toward the inline-end (PageHead backdrop) */
+.head-scrim { background: linear-gradient(var(--to-end), rgb(2 44 51 / 0.96) 0%, rgb(2 44 51 / 0.88) 45%, rgb(2 44 51 / 0.62) 100%); }
+@media (width < 64rem) { .head-scrim { background: rgb(2 44 51 / 0.86); } }
