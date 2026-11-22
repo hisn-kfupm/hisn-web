@@ -2,10 +2,23 @@
 
 | | |
 |---|---|
-| Revision | 2 (2026-11-12). Revision 1: 2026-11-10 |
+| Revision | 2.3 (2026-11-22). Revision 2: 2026-11-12. Revision 1: 2026-11-10 |
 | Owner | Abdulaziz Alessa, head of the technical committee (accountable for delivery) |
-| Status | Revision 2 applies the founder's decisions of 2026-11-12. Open decisions are listed in §20 |
+| Status | Revision 2 applies the founder's decisions of 2026-11-12. Revision 2.3 closes D-1 (English at launch). Open decisions are listed in §20 |
 | Plan | `docs/superpowers/plans/2026-11-12-hisn-phase2.md` |
+
+### Changes in revision 2.3 (2026-11-22)
+
+1. Hisn launches in **Arabic and English** (D-1 closed: Yes). Decided on **2026-11-22** by **the owner (Abdulaziz Alessa)**.
+2. Both languages ship at launch; nothing English is future or deferred (§2, §8.7).
+3. Every public page lives under `/ar/…` and `/en/…`, with a language switcher and hreflang. `/` always redirects to `/ar` (§6.6).
+4. Strings in `ar.json` and `en.json` with **identical keys** (CI check); `t(locale, key, vars)` (§8.7, §13).
+5. `profiles.locale`; optional `events.title_en` / `events.description_en` (Arabic fallback on `/en`); `signups.locale`; `email_deliveries.locale`; `newsletter_signup(…, p_locale)`; `talent_entries.consent_locale` (§9).
+6. Every email has an Arabic and an English template, the sign-in code email included. Email language = the language the person signed up in, editable on `/account` (§10.6).
+7. Token pages, privacy, 404 and error pages in both languages (§7.9, §7.10). The Arabic privacy text prevails, and the English page says so.
+8. قاعدة المواهب labels and consent in both languages; the **Arabic consent is binding** and the English translation states that the Arabic text prevails (§7.7). The owner drafts the English translation; the founder approves it.
+9. Admin stays **Arabic only**, at `/admin` (§7.11).
+10. English copy is drafted by the developers and approved by the owner; until approved it carries «مؤقت» (§12).
 
 ### Changes in revision 2.2 (2026-11-12, evening)
 
@@ -52,12 +65,13 @@ Phase 2 serves students and graduates of any university, people from other organ
 6. Event announcements to the combined audience, with partial-send recovery
 7. "Event cancelled" and "event changed" notices to registrants and waitlisted people
 8. Library of recorded workshops (YouTube embeds, played in place)
-9. Sign-in with email code; profile with Arabic name, major, academic level, gender, announcements checkbox
+9. Sign-in with email code; profile with Arabic name, major, academic level, gender, announcements checkbox, email language
 10. قاعدة المواهب: opt-in form, resubmit, withdraw (fields provisional, §7.7)
 11. Admin page (owner only), including per-event and all-accounts CSV exports
 12. Newsletter signup, unsubscribe, privacy page, 404 and error pages
 13. Owner-run scripts: `scripts/export-talent`, `scripts/purge-talent`
 14. Migration from the teaser: data, domain switch, rollback
+15. **Arabic and English interface** at launch: every public page, sign-in, profile, account, قاعدة المواهب, token pages, privacy, 404 and error pages, and every email (§8.7). Admin is Arabic only (D-1, revision 2.3)
 
 ### Deferred (agreed, not refused)
 
@@ -65,7 +79,6 @@ Phase 2 serves students and graduates of any university, people from other organ
 |---|---|
 | Event-request link for the programs committee, notifying the technical committee | Programs committee sends requests to the owner, who adds the event in admin |
 | Reporting dashboard (breakdowns by level, major, gender) | Owner builds breakdowns from the CSV exports (§7.11) |
-| English interface | Conventions in §13 keep it to about 2 days later. Decision D-1 in §20 |
 
 ### Out of scope
 
@@ -88,7 +101,7 @@ Phase 2 serves students and graduates of any university, people from other organ
 | HR-4 | `is_admin` is set only by the owner, in SQL, on the production database, which only the owner can reach. No page, server action, API path or script sets it. |
 | HR-5 | Every signed link (unsubscribe, cancel registration, leave waitlist) acts only on an explicit POST. Opening the link (GET) never changes anything. |
 | HR-6 | Nothing reaches production without the owner's review of a merge to `main`. |
-| HR-7 | All interface text lives in `ar.json`. All CSS uses logical properties. Enforced in CI from day 1. |
+| HR-7 | All interface text lives in `ar.json` and `en.json`, with identical keys. All CSS uses logical properties. Enforced in CI from day 1. |
 | HR-8 | The talent form never opens without the final consent text in place (P-1). |
 
 ## 4. Schedule
@@ -163,20 +176,23 @@ Talent migration credentials never go into GitHub. The owner applies `hisn-talen
 
 ### 6.1 Structure
 
+Every public path below exists in both languages, under `/ar` and `/en` (`[locale]`), e.g. `/ar/events` and `/en/events` (§6.6).
+
 ```
-/                         Homepage
-/departments/[slug]       One page per department (×6), Latin slugs (e.g. /departments/cybersecurity)
-/events                   Calendar (?m=YYYY-MM)
-/events/[id]              Event details + register / waitlist (numeric id)
-/library                  Recorded workshops
-/talent                   What قاعدة المواهب is → form
-/account                  Profile, registrations, waitlist, talent status
-/sign-in                  Email → 6-digit code
-/unsubscribe              Signed link → confirm button
-/registrations/cancel     Signed link → confirm button (registration or waitlist place)
-/privacy                  Privacy notice
-/admin                    Owner only
-/404, error page          Arabic, with full navigation
+/                                  Redirects to /ar
+/[locale]                          Homepage
+/[locale]/departments/[slug]       One page per department (×6), Latin slugs (e.g. /ar/departments/cybersecurity)
+/[locale]/events                   Calendar (?m=YYYY-MM)
+/[locale]/events/[id]              Event details + register / waitlist (numeric id)
+/[locale]/library                  Recorded workshops
+/[locale]/talent                   What قاعدة المواهب is → form
+/[locale]/account                  Profile, registrations, waitlist, talent status
+/[locale]/sign-in                  Email → 6-digit code
+/[locale]/unsubscribe              Signed link → confirm button
+/[locale]/registrations/cancel     Signed link → confirm button (registration or waitlist place)
+/[locale]/privacy                  Privacy notice
+/admin                             Owner only; Arabic only, no locale prefix
+/404, error page                   In the page's language, with full navigation
 ```
 
 ### 6.2 Homepage, top to bottom
@@ -190,9 +206,11 @@ Talent migration credentials never go into GitHub. The owner applies `hisn-talen
 
 ### 6.3 Navigation
 
-- Top bar (RTL): logo at the right; links الأقسام (dropdown of the six), الفعاليات, المكتبة, قاعدة المواهب.
+- Top bar (RTL on `/ar`): logo at the right; links الأقسام (dropdown of the six), الفعاليات, المكتبة, قاعدة المواهب.
 - Sign-in button at the far left, always visible; becomes an account menu (حسابي, تسجيل الخروج) when signed in.
 - Mobile: links collapse into a menu; the sign-in button stays outside it.
+- Language switcher (العربية / English) in the top bar and in the mobile menu: opens the same page in the other language (§6.6).
+- On `/en` the same bar is LTR, with English labels, so every position above mirrors.
 - Footer: newsletter signup, `/privacy`, `Contact@Hisn-sa.org`, Deanship acknowledgement.
 
 ### 6.4 Department pages are hubs
@@ -204,29 +222,39 @@ Title, description, 3–4 example roles, **upcoming events in this department**,
 - **Readable without signing in:** homepage, departments, calendar, event pages, library (pending D-3), `/talent` explanation, `/privacy`, token pages.
 - **Sign-in required to:** register or join a waitlist, cancel from the site, submit or withdraw from قاعدة المواهب, view `/account`.
 
+### 6.6 Languages
+
+- Arabic (`/ar`, RTL) and English (`/en`, LTR) at launch. Each page renders `<html lang dir>` for its language; an unknown language segment is a 404.
+- `/` always redirects to `/ar`; no browser-language detection. A path without a language prefix (other than `/admin`, `/api` and static files) redirects to `/ar` + path.
+- The language switcher links to the same page in the other language, query kept (`/ar/events?m=2026-12` ↔ `/en/events?m=2026-12`).
+- Every public page declares hreflang alternates: `ar`, `en`, and `x-default` pointing to the Arabic page.
+- Dates and times are Riyadh time in both languages; English uses the Gregorian calendar and Latin digits.
+- **Admin (`/admin`) is Arabic only**: no locale prefix, no switcher.
+
 ## 7. Screens and flows
 
 ### 7.1 Sign-in
 
 1. The person enters an email. The screen says to use a **personal email** («استخدم بريدك الشخصي — يبقى معك بعد التخرج»). If the domain ends in `.edu.sa` or `.edu`, an inline warning repeats this; it does not block.
-2. Supabase sends a 6-digit code (valid 10 minutes). "Resend code" after 60 seconds; the screen says to check junk.
-3. Code entered → signed in → returned to the page they came from. `returnTo` accepts only same-site relative paths.
+2. Supabase sends a 6-digit code (valid 10 minutes), in the sign-in page's language (§10.6). "Resend code" after 60 seconds; the screen says to check junk.
+3. Code entered → signed in → returned to the page they came from. `returnTo` accepts only same-site relative paths (`/ar/…`, `/en/…`).
 4. From an event's register button, the button is ready on return; never registered automatically after the round trip.
 
 This assumes decision D-2 option A (the sign-in email is the personal email). If D-2 picks option B, §7.1–7.2 and `profiles` change as described in §20.
 
-**Sign-in email failure is critical:** clear Arabic error, obvious resend, and a **high-priority** Sentry alert (§11).
+**Sign-in email failure is critical:** clear error in the page's language, obvious resend, and a **high-priority** Sentry alert (§11).
 
 ### 7.2 Profile step (blocks actions, not browsing)
 
 - A signed-in user with no `profiles` row can browse freely.
-- On an action (register, join waitlist, talent form, account), a profile overlay opens on the same page:
+- On an action (register, join waitlist, talent form, account), a profile overlay opens on the same page, in the page's language (Arabic labels below):
   - الاسم بالعربية (required)
   - التخصص (required dropdown from `data/majors.json`; choosing «أخرى» shows a required free-text field)
   - المرحلة العلمية (required dropdown from `data/academic-levels.json`)
   - الجنس: ذكر / أنثى (required, nothing pre-selected)
   - Unticked checkbox: «لقاءات مع قادة القطاع، وورش تقرّبك من دورك فيه، تصلك أولًا بأول على بريدك.»
 - On save, the profile is created and **the original action runs immediately**.
+- The first save stores the page's language as the person's email language (`profiles.locale`); it is not asked in the overlay and is changed on `/account`.
 
 ### 7.3 Calendar (`/events`)
 
@@ -239,6 +267,8 @@ This assumes decision D-2 option A (the sign-in email is the personal email). If
 ### 7.4 Event page (`/events/[id]`)
 
 Title, department badge, image (fallback: department icon, then Hisn default), description, Riyadh date and time, format, location (in-person) or "link sent on registration" (online), presenter, seats left when a capacity is set. The meeting link is never shown.
+
+On `/en`, the English title and description are shown when the admin entered them; otherwise the Arabic text is shown, marked `lang="ar" dir="rtl"` (§8.7).
 
 **Almost full:** shown when a capacity is set and `0 < seats_left ≤ max(1, floor(capacity × 0.2))`. `ALMOST_FULL_RATIO = 0.2` is one constant.
 
@@ -263,7 +293,7 @@ Seat counts and waitlist position are fetched per request.
 - **Join waitlist** (only when the event has a capacity and is full): one click → «أنت رقم N» → waitlist email with a signed "leave waitlist" link. No meeting link.
 - **Promotion:** whenever a seat frees (a cancellation, or the admin raising capacity), the earliest waitlisted person is promoted to registered in the same database transaction, and gets a "you have a seat" email identical in content to a confirmation. Promotion happens only while `now < registration_closes_at`; after that, freed seats stay empty.
 - **Cancel / leave from the site:** event page or `/account`, with a confirm dialog → confirmation email.
-- **Cancel / leave from email:** link opens `/registrations/cancel`, which states what will be cancelled and shows one confirm button (HR-5). Valid until the event starts.
+- **Cancel / leave from email:** link opens `/[locale]/registrations/cancel` (the email's language), which states what will be cancelled and shows one confirm button (HR-5). Valid until the event starts.
 - Re-registering or re-joining after cancelling is allowed; the person goes to the end of the waitlist if the event is full.
 
 ### 7.6 Library (`/library`)
@@ -290,25 +320,27 @@ Seat counts and waitlist position are fetched per request.
   | `cv_url` | رابط السيرة الذاتية أو الأعمال | required, `https://` |
   | `github_url` | GitHub | optional, GitHub URL |
 
-- **Consent:** a required checkbox with the founder's text, stored as a versioned file (`content/talent-consent/v1.md`). The submission records `consent_version`.
+  Labels are string keys (`labelKey`) present in both `ar.json` and `en.json`; the table shows the Arabic.
+
+- **Consent:** a required checkbox with the founder's text, stored as versioned files in both languages: `content/talent-consent/v1.ar.md` (**binding**) and `content/talent-consent/v1.en.md` (a translation drafted by the owner and approved by the founder, which must state that the Arabic text prevails). `/ar/talent` shows the Arabic text; `/en/talent` shows the English translation followed by the binding Arabic text (`lang="ar" dir="rtl"`). The submission records `consent_version` (`v1` for both) and `consent_locale` (the page's language). The consent is final only when **both** files are (HR-8).
 - **Success screen:** shows the submitted answers once from browser form state, with copy and print. Nothing read back.
 - **Returning person** (from `talent_submission_log`): "submitted on [date]" + resubmit (empty form) + withdraw (confirm dialog).
 
 ### 7.8 Account (`/account`)
 
-- Profile: Arabic name, major (+ free text), academic level, gender, announcements checkbox (all editable). Email shown, not editable.
+- Profile: Arabic name, major (+ free text), academic level, gender, announcements checkbox, email language (العربية / English, saved to `profiles.locale`) (all editable). Email shown, not editable.
 - Upcoming and past registrations; waitlist places with position; cancel / leave.
 - Talent status from `talent_submission_log`.
 
 ### 7.9 Token pages
 
-`/unsubscribe` and `/registrations/cancel`: state exactly what will happen → one confirm button (POST) → result. Invalid, tampered or expired token → error, no change. Repeat use → "already done", no change.
+`/[locale]/unsubscribe` and `/[locale]/registrations/cancel`, in both languages: state exactly what will happen → one confirm button (POST) → result. Invalid, tampered or expired token → error, no change. Repeat use → "already done", no change. The link in an email opens the page in that email's language; the token itself carries no language.
 
 ### 7.10 Privacy (`/privacy`)
 
-States what the system does:
+In Arabic and English. The Arabic text is binding: the English page is a translation and says at the top that the Arabic text prevails. States what the system does:
 
-- Collected: profile (email, Arabic name, major, academic level, gender, announcements choice), registrations and waitlist places, newsletter emails, قاعدة المواهب answers with consent time and version.
+- Collected: profile (email, Arabic name, major, academic level, gender, announcements choice, email language), registrations and waitlist places, newsletter emails, قاعدة المواهب answers with consent time, version and language.
 - **Use for reporting:** counts by academic level, major and gender are reported to the Deanship and partner organizations as **aggregate figures only**; individual records are not shared.
 - قاعدة المواهب: sent by Hisn to partner companies; data already sent cannot be recalled. Withdrawal removes the person from future exports; the original submission is kept as a record.
 - Retention: talent entries are kept as a record and deleted periodically. While `TALENT_RETENTION_MONTHS` is unset, the page says the schedule is set by Hisn; once set, it states the period.
@@ -316,9 +348,10 @@ States what the system does:
 
 ### 7.11 Admin (`/admin`, owner only)
 
+- **Arabic only**, at `/admin`: no locale prefix, no language switcher, RTL.
 - Every admin route and action checks `is_admin` on the server.
 - **Events list:** status, date, registered / capacity, waitlist count, announcement status.
-- **Create / edit form:** Riyadh-time pickers (stored UTC); validation (end after start; in-person requires location; online requires meeting link; recording must be a YouTube URL; capacity positive or empty).
+- **Create / edit form:** two optional fields, English title and English description (when empty, `/en` shows the Arabic text); Riyadh-time pickers (stored UTC); validation (end after start; in-person requires location; online requires meeting link; recording must be a YouTube URL; capacity positive or empty).
 - **Status:** publish; unpublish to draft only with no registrations or waitlist; cancel.
 - **Send announcement:** preview → recipient count → confirm. Progress "N of M sent"; "resend to failed only". Cannot start a second full send.
 - **Cancel & notify:** registered and waitlisted people get the cancellation notice; records kept.
@@ -343,10 +376,10 @@ States what the system does:
 | Hosting | Vercel Pro (+ Cron) |
 | Database / Auth | Supabase Pro, `@supabase/ssr` cookie sessions |
 | Sign-in | Supabase Auth email OTP, 6 digits, 10 min; Auth email sent through Resend SMTP |
-| Email | Resend Pro + React Email (RTL); local/CI uses the Supabase mail catcher |
+| Email | Resend Pro + React Email (RTL Arabic, LTR English); local/CI uses the Supabase mail catcher |
 | Styling | Tailwind CSS, logical utilities only; IBM Plex Sans Arabic via `next/font`; teal/mint tokens |
 | Icons | Lucide |
-| Strings | `ar.json` + typed `t('key', vars)` |
+| Strings | `ar.json` + `en.json` (identical keys) + typed `t(locale, key, vars)` |
 | Validation | Zod (forms, server actions, talent fields) |
 | Monitoring | Sentry |
 | Migrations | Supabase CLI, SQL files in the repo |
@@ -377,7 +410,7 @@ Postgres functions in `hisn-prod`, `SECURITY DEFINER`, using `auth.uid()`. Each 
 | `waitlist_position(event_id)` | authenticated | int or null |
 
 - `cancel_*` and capacity changes call `promote_waitlist` inside the same transaction.
-- Every function that should produce an email inserts a `queued` row into `email_deliveries` **in the same transaction** (outbox). The calling server action sends queued rows right after; the cron sends any left behind.
+- Every function that should produce an email inserts a `queued` row into `email_deliveries` **in the same transaction** (outbox), with the registrant's `profiles.locale` as the email's language. The calling server action sends queued rows right after; the cron sends any left behind.
 
 ### 8.5 Signed tokens
 
@@ -385,6 +418,7 @@ Postgres functions in `hisn-prod`, `SECURITY DEFINER`, using `auth.uid()`. Each 
 - Unsubscribe: `{kind: "unsub", sub: normalized email}`, no expiry.
 - Cancel: `{kind: "cancel", sub: registration id, ver: registration_version, exp: event start}` (registrations and waitlist places). A token whose `ver` no longer matches the row does nothing.
 - Verification rejects tampered, expired or wrong-kind tokens.
+- Tokens carry no language; the link's path does (`/ar/…` or `/en/…`, §10.6).
 
 ### 8.6 Talent submission and withdrawal
 
@@ -392,16 +426,22 @@ Server action, in order:
 
 1. Refuse if `TALENT_FORM_OPEN` is not `true`.
 2. Verify the session with `hisn-prod`; read the profile server-side. The browser never supplies profile fields or `user_id`.
-3. Validate answers against `lib/talent/fields.ts` and require consent.
+3. Validate answers against `lib/talent/fields.ts` and require consent; the page's language is recorded as `consent_locale`.
 4. Insert into `hisn-talent` through `supabaseTalent` (no return).
 5. **Then** upsert `talent_submission_log` (`submitted_at = now()`, `withdrawn_at = null`).
 
 Withdrawal: insert a `withdrawal` row into `hisn-talent` first, then set `withdrawn_at`. The talent write always comes first: a failed log write makes the person resubmit, which the export's latest-per-person logic absorbs.
 
-### 8.7 i18n and future English
+### 8.7 i18n: Arabic and English
 
-- All interface strings in `ar.json`; data-file labels are the one exception (§9.4).
-- Future English: `en.json` plus `_en` labels in data files and `_en` columns for event content. Nothing English is built this phase unless D-1 says otherwise.
+- English ships at launch with Arabic (D-1, revision 2.3). Locales `ar` (default, RTL) and `en` (LTR), defined once in `lib/i18n/locale.ts`.
+- **Strings:** every interface string in `lib/i18n/ar.json` and `lib/i18n/en.json`, flat dotted keys, **identical key sets**; data-file labels are the one exception (§9.4).
+- **Lookup:** `t(locale, key, vars)`; the locale is always the first argument. Public pages pass the page's locale; admin passes `'ar'`.
+- **Key parity:** a unit test compares the sorted keys of both files and names every missing key per file; it runs in CI, so a key added to one file only fails the build.
+- **Routing:** public pages live under `app/[locale]/…`; the locale layout renders `<html lang dir>` and both locales are generated statically; an unknown locale is a 404. `/admin` has its own Arabic-only layout outside the locale segment; `/api` routes have no locale. Middleware redirects `/` and unprefixed paths to `/ar` (§6.6). Links are built with `localePath(locale, path)`; the switcher uses `switchLocalePath`; hreflang alternates come from `alternatesFor(path)`.
+- **Data-file labels:** `label(file, code, locale)` returns the Arabic or English label (§9.4).
+- **Event text:** `events.title_en` and `events.description_en` are optional. On `/en`, a missing one falls back to the Arabic text, rendered with `lang="ar" dir="rtl"` (wrapped in `<bdi>` when inline).
+- **Dates:** `formatRiyadh(date, style, locale)`; Arabic keeps its format, English uses `en-GB` with 12-hour time like the Arabic (`6:00 pm`), Gregorian, Latin digits; both in Riyadh time.
 
 ### 8.8 Monitoring and logging
 
@@ -429,6 +469,7 @@ RLS on every table. All timestamps `timestamptz`, UTC, displayed Asia/Riyadh.
 | `gender` | text not null | `male` / `female` |
 | `announcements_opt_in` | boolean not null default false | |
 | `announcements_updated_at` | timestamptz not null | |
+| `locale` | text not null default `ar` | `ar` / `en`. Email language: the page's language at the first profile save; editable on `/account`; `authenticated` may insert and update it |
 | `is_admin` | boolean not null default false | HR-4 |
 | `created_at`, `updated_at` | timestamptz | `updated_at` by trigger |
 
@@ -443,7 +484,8 @@ Access:
 | Column | Type | Notes |
 |---|---|---|
 | `id` | bigint identity PK | |
-| `title`, `description` | text not null | |
+| `title`, `description` | text not null | Arabic |
+| `title_en`, `description_en` | text null | Optional English; on `/en` a missing one falls back to the Arabic (§8.7) |
 | `department_code` | text null | check: the six codes |
 | `starts_at`, `ends_at` | timestamptz not null | `ends_at > starts_at` |
 | `format` | text not null | `in_person` / `online` |
@@ -475,7 +517,7 @@ Access: `anon`/`authenticated` read `published` and `cancelled` rows. Admin full
 
 Unique (`event_id`, `user_id`); re-joining reuses the row. Access: user reads own rows; writes only through §8.4 functions; admin reads all.
 
-**`signups`**: `id`, `email` (unique on `lower(trim(email))`), `source` (`teaser` / `footer` / `import`), `created_at`. No direct access for `anon`/`authenticated`. The only way in is `newsletter_signup(p_email, p_source)`, which rejects malformed addresses (errcode `22023`); the teaser calls it too.
+**`signups`**: `id`, `email` (unique on `lower(trim(email))`), `source` (`teaser` / `footer` / `import`), `locale` (`ar` / `en`, default `ar`: the page's language at signup; teaser and imported rows are `ar`), `created_at`. No direct access for `anon`/`authenticated`. The only way in is `newsletter_signup(p_email, p_source, p_locale)`, which rejects malformed addresses and unknown locales (errcode `22023`); the teaser calls it too (named arguments, locale defaults to `ar`).
 
 **`email_unsubscribes`**: `email` PK with check `email = lower(trim(email))`, `source` (`link` / `header` / `profile` / `bounce` / `complaint`), `created_at`. Server only.
 
@@ -488,6 +530,7 @@ Unique (`event_id`, `user_id`); re-joining reuses the row. Access: user reads ow
 | `registration_id` | bigint null | |
 | `kind` | text not null | `announcement` / `confirmation` / `promoted` / `waitlist_joined` / `cancel_confirmation` / `event_cancelled` / `event_changed` |
 | `email` | text not null | |
+| `locale` | text not null default `ar` | `ar` / `en`: the language the email is rendered in, snapshotted when the row is queued (§10.6) |
 | `status` | text not null | `queued` / `sent` / `failed` / `skipped` (unsubscribed between snapshot and send) |
 | `provider_message_id`, `batch_key`, `error` | text null | |
 | `created_at`, `attempted_at` | timestamptz | |
@@ -510,13 +553,14 @@ Server only; admin sees it through admin pages.
 | `fields_version` | text | version of `lib/talent/fields.ts` |
 | `consent` | boolean | |
 | `consent_version` | text | e.g. `v1` |
+| `consent_locale` | text | `ar` / `en`: the language the consent was shown in (the Arabic text is binding either way) |
 | `consented_at`, `created_at` | timestamptz default now() | |
 
-Checks: a `submission` requires profile columns, `answers`, `fields_version`, `consent = true` and `consent_version`. A `withdrawal` carries only `user_id`, `kind`, `created_at`.
+Checks: a `submission` requires profile columns, `answers`, `fields_version`, `consent = true`, `consent_version` and `consent_locale`. A `withdrawal` carries only `user_id`, `kind`, `created_at` (`consent_locale` null).
 
 Access: `anon` (the site's write-only key) INSERT only. Nothing else for `anon`/`authenticated`.
 
-**`private.talent_export`** (view): latest row per `user_id`; people whose latest row is a withdrawal are excluded. Schema `private` not exposed; privileges revoked from `anon`/`authenticated`. Read by `scripts/export-talent` through the owner's direct connection.
+**`private.talent_export`** (view): latest row per `user_id`; people whose latest row is a withdrawal are excluded. Includes `consent_locale`, exported as the consent language. Schema `private` not exposed; privileges revoked from `anon`/`authenticated`. Read by `scripts/export-talent` through the owner's direct connection.
 
 ### 9.3 Development
 
@@ -530,6 +574,7 @@ Access: `anon` (the site's write-only key) INSERT only. Nothing else for `anon`/
 | `data/academic-levels.json` | `code`, Arabic label, English name; seeded بكالوريوس، ماجستير، دكتوراه (final list per §19) | same |
 | `data/departments.json` | `code`, Latin slug, Lucide icon | site |
 
+- Labels are used in both languages: the Arabic label on `/ar`, the English name on `/en` (`label(file, code, locale)`). Department names are strings (`dept.<CODE>.title` in `ar.json` and `en.json`). Admin CSVs use the Arabic labels; `export-talent` the English names.
 - Codes are **append-only once launched**; labels can change freely.
 - Both databases check codes; **a CI test fails if any migration's allowed codes differ from the files.**
 
@@ -546,11 +591,11 @@ Access: `anon` (the site's write-only key) INSERT only. Nothing else for `anon`/
 
 ### 10.1 Senders and types
 
-From `حصن <noreply@hisn-sa.org>`; Reply-To `Contact@Hisn-sa.org`. RTL Arabic templates from `ar.json`.
+From `حصن <noreply@hisn-sa.org>`; Reply-To `Contact@Hisn-sa.org`. One template per kind per language: RTL Arabic from `ar.json`, LTR English from `en.json`. Each email is sent in the recipient's language (§10.6).
 
 | Email | Trigger | Class |
 |---|---|---|
-| Sign-in code | Supabase Auth | Critical |
+| Sign-in code (Arabic or English, §10.6) | Supabase Auth | Critical |
 | Registration confirmation (+ `.ics`, meeting link, cancel link) | Register | Transactional |
 | You have a seat (same content) | Waitlist promotion | Transactional |
 | Waitlist joined (position, leave link) | Join waitlist | Transactional |
@@ -571,7 +616,7 @@ Transactional emails always send, regardless of unsubscribes.
 
 **The account decides:** once an account exists for an email, only its checkbox counts; an earlier newsletter signup for that email is ignored.
 
-Deduplicated on normalized email. Unsubscribes are keyed on email.
+Deduplicated on normalized email. Unsubscribes are keyed on email. Each address comes with its email language: the profile's `locale` when an account exists for that email, otherwise `signups.locale`.
 
 **Only a verified session reverses an unsubscribe.** `newsletter_signup` is open to `anon` and accepts any address, so it cannot prove the caller owns the email; if it removed unsubscribes or set opt-in, anyone could re-subscribe someone else by typing their address into the footer. An unsubscribed person opts back in by ticking the box in their account (P-1). An unsubscribed address with no account stays unsubscribed even if it is entered in the newsletter form again; it is resubscribed on request through `Contact@Hisn-sa.org`, or by creating an account and ticking the box.
 
@@ -588,7 +633,7 @@ Deduplicated on normalized email. Unsubscribes are keyed on email.
 ### 10.3 Sending
 
 - **Outbox:** every email is first a `queued` row in `email_deliveries`, written in the same transaction as the action. The server action sends it immediately; `/api/cron/flush-email` (every 10 min, `CRON_SECRET`) sends rows queued for more than 2 minutes.
-- **Announcements:** audience snapshotted into `email_deliveries` → Resend batch endpoint, up to 100 per batch, individual emails (no BCC) with their own unsubscribe headers. Idempotency key `{kind}-event-{id}-run-{r}-batch-{n}` stored in `batch_key`; automatic retries reuse it; `r` increases only on "resend to failed only". Unsubscribes re-checked before each batch. Confirm during setup that the batch endpoint honours idempotency keys.
+- **Announcements:** audience snapshotted into `email_deliveries` → Resend batch endpoint, up to 100 per batch, individual emails (no BCC) with their own unsubscribe headers. Idempotency key `{kind}-event-{id}-run-{r}-batch-{n}` stored in `batch_key` (unchanged by language; a batch may mix Arabic and English emails); automatic retries reuse it; `r` increases only on "resend to failed only". Unsubscribes re-checked before each batch. Confirm during setup that the batch endpoint honours idempotency keys.
 - Cancelled and changed notices use the same batch mechanism.
 
 ### 10.4 Unsubscribe headers
@@ -599,12 +644,22 @@ List-Unsubscribe-Post: List-Unsubscribe=One-Click
 ```
 
 - `POST /api/unsubscribe` unsubscribes and returns 200 with an empty body.
-- `GET /api/unsubscribe` redirects to `/unsubscribe?t=…` (confirm button). Never acts (HR-5).
+- `GET /api/unsubscribe` redirects to `/unsubscribe?t=…` (confirm button; the middleware adds `/ar`, §6.6). Never acts (HR-5). The header URL has no language.
 - Effective immediately. Resend does not add these headers for API sends; the code does, and a test asserts it.
 
 ### 10.5 Non-production email
 
 Local/CI: mail catcher. Previews: separate Resend key, only `EMAIL_ALLOWLIST` addresses receive mail. `SITE_URL` is the private production address until the domain switch.
+
+### 10.6 Email language
+
+- **Source:** `profiles.locale` for anyone with an account (set from the page's language at the first profile save, editable on `/account`); for newsletter-only addresses, `signups.locale`, the page's language at signup (the newsletter form sends it).
+- **Snapshot:** each `email_deliveries` row stores `locale` when queued. Registration and waitlist functions, and the cancelled and changed notices, use each registrant's `profiles.locale`; announcements use the language the audience returns (§10.2). The sender renders the template for that row's `locale`.
+- **Templates:** `lib/email/templates/ar/<Kind>.tsx` and `lib/email/templates/en/<Kind>.tsx` for each of the seven kinds, each language with its own layout (`dir="rtl"` / `dir="ltr"`); subjects per kind and language.
+- **Links** use the delivery's language: `{SITE_URL}/{locale}/registrations/cancel?t=…`, `{SITE_URL}/{locale}/unsubscribe?t=…`. The one-click `POST /api/unsubscribe` stays language-free (§10.4).
+- **`.ics`** uses the delivery's language, with the same English-to-Arabic event-text fallback as the pages (§8.7).
+- **Sign-in code:** one Supabase Auth template that switches on the user's metadata `locale` (Arabic or English body and subject). The sign-in page passes its language when requesting the code; saving the profile mirrors `profiles.locale` into the auth user's metadata whenever it changes.
+- Sender stays `حصن <noreply@hisn-sa.org>` in both languages.
 
 ## 11. Edge cases and error handling
 
@@ -635,7 +690,10 @@ Local/CI: mail catcher. Previews: separate Resend key, only `EMAIL_ALLOWLIST` ad
 | `returnTo` pointing off-site | Ignored; returns to `/` |
 | Delete / unpublish an event with registrations or waitlist | Not allowed; cancel instead |
 | Broken image / removed video | Fallbacks |
-| Unknown URL / server error | Arabic 404 / error page |
+| Unknown URL / server error | 404 / error page in the page's language |
+| Unknown language segment (e.g. `/fr/events`) | 404 |
+| Path without a language prefix (e.g. `/events`) | Redirect to `/ar` + path |
+| Event without English title or description, viewed on `/en` | Arabic text shown, `lang="ar" dir="rtl"` |
 | Newsletter spam | Honeypot; duplicates ignored silently |
 
 Saudi Arabia has no daylight saving time.
@@ -643,23 +701,25 @@ Saudi Arabia has no daylight saving time.
 ## 12. Content
 
 - Placeholders from day 1 carry the marker «مؤقت». `npm run check:content` fails while any remain; reported in CI during the build, required before the domain switch.
-- Final copy is an edit to `ar.json`, possible up to launch.
+- `check:content` scans `ar.json`, `en.json` and `content/**/*.md`.
+- Final copy is an edit to `ar.json` and `en.json`, possible up to launch.
+- English copy is drafted by the developers and approved by the owner. Until approved it carries «مؤقت», so `check:content` fails.
 - Hero fallback: typographic hero on the brand gradient.
 - Icons: Lucide.
 
 ## 13. Team conventions (from day 1, enforced in CI)
 
-1. No literal interface text in components; keys into `ar.json` only.
+1. No literal interface text in components; keys into `ar.json` and `en.json` only, with identical key sets (CI check), through `t(locale, key, vars)`. Public pages live under `app/[locale]/`; admin is Arabic only.
 2. Logical CSS only; no physical `left`/`right`. Directional icons flip with text direction.
 3. Clients named `supabaseProd` / `supabaseTalent`; `supabase` banned; `supabaseTalent` importable only from `app/talent/actions.ts`.
 4. Schema changes only as migrations; production migrations are expand-only.
 5. Never log talent data; never send request bodies to Sentry.
 6. Times stored UTC, displayed Asia/Riyadh.
-7. Mixed-direction values (emails, URLs, English names) inside Arabic text are wrapped in `<bdi>`.
+7. Mixed-direction values are wrapped in `<bdi>`: emails, URLs and English names inside Arabic text, and Arabic names or fallback Arabic event text inside English text.
 
 ## 14. Delivery pipeline
 
-**Every pull request (no production secrets):** lint (§13), typecheck, unit tests → throwaway local Supabase with all migrations on seed data → pgTAP → script tests → production build → Playwright against the local build → majors/levels consistency → content-marker check (reported).
+**Every pull request (no production secrets):** lint (§13), typecheck, unit tests (including `ar.json`/`en.json` key parity) → throwaway local Supabase with all migrations on seed data → pgTAP → script tests → production build → Playwright against the local build → majors/levels consistency → content-marker check (reported).
 
 **Merge to `main` (after owner approval):** migrations to `hisn-dev` → in the `production` environment: migrations to `hisn-prod` → Vercel production deploy. A failed migration stops the deploy.
 
@@ -682,14 +742,16 @@ Saudi Arabia has no daylight saving time.
 - `email_unsubscribes`: an uppercase email is rejected (`23514`).
 - Re-registering bumps `registration_version`; an old-version cancel returns `not_found`.
 - `talent_export`: latest per person; withdrawn excluded.
+- Locale columns: defaults `ar`; values other than `ar`/`en` rejected; `authenticated` can insert and update its own `profiles.locale`; `newsletter_signup` stores `p_locale` and rejects an unknown one (`22023`), and its earlier behaviour still holds.
+- Talent: a submission without `consent_locale` rejected; a withdrawal with one rejected.
 
 ### Unit (Vitest)
 
-Tokens; announcement rules table (§10.2); audience dedup; Riyadh formatting and day grouping; almost-full threshold; talent field validation; `returnTo` sanitising; every `t()` key exists; announcement headers present.
+Tokens; announcement rules table (§10.2); audience dedup and language; Riyadh formatting and day grouping (both languages); almost-full threshold; talent field validation; `returnTo` sanitising; every `t()` key exists; `ar.json` and `en.json` have identical keys; announcement headers present; middleware (`/` → `/ar`, unprefixed path → `/ar` + path, `/admin` not redirected); `<html lang dir>` on `/ar`, `/en` and `/admin`; language switcher keeps the page and query; hreflang alternates; event-text fallback; every email kind renders in both languages (`dir`), with links carrying the language.
 
 ### Scripts
 
-- `export-talent`: `.xlsx` opens; columns = profile columns + one per field in `lib/talent/fields.ts`; row count = latest-per-person minus withdrawals; Arabic and English round-trip; labels from data files.
+- `export-talent`: `.xlsx` opens; columns = profile columns + one per field in `lib/talent/fields.ts` + consent version, consent language (Arabic / English) and consented at; row count = latest-per-person minus withdrawals; Arabic and English round-trip; labels from data files.
 - `purge-talent`: dry run changes nothing; `--expired` refuses while retention is null; `--apply` deletes only expired; `--user` only that person.
 
 ### Lint and build
@@ -698,7 +760,7 @@ No literal strings; no physical CSS; client import rule; `supabase` banned; data
 
 ### End-to-end (Playwright)
 
-Sign up → code from mail catcher → profile overlay (level, gender, «أخرى» major) → register (no second click) → confirmation received → cancel link GET changes nothing → confirm cancel. Second user: full event → join waitlist → first user cancels → second user promoted and emailed. Talent form (flag on) → success screen → account shows "submitted on".
+Sign up → code from mail catcher → profile overlay (level, gender, «أخرى» major) → register (no second click) → confirmation received → cancel link GET changes nothing → confirm cancel. Second user: full event → join waitlist → first user cancels → second user promoted and emailed. Talent form (flag on) → success screen → account shows "submitted on". English journey on `/en`: sign in → English code email → profile → register → English confirmation email; language switcher opens the same page in the other language.
 
 ### Manual
 
@@ -715,8 +777,11 @@ Launch checklist (§17).
 ## 17. "Launched" checklist
 
 - [ ] All §2 in-scope features working on production
-- [ ] Final department content in; `check:content` passes
-- [ ] Talent form open with final fields and final consent text — or, if inputs were late, closed with «يفتح قريبًا» (HR-8)
+- [ ] Final department content in, Arabic and English; English copy approved by the owner; `check:content` passes
+- [ ] Every public page works on `/ar` and `/en`; `/` redirects to `/ar`; the language switcher keeps the page; `/admin` is Arabic only
+- [ ] An account created on `/en` receives the sign-in code and the registration confirmation in English; changing the email language on `/account` switches the next email
+- [ ] Token pages (cancel, unsubscribe) open in the email's language and still act only on the confirm button
+- [ ] Talent form open with final fields and final consent text in both languages (the English translation states that the Arabic text prevails) — or, if inputs were late, closed with «يفتح قريبًا» (HR-8)
 - [ ] Domain switched; rollback rehearsed and timed
 - [ ] Emails from the verified domain (SPF, DKIM, DMARC)
 - [ ] Sign-in code arrives within seconds, not in junk, at a real Gmail **and** a real `@kfupm.edu.sa` inbox
@@ -755,8 +820,10 @@ Launch checklist (§17).
 | Majors list (seed from KFUPM programs) | Owner | Day 1 |
 | Academic levels list: confirm whether دبلوم and a "graduate / professional" option are included | Founder | Before profile form merges (target 15 Nov); codes append-only after launch |
 | Final copy for all six departments | Marketing | Thu 19 Nov (trigger) |
+| English copy (`en.json`) | Developers draft; owner approves | Before launch (`check:content`) |
 | Talent field list | Specialized committee | **No date yet.** Trigger 19 Nov |
 | Talent consent text («الشروط والأحكام») | Founder | **No date yet.** Trigger 19 Nov |
+| English translation of the talent consent | Owner drafts; founder approves | After the founder's Arabic text; both are needed before the form can open (HR-8) |
 | Retention period | Founder + owner | No date; one constant |
 | Library access (D-3) | Founder, after consulting programs head and Deanship | Before launch; one flag |
 
@@ -764,7 +831,7 @@ Launch checklist (§17).
 
 | ID | Decision | Default the build assumes | Impact if changed |
 |---|---|---|---|
-| D-1 | Build the English interface toggle now? | No | About +2 days; something must move to the buffer (plan §Schedule) |
+| D-1 | Build the English interface toggle now? | **Decided: Yes** (closed in revision 2.3). Decided on **2026-11-22** by **the owner (Abdulaziz Alessa)**. No default applies: Arabic and English launch together | Applied throughout this spec (§2, §6.6, §8.7, §9, §10.6); the owner manages the schedule |
 | D-2 | Personal email: is it the sign-in email (A), or a second field (B)? | A | B: +1 day (second verification code, second column, rules for which address receives what) |
 | D-3 | Library open to everyone or signed-in only? | Open | One flag. Note: YouTube embeds remain viewable by anyone with the video link, so a sign-in gate hides the list, not the videos |
 | D-4 | Add an "institution" field (KFUPM / other university / organization / none) to the profile? | Not added | +0.25 day. Would let reports and partners see KFUPM vs. others now that the site is open to all |
