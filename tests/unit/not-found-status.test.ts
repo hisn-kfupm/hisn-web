@@ -49,6 +49,12 @@ describe('proxy', () => {
     }
   })
 
+  it('targets a path under a real locale, so it still matches no route once pages live under app/[locale]', () => {
+    // '/_not-found-page' would match app/[locale] (locale "_not-found-page") and get Next's bare 404;
+    // '/_not-found' is cached for a year
+    expect(NOT_FOUND_PATH).toMatch(/^\/(ar|en)\/[^/]+$/)
+  })
+
   it('lets real pages through untouched, a cancelled event included', async () => {
     for (const p of ['/events/9001', `/events/${STAND_IN_IDS.cancelled}`, `/events/${STAND_IN_IDS.pastWithRecording}`, '/departments/sector-awareness']) {
       const res = await run(p)

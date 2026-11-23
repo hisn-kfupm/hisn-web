@@ -11,8 +11,14 @@ const DEPARTMENT = /^\/(?:(?:ar|en)\/)?departments\/([^/]+)\/?$/
 const EVENT = /^\/(?:(?:ar|en)\/)?events\/([^/]+)\/?$/
 const ID = /^\d+$/
 
-/** a path that matches no route, so Next answers it with the 404 page and a 404 status */
-export const NOT_FOUND_PATH = '/_not-found-page'
+/**
+ * A path under a real locale that matches no route, so Next answers it with the site's 404 page,
+ * a 404 status and no caching: before the move to app/[locale] (D1-1) the root not-found page
+ * takes it, after it app/global-not-found.tsx does. Not '/_not-found-page' (after the move it
+ * matches app/[locale] and gets Next's bare 404) and not '/_not-found' (cached for a year).
+ * Recheck when D1-5's app/[locale]/[...rest] page catches it.
+ */
+export const NOT_FOUND_PATH = '/ar/_not-found-page'
 
 /** true for /departments/<unknown slug> and /events/<id that isn't a public event> */
 export async function isMissingPage(pathname: string, eventExists: (id: number) => Promise<boolean>): Promise<boolean> {
