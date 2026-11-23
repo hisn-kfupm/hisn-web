@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import PrivacyPage from '@/app/privacy/page'
+import PrivacyPage from '@/app/[locale]/privacy/page'
 import { TALENT_RETENTION_MONTHS } from '@/lib/config/retention'
 import { t } from '@/lib/i18n/t'
 

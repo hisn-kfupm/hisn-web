@@ -16,7 +16,8 @@ import { seatsTaken } from '@/lib/events/seats'
 
   Cached for an hour with 'use cache' + cacheLife('hours') (Cache Components rejects
   `export const revalidate`). The seat meters are therefore up to an hour old; the event page shows
-  live seats. Admin saves can still call revalidatePath('/').
+  live seats. Admin saves can still refresh it: revalidatePath('/ar') and revalidatePath('/en')
+  (there is no page at '/' since the move to app/[locale]).
 */
 export default async function Home() {
   'use cache'

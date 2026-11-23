@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import TalentPage from '@/app/talent/page'
+import TalentPage from '@/app/[locale]/talent/page'
 import { t } from '@/lib/i18n/t'
 
 /*
