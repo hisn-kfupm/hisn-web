@@ -87,6 +87,16 @@ export async function getPublicEvent(id: number): Promise<PublicEvent | null> {
 }
 
 /**
+ * Whether getPublicEvent(id) would find an event, for the Proxy's 404 check (proxy.ts) before the
+ * event page renders. Same rule: published or cancelled; drafts and unknown ids are false.
+ * Real: db.from('events').select('id', { count: 'exact', head: true }).eq('id', id)
+ *   .in('status', ['published', 'cancelled']) → count === 1
+ */
+export async function eventExists(id: number): Promise<boolean> {
+  return (await getPublicEvent(id)) !== null
+}
+
+/**
  * Published and cancelled events that start inside the Riyadh month 'YYYY-MM', earliest first
  * (dev-1 D1-10, the calendar). Past events stay in: the calendar badges them «انتهت».
  * Real: const { from, to } = monthRangeUtc(month)
