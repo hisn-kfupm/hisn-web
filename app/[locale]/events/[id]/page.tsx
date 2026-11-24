@@ -26,7 +26,9 @@ import { getSeatsLeft, seatsTaken } from '@/lib/events/seats'
 import { standInPageIds } from '@/lib/events/stand-in'
 import { eventButtonState } from '@/lib/events/state'
 import type { PublicEvent } from '@/lib/events/types'
+import type { Locale } from '@/lib/i18n/locale'
 import { arabicDigits, isArabicText } from '@/lib/i18n/number'
+import { localeOf, pageLocale } from '@/lib/i18n/page-locale'
 import { t, type StringKey } from '@/lib/i18n/t'
 
 /*
@@ -37,7 +39,7 @@ import { t, type StringKey } from '@/lib/i18n/t'
   D2-11 switches this import to ./actions.ts.
 */
 
-type Params = Promise<{ id: string }>
+type Params = Promise<{ locale: string; id: string }>
 
 const ID = /^\d+$/
 
@@ -64,9 +66,11 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   return event ? { title: event.title } : {}
 }
 
-export default function EventPage({ params }: { params: Params }) {
+export default async function EventPage({ params }: { params: Params }) {
+  // the fallback must not wait for the id, so it takes the locale from the root segment
+  const locale = await pageLocale()
   return (
-    <Suspense fallback={<PageHead kicker={t('nav.events')} size="title" title={t('nav.events')} />}>
+    <Suspense fallback={<PageHead locale={locale} kicker={t(locale, 'nav.events')} size="title" title={t(locale, 'nav.events')} />}>
       <EventView params={params} />
     </Suspense>
   )
@@ -74,6 +78,7 @@ export default function EventPage({ params }: { params: Params }) {
 
 async function EventView({ params }: { params: Params }) {
   const { id } = await params
+  const locale = await localeOf(params)
   if (!ID.test(id)) notFound()
   // live seats, the visitor's status and "now": never part of a prerender
   await connection()
@@ -92,84 +97,85 @@ async function EventView({ params }: { params: Params }) {
   const taken = await seatsTaken(related.map((e) => e.id))
 
   const live = state !== 'cancelled' && state !== 'ended'
-  const place = event.format === 'online' ? t('event.format.online') : (event.location ?? t('event.format.inPerson'))
+  const place = event.format === 'online' ? t(locale, 'event.format.online') : (event.location ?? t(locale, 'event.format.inPerson'))
   const paragraphs = event.description.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean)
   const coverImage = eventCover(event)
   const cover = { src: coverImage.src, blurDataURL: coverImage.remote ? undefined : coverImage.blurDataURL }
 
   return (
     <>
-      <PageHead
+      <PageHead locale={locale}
         size="title"
-        crumbs={[{ href: '/', label: t('crumbs.home') }, { href: '/events', label: t('nav.events') }, { label: event.title }]}
+        crumbs={[{ href: '/', label: t(locale, 'crumbs.home') }, { href: '/events', label: t(locale, 'nav.events') }, { label: event.title }]}
         backdrop={cover}
         kicker={
           dept ? (
             <span className="inline-flex items-center gap-2.5 text-[0.9375rem]">
               <Icon icon={deptIcon(dept)} size={20} className="text-mint" />
-              {t(`dept.${dept}.title` as StringKey)}
+              {t(locale, `dept.${dept}.title` as StringKey)}
             </span>
           ) : (
-            t('nav.events')
+            t(locale, 'nav.events')
           )
         }
         title={event.title}
       >
         {status !== 'open' && (
           <div className="mt-6">
-            <StatusBadge status={status} />
+            <StatusBadge locale={locale} status={status} />
           </div>
         )}
-        <EventFacts event={event} />
+        <EventFacts locale={locale} event={event} />
       </PageHead>
 
       <section aria-labelledby="event-about" className="ev-body relative z-10 bg-page pt-14 lg:pt-0 lg:pb-28">
         <div className="wrap grid gap-x-12 lg:grid-cols-12 xl:gap-x-16">
           <div className="pb-16 lg:col-span-7 lg:pt-20 lg:pb-0">
-            <SectionHead number={1} id="event-about" title={t('event.about')} />
+            <SectionHead locale={locale} number={1} id="event-about" title={t(locale, 'event.about')} />
             <div className="ev-prose max-w-[38rem] space-y-6 text-[1.125rem] leading-[1.95] text-deep lg:text-[1.1875rem]">
               {paragraphs.map((p, i) => (
                 <p key={i}>{isArabicText(p) ? arabicDigits(p) : p}</p>
               ))}
             </div>
-            <EventLedger event={event} />
+            <EventLedger locale={locale} event={event} />
             {live && (
               <div className="mt-4 lg:hidden">
-                <IcsLink event={event} place={place} tone="light" />
+                <IcsLink locale={locale} event={event} place={place} tone="light" />
               </div>
             )}
           </div>
           <div className="ev-aside lg:col-span-5">
             <RegisterBlock
+              locale={locale}
               eventId={event.id}
               state={state}
               position={position}
               signedIn={session !== null}
               recordingUrl={event.recordingUrl}
               actions={{ register: registerAction, joinWaitlist: joinWaitlistAction, cancel: cancelAction }}
-              labels={registerLabels()}
+              labels={registerLabels(locale)}
               reopensAs={isAlmostFull(event.capacity, seatsLeft === null ? null : seatsLeft + (mine === 'registered' ? 1 : 0)) ? 'open_almost_full' : 'open'}
               capacity={event.capacity}
               seatsLeft={seatsLeft}
             >
-              {live && <IcsLink event={event} place={place} tone="dark" />}
+              {live && <IcsLink locale={locale} event={event} place={place} tone="dark" />}
             </RegisterBlock>
           </div>
         </div>
       </section>
 
-      {related.length > 0 && <EventsTimetable number={2} events={related} taken={taken} title={t('event.more')} className="bg-box" />}
-      <TalentBand />
+      {related.length > 0 && <EventsTimetable locale={locale} number={2} events={related} taken={taken} title={t(locale, 'event.more')} className="bg-box" />}
+      <TalentBand locale={locale} />
     </>
   )
 }
 
 /** «أضفها إلى تقويمك»: the event as an .ics download (in the register block on desktop, under the ledger on phones) */
-function IcsLink({ event, place, tone }: { event: PublicEvent; place: string; tone: 'light' | 'dark' }) {
+function IcsLink({ locale, event, place, tone }: { locale: Locale; event: PublicEvent; place: string; tone: 'light' | 'dark' }) {
   return (
     <a href={icsHref(eventIcs(event, place))} download={`hisn-event-${event.id}.ics`} className={`group inline-flex min-h-11 items-center gap-2 font-semibold no-underline ${tone === 'dark' ? 'text-white' : 'text-teal'}`}>
       <Icon icon={CalendarPlus} size={18} className={tone === 'dark' ? 'text-mint' : undefined} />
-      <span className="draw-line pb-0.5">{t('event.addToCalendar')}</span>
+      <span className="draw-line pb-0.5">{t(locale, 'event.addToCalendar')}</span>
     </a>
   )
 }

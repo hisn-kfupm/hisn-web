@@ -1,5 +1,6 @@
 import { pluralForms, type PluralCategory } from '@/lib/i18n/plural'
 import { t } from '@/lib/i18n/t'
+import type { Locale } from '@/lib/i18n/locale'
 
 /** every string the register block shows, resolved on the server (client components take strings as props) */
 export type RegisterLabels = {
@@ -33,41 +34,41 @@ export type RegisterLabels = {
   }
 }
 
-export function registerLabels(): RegisterLabels {
+export function registerLabels(locale: Locale): RegisterLabels {
   return {
-    region: t('register.region'),
-    open: t('register.open'),
-    almostFull: t('event.badge.almostFull'),
-    registered: t('register.registered'),
-    cancel: t('register.cancel'),
-    full: t('register.full'),
-    join: t('waitlist.join'),
-    position: t('waitlist.position', { n: '{n}' }),
-    leave: t('waitlist.leave'),
-    onWaitlist: t('waitlist.on'),
-    closed: t('register.closed'),
-    cancelledEvent: t('register.cancelledEvent'),
-    ended: t('register.ended'),
-    watchRecording: t('event.watchRecording'),
-    yourBrick: t('register.yourBrick'),
-    seatsOpen: t('event.seats.open'),
-    seatsLeft: pluralForms('seats.left'),
+    region: t(locale, 'register.region'),
+    open: t(locale, 'register.open'),
+    almostFull: t(locale, 'event.badge.almostFull'),
+    registered: t(locale, 'register.registered'),
+    cancel: t(locale, 'register.cancel'),
+    full: t(locale, 'register.full'),
+    join: t(locale, 'waitlist.join'),
+    position: t(locale, 'waitlist.position', { n: '{n}' }),
+    leave: t(locale, 'waitlist.leave'),
+    onWaitlist: t(locale, 'waitlist.on'),
+    closed: t(locale, 'register.closed'),
+    cancelledEvent: t(locale, 'register.cancelledEvent'),
+    ended: t(locale, 'register.ended'),
+    watchRecording: t(locale, 'event.watchRecording'),
+    yourBrick: t(locale, 'register.yourBrick'),
+    seatsOpen: t(locale, 'event.seats.open'),
+    seatsLeft: pluralForms(locale, 'seats.left'),
     note: {
-      open: t('register.note.open'),
-      signIn: t('register.note.signIn'),
-      registered: t('register.note.registered'),
-      full: t('register.note.full'),
-      waitlisted: t('register.note.waitlisted'),
-      closed: t('register.note.closed'),
-      cancelled: t('register.note.cancelled'),
-      ended: t('register.note.ended'),
+      open: t(locale, 'register.note.open'),
+      signIn: t(locale, 'register.note.signIn'),
+      registered: t(locale, 'register.note.registered'),
+      full: t(locale, 'register.note.full'),
+      waitlisted: t(locale, 'register.note.waitlisted'),
+      closed: t(locale, 'register.note.closed'),
+      cancelled: t(locale, 'register.note.cancelled'),
+      ended: t(locale, 'register.note.ended'),
     },
-    pending: t('register.pending'),
-    notice: { error: t('register.error'), started: t('register.started'), notFound: t('register.notFound') },
+    pending: t(locale, 'register.pending'),
+    notice: { error: t(locale, 'register.error'), started: t(locale, 'register.started'), notFound: t(locale, 'register.notFound') },
     confirm: {
-      cancel: { title: t('register.confirm.cancel.title'), body: t('register.confirm.cancel.body'), yes: t('register.confirm.cancel.yes') },
-      leave: { title: t('register.confirm.leave.title'), body: t('register.confirm.leave.body'), yes: t('register.confirm.leave.yes') },
-      keep: t('register.confirm.keep'),
+      cancel: { title: t(locale, 'register.confirm.cancel.title'), body: t(locale, 'register.confirm.cancel.body'), yes: t(locale, 'register.confirm.cancel.yes') },
+      leave: { title: t(locale, 'register.confirm.leave.title'), body: t(locale, 'register.confirm.leave.body'), yes: t(locale, 'register.confirm.leave.yes') },
+      keep: t(locale, 'register.confirm.keep'),
     },
   }
 }

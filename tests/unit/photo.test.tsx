@@ -16,7 +16,7 @@ describe('Photo', () => {
   })
 
   it('puts no blend layer over a full-width page-head backdrop (brief 04 §3)', () => {
-    const { container } = render(<PageHead title="عنوان" backdrop={{ src: img.src, blurDataURL: img.blurDataURL }} />)
+    const { container } = render(<PageHead locale="ar" title="عنوان" backdrop={{ src: img.src, blurDataURL: img.blurDataURL }} />)
     const backdrop = container.querySelector('.head-scrim')?.parentElement as HTMLElement
     expect(backdrop.querySelector('img')).not.toBeNull()
     expect(backdrop.querySelector('.photo-grade')).toBeNull()

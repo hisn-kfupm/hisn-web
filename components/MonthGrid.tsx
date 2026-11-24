@@ -10,8 +10,10 @@ import { fmtNum } from '@/lib/i18n/number'
 import { t, type StringKey } from '@/lib/i18n/t'
 import { formatRiyadh } from '@/lib/time/riyadh'
 import { cn } from '@/lib/cn'
+import type { Locale } from '@/lib/i18n/locale'
 
 type Props = {
+  locale: Locale
   /** 'YYYY-MM' */
   month: string
   /** the month's events, earliest first (eventsInMonth) */
@@ -31,7 +33,7 @@ const WEEKEND = new Set([5, 6]) // Friday and Saturday
  * its Riyadh time, title and department that lifts and fills with teal on hover or focus. Courses
  * (one per week) lay the wall again whenever the month changes.
  */
-export function MonthGrid({ month, events, seatsLeft, now }: Props) {
+export function MonthGrid({ locale, month, events, seatsLeft, now }: Props) {
   const cells = buildMonthGrid(month)
   const weeks = Array.from({ length: cells.length / 7 }, (_, i) => cells.slice(i * 7, i * 7 + 7))
   const byDay = groupByDay(events)
@@ -41,7 +43,7 @@ export function MonthGrid({ month, events, seatsLeft, now }: Props) {
 
   return (
     <div data-testid="month-grid" className="hidden md:block">
-      <h2 id="cal-grid-title" className="sr-only">{t('calendar.grid.label', { month: label })}</h2>
+      <h2 id="cal-grid-title" className="sr-only">{t(locale, 'calendar.grid.label', { month: label })}</h2>
       <div role="table" aria-labelledby="cal-grid-title" className="cal-wall">
         <div role="rowgroup">
           <div role="row" className="grid grid-cols-7 gap-[3px] pb-3">
@@ -57,7 +59,7 @@ export function MonthGrid({ month, events, seatsLeft, now }: Props) {
           {weeks.map((week) => (
             <div key={week[0]} role="row" data-week data-course-row className="grid grid-cols-7 gap-[3px]">
               {week.map((day, i) => (
-                <DayCell
+                <DayCell locale={locale}
                   key={day}
                   day={day}
                   outside={!day.startsWith(month)}
@@ -78,6 +80,7 @@ export function MonthGrid({ month, events, seatsLeft, now }: Props) {
 }
 
 type CellProps = {
+  locale: Locale
   day: string
   outside: boolean
   weekend: boolean
@@ -88,7 +91,7 @@ type CellProps = {
   now: number
 }
 
-function DayCell({ day, outside, weekend, today, past, events, seatsLeft, now }: CellProps) {
+function DayCell({ locale, day, outside, weekend, today, past, events, seatsLeft, now }: CellProps) {
   const n = Number(day.slice(8))
   return (
     <div
@@ -102,16 +105,16 @@ function DayCell({ day, outside, weekend, today, past, events, seatsLeft, now }:
     >
       <p className="cal-num flex items-center gap-2 leading-none">
         <span className={cn('grid min-w-8 place-items-center text-[1.375rem] font-bold lg:text-[1.625rem]', today && 'size-10 bg-mint text-deep lg:size-11')}>
-          {fmtNum(n)}
+          {fmtNum(n, locale)}
         </span>
         {(n === 1 || today) && (
-          <span className="text-label">{today ? t('calendar.today') : formatRiyadh(`${day}T12:00:00.000Z`, 'month')}</span>
+          <span className="text-label">{today ? t(locale, 'calendar.today') : formatRiyadh(`${day}T12:00:00.000Z`, 'month')}</span>
         )}
       </p>
       {events.length > 0 && (
         <ul className="m-0 flex list-none flex-col gap-1.5 p-0">
           {events.map((e) => (
-            <EventBrick key={e.id} event={e} left={seatsLeft.get(e.id) ?? null} now={now} />
+            <EventBrick locale={locale} key={e.id} event={e} left={seatsLeft.get(e.id) ?? null} now={now} />
           ))}
         </ul>
       )}
@@ -119,7 +122,7 @@ function DayCell({ day, outside, weekend, today, past, events, seatsLeft, now }:
   )
 }
 
-function EventBrick({ event, left, now }: { event: PublicEvent; left: number | null; now: number }) {
+function EventBrick({ locale, event, left, now }: { locale: Locale; event: PublicEvent; left: number | null; now: number }) {
   const status = calendarStatus(event, left, now)
   const recording = status === 'ended' && event.recordingUrl !== null
   return (
@@ -130,19 +133,19 @@ function EventBrick({ event, left, now }: { event: PublicEvent; left: number | n
         <h3 className="cal-title line-clamp-3 text-[0.9375rem] leading-[1.5] font-bold">
           <Link href={`/events/${event.id}`} className="text-inherit no-underline after:absolute after:inset-0 after:z-10">
             {event.title}
-            <span className="sr-only">{t('a11y.when', { when: formatRiyadh(event.startsAt, 'datetime') })}</span>
+            <span className="sr-only">{t(locale, 'a11y.when', { when: formatRiyadh(event.startsAt, 'datetime') })}</span>
           </Link>
         </h3>
         {event.departmentCode && (
-          <p className="cal-dept text-[0.75rem] leading-[1.4] font-semibold">{t(`dept.${event.departmentCode}.title` as StringKey)}</p>
+          <p className="cal-dept text-[0.75rem] leading-[1.4] font-semibold">{t(locale, `dept.${event.departmentCode}.title` as StringKey)}</p>
         )}
         {(status !== 'open' || recording) && (
           <div className="mt-0.5 flex flex-col gap-0.5">
-            <StatusBadge status={status} variant="flag" />
+            <StatusBadge locale={locale} status={status} variant="flag" />
             {recording && (
               <span className="cal-flag inline-flex items-center gap-1 text-[0.75rem] leading-[1.45] font-semibold">
                 <Icon icon={Video} size={13} />
-                {t('calendar.recording')}
+                {t(locale, 'calendar.recording')}
               </span>
             )}
           </div>

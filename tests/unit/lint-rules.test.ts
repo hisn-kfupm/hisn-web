@@ -24,14 +24,14 @@ const errors = (messageId: string, count = 1) => Array.from({ length: count }, (
 describe('hisn/no-literal-text', () => {
   tester.run('no-literal-text', rule('no-literal-text'), {
     valid: [
-      page(`<p>{t('home.title')}</p>`),
+      page(`<p>{t(locale, 'home.title')}</p>`),
       page(`<p> </p>`),
       // decorative images keep an empty alt
       page(`<img alt="" src="/x.png" />`),
       // numbers and punctuation are not letters
       page(`<p>٤٠٤</p>`),
       page(`<span>·</span>`),
-      page(`<p>{t('a')}{' '}{t('b')}</p>`),
+      page(`<p>{t(locale, 'a')}{' '}{t(locale, 'b')}</p>`),
       page(`<Bdi lang="en">{CONTACT_EMAIL}</Bdi>`),
       // Latin identifiers in ordinary props are fine
       page(`<Button variant="primary" data-testid="auth-entry" className="ms-4" />`),

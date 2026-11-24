@@ -1,6 +1,7 @@
 import { Courses } from '@/components/calendar/Courses'
 import { t } from '@/lib/i18n/t'
 import { cn } from '@/lib/cn'
+import type { Locale } from '@/lib/i18n/locale'
 
 // four short courses in running bond; one brick is missing near the top
 const COURSES = [6, 7, 6, 7]
@@ -11,7 +12,7 @@ const HOLE = { course: 2, brick: 2 }
  * are no events this month, and room for the next-event banner beside it. The courses lay in
  * like the grid's.
  */
-export function EmptyMonth() {
+export function EmptyMonth({ locale }: { locale: Locale }) {
   return (
     <div data-testid="empty-month" className="flex flex-col gap-8">
       <Courses className="cal-short-wall flex flex-col gap-[3px]">
@@ -25,8 +26,8 @@ export function EmptyMonth() {
         ))}
       </Courses>
       <div>
-        <p className="text-[clamp(1.75rem,1.2rem+2vw,2.75rem)] leading-[1.3] font-bold text-deep">{t('calendar.empty')}</p>
-        <p className="mt-2 text-body text-muted">{t('calendar.empty.body')}</p>
+        <p className="text-[clamp(1.75rem,1.2rem+2vw,2.75rem)] leading-[1.3] font-bold text-deep">{t(locale, 'calendar.empty')}</p>
+        <p className="mt-2 text-body text-muted">{t(locale, 'calendar.empty.body')}</p>
       </div>
     </div>
   )

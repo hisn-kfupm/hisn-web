@@ -7,25 +7,25 @@ afterEach(() => vi.unstubAllEnvs())
 
 describe('draft markers', () => {
   it('keeps « «مؤقت» » by default', () => {
-    expect(t('nav.menuOpen')).toBe(ar['nav.menuOpen'])
-    expect(t('nav.menuOpen')).toContain('«مؤقت»')
+    expect(t('ar', 'nav.menuOpen')).toBe(ar['nav.menuOpen'])
+    expect(t('ar', 'nav.menuOpen')).toContain('«مؤقت»')
   })
 
   it('strips the marker and its leading space when NEXT_PUBLIC_HIDE_DRAFT_MARKERS=1', () => {
     vi.stubEnv('NEXT_PUBLIC_HIDE_DRAFT_MARKERS', '1')
-    expect(t('nav.menuOpen')).toBe('فتح القائمة')
-    expect(t('seats.left', { n: 3 })).toBe('تبقّى 3 مقعدًا')
+    expect(t('ar', 'nav.menuOpen')).toBe('فتح القائمة')
+    expect(t('ar', 'seats.left', { n: 3 })).toBe('تبقّى 3 مقعدًا')
   })
 
   it('leaves approved lines alone', () => {
     vi.stubEnv('NEXT_PUBLIC_HIDE_DRAFT_MARKERS', '1')
-    expect(t('brand.slogan')).toBe(ar['brand.slogan'])
-    expect(t('brand.closing')).toBe(ar['brand.closing'])
+    expect(t('ar', 'brand.slogan')).toBe(ar['brand.slogan'])
+    expect(t('ar', 'brand.closing')).toBe(ar['brand.closing'])
   })
 
   it('only reacts to the value 1', () => {
     vi.stubEnv('NEXT_PUBLIC_HIDE_DRAFT_MARKERS', '0')
-    expect(t('nav.menuOpen')).toContain('«مؤقت»')
+    expect(t('ar', 'nav.menuOpen')).toContain('«مؤقت»')
   })
 
   it('strips the marker from stand-in event titles and descriptions when the flag is on', async () => {

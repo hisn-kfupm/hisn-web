@@ -6,10 +6,12 @@ import { ChevronDown } from 'lucide-react'
 import { Icon } from '@/components/ui/Icon'
 import { useDisclosure } from '@/components/ui/useDisclosure'
 import { deptIcon } from '@/lib/data/dept-icons'
-import { LOCALES } from '@/lib/i18n/locale'
+import { LOCALES, type Locale } from '@/lib/i18n/locale'
+import { fmtNum } from '@/lib/i18n/number'
 import type { NavItem } from '@/components/nav-items'
 
 type Props = {
+  locale: Locale
   label: string
   departmentsLabel: string
   departments: NavItem[]
@@ -28,10 +30,9 @@ const isCurrent = (pathname: string | null, href: string) => {
   const target = withoutLocale(href)
   return path === target || path.startsWith(target + '/')
 }
-const arabicDigits = new Intl.NumberFormat('ar-SA-u-nu-arab', { minimumIntegerDigits: 2 })
 
 /** Desktop navigation (≥1024 px). Strings arrive as props so ar.json never ships to the browser. */
-export function HeaderNav({ label, departmentsLabel, departments, items }: Props) {
+export function HeaderNav({ locale, label, departmentsLabel, departments, items }: Props) {
   const pathname = usePathname()
   const { open: deptOpen, close: closeDept, toggle: toggleDept, id: deptId, buttonRef, panelRef } = useDisclosure<HTMLButtonElement, HTMLUListElement>()
   const deptCurrent = departments.some((d) => isCurrent(pathname, d.href))
@@ -66,7 +67,7 @@ export function HeaderNav({ label, departmentsLabel, departments, items }: Props
                 aria-current={isCurrent(pathname, d.href) ? 'page' : undefined}
                 className="group flex min-h-16 items-center gap-3 bg-deep-700 px-4 py-3 font-semibold text-white no-underline transition-colors hover:bg-mid aria-[current=page]:bg-mid"
               >
-                <span aria-hidden="true" className="text-label text-mint">{arabicDigits.format(i + 1)}</span>
+                <span aria-hidden="true" className="text-label text-mint">{fmtNum(i + 1, locale, { minimumIntegerDigits: 2 })}</span>
                 <Icon icon={deptIcon(d.code ?? null)} size={20} className="text-mint-300" />
                 <span className="draw-line pb-0.5">{d.label}</span>
               </Link>

@@ -9,8 +9,10 @@ import { tp } from '@/lib/i18n/plural'
 import { t } from '@/lib/i18n/t'
 import { formatRiyadh } from '@/lib/time/riyadh'
 import { cn } from '@/lib/cn'
+import type { Locale } from '@/lib/i18n/locale'
 
 type Props = {
+  locale: Locale
   month: string
   /** the request's "now" in ms */
   now: number
@@ -28,9 +30,9 @@ const monthYear = (month: string) => formatRiyadh(monthMidpoint(month), 'monthYe
  * keyed by month so it drops in again when the month changes (CSS only; composed without JS and
  * under reduced motion).
  */
-export function CalendarHead({ month, now, count, eventDays }: Props) {
+export function CalendarHead({ locale, month, now, count, eventDays }: Props) {
   const current = parseMonthParam(undefined, new Date(now))
-  const year = fmtNum(Number(month.slice(0, 4)), { useGrouping: false })
+  const year = fmtNum(Number(month.slice(0, 4)), locale, { useGrouping: false })
   const nowIso = new Date(now).toISOString()
   const prev = prevMonth(month)
   const next = nextMonth(month)
@@ -38,7 +40,7 @@ export function CalendarHead({ month, now, count, eventDays }: Props) {
   const todayInner = (
     <>
       <i aria-hidden="true" className="size-3 shrink-0 bg-mint" />
-      <span className="text-label text-on-dark">{t('calendar.today')}</span>
+      <span className="text-label text-on-dark">{t(locale, 'calendar.today')}</span>
       <span className="font-semibold text-white">
         {formatRiyadh(nowIso, 'weekday')} {formatRiyadh(nowIso, 'day')} {formatRiyadh(nowIso, 'month')}
       </span>
@@ -46,9 +48,9 @@ export function CalendarHead({ month, now, count, eventDays }: Props) {
   )
 
   return (
-    <PageHead
-      crumbs={[{ href: '/', label: t('crumbs.home') }, { label: t('nav.events') }]}
-      kicker={t('nav.events')}
+    <PageHead locale={locale}
+      crumbs={[{ href: '/', label: t(locale, 'crumbs.home') }, { label: t(locale, 'nav.events') }]}
+      kicker={t(locale, 'nav.events')}
       size="display"
       title={
         <span key={month} className="cal-head-title flex flex-wrap items-end gap-x-5 lg:gap-x-8">
@@ -66,27 +68,27 @@ export function CalendarHead({ month, now, count, eventDays }: Props) {
             <Link href={`/events?m=${current}`} scroll={false} className="cal-today group flex flex-wrap items-center gap-3 px-4 py-3 no-underline">
               {todayInner}
               <span className="flex items-center gap-1.5 text-label text-mint">
-                <span className="draw-line pb-0.5">{t('calendar.backToToday')}</span>
+                <span className="draw-line pb-0.5">{t(locale, 'calendar.backToToday')}</span>
                 <ArrowGlyph size={16} />
               </span>
             </Link>
           )}
           <p className="text-small text-on-dark">
-            <span className="font-semibold text-white">{tp('calendar.count', count)}</span>
+            <span className="font-semibold text-white">{tp(locale, 'calendar.count', count)}</span>
             <span aria-hidden="true" className="mx-2 text-mint/60">■</span>
-            {t('calendar.timezone')}
+            {t(locale, 'calendar.timezone')}
           </p>
         </div>
 
-        <nav aria-label={t('calendar.nav')} className="flex items-center justify-between gap-6 sm:justify-start">
-          <Link href={`/events?m=${prev}`} scroll={false} rel="prev" aria-label={t('calendar.prev', { month: monthYear(prev) })} data-month-link="prev" className="group flex items-center gap-3 text-white no-underline">
+        <nav aria-label={t(locale, 'calendar.nav')} className="flex items-center justify-between gap-6 sm:justify-start">
+          <Link href={`/events?m=${prev}`} scroll={false} rel="prev" aria-label={t(locale, 'calendar.prev', { month: monthYear(prev) })} data-month-link="prev" className="group flex items-center gap-3 text-white no-underline">
             <span className="btn btn-dark-secondary size-14 p-0">
               <Icon icon={ArrowLeft} mirror size={22} />
             </span>
             <span aria-hidden="true" className="text-[1.0625rem] font-semibold">{formatRiyadh(monthMidpoint(prev), 'month')}</span>
           </Link>
           <i aria-hidden="true" className="h-8 w-px bg-white/20" />
-          <Link href={`/events?m=${next}`} scroll={false} rel="next" aria-label={t('calendar.next', { month: monthYear(next) })} data-month-link="next" className="group flex items-center gap-3 text-white no-underline">
+          <Link href={`/events?m=${next}`} scroll={false} rel="next" aria-label={t(locale, 'calendar.next', { month: monthYear(next) })} data-month-link="next" className="group flex items-center gap-3 text-white no-underline">
             <span aria-hidden="true" className="text-[1.0625rem] font-semibold">{formatRiyadh(monthMidpoint(next), 'month')}</span>
             <span className="btn btn-dark-secondary size-14 p-0">
               <Icon icon={ArrowRight} mirror size={22} />

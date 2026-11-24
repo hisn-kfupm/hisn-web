@@ -23,52 +23,52 @@ const event: PublicEvent = {
 
 describe('EventCard', () => {
   it('links the title to the event page and names the full date for screen readers', () => {
-    render(<EventCard event={event} variant="upcoming" />)
+    render(<EventCard locale="ar" event={event} variant="upcoming" />)
     const link = screen.getByRole('link', { name: /مدخل إلى هندسة الأنظمة/ })
     expect(link.getAttribute('href')).toBe('/events/42')
     expect(link.textContent).toContain('١٨ نوفمبر ٢٠٢٦')
   })
 
   it('shows the department, the Riyadh time range and the place', () => {
-    const { container } = render(<EventCard event={event} variant="upcoming" />)
-    expect(container.textContent).toContain(t('dept.SYSTEMS_INTEGRATION.title'))
+    const { container } = render(<EventCard locale="ar" event={event} variant="upcoming" />)
+    expect(container.textContent).toContain(t('ar', 'dept.SYSTEMS_INTEGRATION.title'))
     expect(container.textContent).toContain('٦:٠٠–٨:٠٠')
     expect(container.textContent).toContain('مبنى ٥٨ · قاعة ١٠٢')
   })
 
   it('hides the visual date block from screen readers', () => {
-    const { container } = render(<EventCard event={event} variant="upcoming" />)
+    const { container } = render(<EventCard locale="ar" event={event} variant="upcoming" />)
     const block = container.querySelector('[data-testid="date-block"]')
     expect(block?.getAttribute('aria-hidden')).toBe('true')
     expect(block?.textContent).toContain('١٨')
   })
 
   it('says "online" instead of a place for online events', () => {
-    const { container } = render(<EventCard event={{ ...event, format: 'online', location: null }} variant="upcoming" />)
-    expect(container.textContent).toContain(t('event.format.online'))
+    const { container } = render(<EventCard locale="ar" event={{ ...event, format: 'online', location: null }} variant="upcoming" />)
+    expect(container.textContent).toContain(t('ar', 'event.format.online'))
   })
 
   it('upcoming: invites to the details, with no seat claim', () => {
     // the homepage is cached for an hour, so it never states seats or "open" (dev-1 D1-10 adds live seats)
-    const { container } = render(<EventCard event={event} variant="upcoming" />)
-    expect(container.textContent).toContain(t('event.card.details'))
+    const { container } = render(<EventCard locale="ar" event={event} variant="upcoming" />)
+    expect(container.textContent).toContain(t('ar', 'event.card.details'))
     expect(container.textContent).not.toContain('مقعد')
   })
 
   it('recording: marks it ended and links to the library', () => {
-    render(<EventCard event={{ ...event, recordingUrl: 'https://youtu.be/abc' }} variant="recording" />)
-    expect(screen.getByText(t('event.badge.ended'))).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: t('event.watchRecording') }).getAttribute('href')).toBe('/library')
+    render(<EventCard locale="ar" event={{ ...event, recordingUrl: 'https://youtu.be/abc' }} variant="recording" />)
+    expect(screen.getByText(t('ar', 'event.badge.ended'))).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: t('ar', 'event.watchRecording') }).getAttribute('href')).toBe('/library')
   })
 
   it('cancelled: says so, whatever the variant', () => {
-    const { container } = render(<EventCard event={{ ...event, status: 'cancelled' }} variant="upcoming" />)
-    expect(within(container).getByText(t('event.badge.cancelled'))).toBeInTheDocument()
-    expect(container.textContent).not.toContain(t('event.card.details'))
+    const { container } = render(<EventCard locale="ar" event={{ ...event, status: 'cancelled' }} variant="upcoming" />)
+    expect(within(container).getByText(t('ar', 'event.badge.cancelled'))).toBeInTheDocument()
+    expect(container.textContent).not.toContain(t('ar', 'event.card.details'))
   })
 
   it('omits the department line when the event has none', () => {
-    const { container } = render(<EventCard event={{ ...event, departmentCode: null }} variant="upcoming" />)
+    const { container } = render(<EventCard locale="ar" event={{ ...event, departmentCode: null }} variant="upcoming" />)
     expect(container.querySelector('[data-testid="event-dept"]')).toBeNull()
   })
 })

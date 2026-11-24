@@ -4,8 +4,10 @@ import { cn } from '@/lib/cn'
 import { fmtNum } from '@/lib/i18n/number'
 import { SectionMarks } from './SectionMarks'
 import { SectionNumber } from './SectionNumber'
+import type { Locale } from '@/lib/i18n/locale'
 
 type Props = {
+  locale: Locale
   number: number
   /** id of the h2, for the section's aria-labelledby */
   id: string
@@ -24,12 +26,12 @@ type Props = {
  * ٠١ and ■■■ on the same row as the title, an optional intro line under it, and an optional
  * "see all" ArrowLink at the row's inline-end.
  */
-export function SectionHead({ number, id, title, intro, link, tone = 'light', className }: Props) {
+export function SectionHead({ locale, number, id, title, intro, link, tone = 'light', className }: Props) {
   return (
     <div className={cn('mb-8 flex flex-wrap items-end justify-between gap-x-10 gap-y-3 lg:mb-10', className)}>
       <div className="max-w-[46rem]">
         <div className="flex items-center gap-3 lg:gap-4">
-          <SectionNumber size="head">{fmtNum(number, { minimumIntegerDigits: 2 })}</SectionNumber>
+          <SectionNumber size="head">{fmtNum(number, locale, { minimumIntegerDigits: 2 })}</SectionNumber>
           <SectionMarks />
           <h2 id={id} className={cn('text-[clamp(1.625rem,1.15rem+1.9vw,2.625rem)] leading-[1.3] font-bold text-balance', tone === 'dark' ? 'text-white' : 'text-heading')}>
             {title}

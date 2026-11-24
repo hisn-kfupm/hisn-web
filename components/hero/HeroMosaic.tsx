@@ -2,6 +2,7 @@ import type { CSSProperties } from 'react'
 import { Photo } from '@/components/ui/Photo'
 import { images, type SiteImage } from '@/lib/data/images'
 import { label } from '@/lib/data/labels'
+import type { Locale } from '@/lib/i18n/locale'
 
 /** grid units: 8 columns × 7 courses of square units, so a brick (2 × 1) is 2:1 */
 const COURSES = 7
@@ -58,7 +59,7 @@ const course = (b: Brick) => COURSES - (b.r + ('h' in b ? b.h : 1) - 1)
  * hidden from assistive tech, so the photos carry no alt text here. HeroSearch lights the major
  * bricks (data-major) that match the visitor's query.
  */
-export function HeroMosaic() {
+export function HeroMosaic({ locale }: { locale: Locale }) {
   return (
     <div data-mosaic aria-hidden="true" className="mosaic">
       <div className="mosaic-crenels grid grid-cols-8 gap-(--mg)">
@@ -84,7 +85,7 @@ export function HeroMosaic() {
           if (b.kind === 'socket') return <span key={key} className="mosaic-brick mosaic-socket" style={style} />
           return (
             <span key={key} data-tone={b.tone} data-major={b.kind === 'major' ? b.code : undefined} className="mosaic-brick mosaic-tone" style={style}>
-              {b.kind === 'major' && <span className="mosaic-label">{label('majors', b.code)}</span>}
+              {b.kind === 'major' && <span className="mosaic-label">{label('majors', b.code, locale)}</span>}
             </span>
           )
         })}

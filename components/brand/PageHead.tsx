@@ -4,8 +4,10 @@ import { Photo } from '@/components/ui/Photo'
 import { Breadcrumbs, type Crumb } from './Breadcrumbs'
 import { SectionMarks } from './SectionMarks'
 import { WallStrip } from './WallStrip'
+import type { Locale } from '@/lib/i18n/locale'
 
 type Props = {
+  locale: Locale
   kicker?: ReactNode
   /** large figure above the title (e.g. ٤٠٤) */
   figure?: ReactNode
@@ -28,7 +30,7 @@ type Props = {
  * bottom. data-band="dark" keeps the header transparent over it. With a photo the head becomes a
  * two-column band and drops some of its height.
  */
-export function PageHead({ kicker, figure, title, size = 'h1', crumbs, photo, backdrop, children, className }: Props) {
+export function PageHead({ locale, kicker, figure, title, size = 'h1', crumbs, photo, backdrop, children, className }: Props) {
   const text = (
     <div>
       {kicker && (
@@ -53,7 +55,7 @@ export function PageHead({ kicker, figure, title, size = 'h1', crumbs, photo, ba
       )}
       <div aria-hidden="true" className="grain-layer" />
       <div className={cn('wrap relative', photo ? 'pt-[calc(var(--header-h)+1.75rem)] pb-28 lg:pt-[calc(var(--header-h)+2.5rem)] lg:pb-32' : 'pt-[calc(var(--header-h)+2.5rem)] pb-40 lg:pt-[calc(var(--header-h)+4rem)] lg:pb-44')}>
-        {crumbs && <Breadcrumbs items={crumbs} />}
+        {crumbs && <Breadcrumbs locale={locale} items={crumbs} />}
         {photo ? (
           <div className="grid items-center gap-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:gap-14">
             {text}

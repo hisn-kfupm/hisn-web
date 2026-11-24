@@ -5,18 +5,25 @@ import { Bdi } from '@/components/Bdi'
 import { primaryNav } from '@/components/nav-items'
 import { CONTACT_EMAIL } from '@/lib/config/contact'
 import { t } from '@/lib/i18n/t'
+import type { Locale } from '@/lib/i18n/locale'
 
 /* enough merlons for a 2,700 px wide screen */
 const MERLONS = 60
+
+/* the closing line's own quotation marks, set in mint: «…» in Arabic, “…” in English */
+const QUOTES = [
+  ['«', '»'],
+  ['“', '”'],
+] as const
 
 /**
  * Site footer (dev-1 D1-5, revision 04 §4.7): compact and in normal flow. Crenellations on its top
  * edge, the approved closing line (large, not giant), the links and the contact, then the logo and
  * the university. D1-6 adds <NewsletterForm/> in its slot.
  */
-export function Footer() {
-  const closing = t('brand.closing')
-  const quoted = closing.startsWith('«') && closing.endsWith('»')
+export function Footer({ locale }: { locale: Locale }) {
+  const closing = t(locale, 'brand.closing')
+  const quotes = QUOTES.find(([open, close]) => closing.startsWith(open) && closing.endsWith(close))
   const link = 'inline-flex min-h-11 items-center font-semibold text-white no-underline'
   return (
     <footer data-band="dark" className="on-dark relative bg-deep-600 text-on-dark">
@@ -29,20 +36,20 @@ export function Footer() {
       <div className="wrap pt-12 pb-8 lg:pt-14">
         <div className="grid gap-x-12 gap-y-8 lg:grid-cols-12 lg:items-end">
           <p data-closing className="text-[clamp(1.5rem,1.05rem+1.7vw,2.375rem)] leading-[1.5] font-bold text-balance text-white lg:col-span-7">
-            {quoted ? (
+            {quotes ? (
               <>
-                <span className="text-mint">«</span>
+                <span className="text-mint">{quotes[0]}</span>
                 {closing.slice(1, -1)}
-                <span className="text-mint">»</span>
+                <span className="text-mint">{quotes[1]}</span>
               </>
             ) : (
               closing
             )}
           </p>
-          <nav aria-label={t('footer.nav')} className="lg:col-span-5">
+          <nav aria-label={t(locale, 'footer.nav')} className="lg:col-span-5">
             {/* D1-6: <NewsletterForm /> (the alert list) goes here, above the links */}
             <ul className="m-0 grid list-none grid-cols-2 gap-x-8 p-0">
-              {primaryNav().map((item) => (
+              {primaryNav(locale).map((item) => (
                 <li key={item.href}>
                   <Link href={item.href} className={link}>
                     <span className="draw-line pb-0.5">{item.label}</span>
@@ -51,13 +58,13 @@ export function Footer() {
               ))}
               <li>
                 <Link href="/privacy" className={link}>
-                  <span className="draw-line pb-0.5">{t('footer.privacy')}</span>
+                  <span className="draw-line pb-0.5">{t(locale, 'footer.privacy')}</span>
                 </Link>
               </li>
               {/* the stand-in photos' licences ask for the credit to stay with the site */}
               <li>
                 <Link href="/credits" className={link}>
-                  <span className="draw-line pb-0.5">{t('footer.credits')}</span>
+                  <span className="draw-line pb-0.5">{t(locale, 'footer.credits')}</span>
                 </Link>
               </li>
             </ul>
@@ -65,14 +72,14 @@ export function Footer() {
         </div>
         <div className="mt-10 flex flex-wrap items-center justify-between gap-x-10 gap-y-5 border-t border-teal-100/15 pt-7">
           <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
-            <Logo tone="reversed" height={44} idPrefix="footer" title={t('brand.name')} />
+            <Logo tone="reversed" height={44} idPrefix="footer" title={t(locale, 'brand.name')} />
             <p className="flex items-center gap-3 text-label">
               <SectionMarks />
-              {t('brand.university')}
+              {t(locale, 'brand.university')}
             </p>
           </div>
           <p className="flex min-h-11 flex-wrap items-center gap-x-2">
-            <span>{t('footer.contact')}</span>
+            <span>{t(locale, 'footer.contact')}</span>
             <a href={`mailto:${CONTACT_EMAIL.toLowerCase()}`} className="font-semibold text-mint no-underline">
               <span className="draw-line pb-0.5">
                 <Bdi lang="en">{CONTACT_EMAIL.toLowerCase()}</Bdi>

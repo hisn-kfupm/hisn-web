@@ -94,6 +94,7 @@ export function RegisterBlock({ capacity, seatsLeft, children, ...button }: Prop
   return (
     <section ref={root} aria-label={button.labels.region} data-state={state} className="reg-block on-dark text-on-dark">
       <SeatWall
+        locale={button.locale}
         capacity={known ? capacity : null}
         taken={taken}
         mine={mine}

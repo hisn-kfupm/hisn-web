@@ -8,6 +8,7 @@ import { t } from '@/lib/i18n/t'
 import { HeroMosaic } from './HeroMosaic'
 import { HeroSearch } from './HeroSearch'
 import { NextEventBrick } from './NextEventBrick'
+import type { Locale } from '@/lib/i18n/locale'
 
 /**
  * Home hero (revision 04 §4.1). A server component: copy on the inline-start, the wall on the
@@ -17,9 +18,9 @@ import { NextEventBrick } from './NextEventBrick'
  * action goes to the events and the major search is the second path. The next event is a compact
  * card at the foot of the wall. Strings are resolved here and passed to the client search.
  */
-export function Hero({ next }: { next: PublicEvent | null }) {
-  const slogan = t('brand.slogan')
-  const accent = t('hero.accentWord')
+export function Hero({ locale, next }: { locale: Locale; next: PublicEvent | null }) {
+  const slogan = t(locale, 'brand.slogan')
+  const accent = t(locale, 'hero.accentWord')
   const at = slogan.indexOf(accent)
   const [before, after] = at < 0 ? [slogan, ''] : [slogan.slice(0, at).trim(), slogan.slice(at + accent.length).trim()]
 
@@ -29,7 +30,7 @@ export function Hero({ next }: { next: PublicEvent | null }) {
         <div data-hero-copy className="lg:col-span-7">
           <p className="mb-4 flex items-center gap-3 text-label text-on-dark lg:mb-5">
             <SectionMarks />
-            {t('brand.university')}
+            {t(locale, 'brand.university')}
           </p>
           <h1 id="hero-title" className="hero-title text-[clamp(3rem,1.1rem+5.4vw,6.25rem)] leading-[1.22] font-bold">
             <span data-line className="block">
@@ -42,34 +43,34 @@ export function Hero({ next }: { next: PublicEvent | null }) {
             </span>{' '}
             {after && <span data-line className="block">{after}</span>}
           </h1>
-          <p className="mt-5 max-w-[34rem] text-[1.0625rem] leading-[1.8] text-on-dark lg:mt-6 lg:text-[1.125rem]">{t('brand.about')}</p>
+          <p className="mt-5 max-w-[34rem] text-[1.0625rem] leading-[1.8] text-on-dark lg:mt-6 lg:text-[1.125rem]">{t(locale, 'brand.about')}</p>
           <div className="mt-7 flex flex-col items-start gap-7 lg:mt-8">
             <LinkButton href="/events" tone="dark" size="lg" arrow className="min-w-[14rem]">
-              {t('home.hero.primary')}
+              {t(locale, 'home.hero.primary')}
             </LinkButton>
-            <HeroSearch
+            <HeroSearch locale={locale}
               majors={majors.filter((m) => m.code !== 'OTHER').map(({ code, ar, en }) => ({ code, ar, en }))}
               labels={{
-                label: t('hero.search.label'),
-                placeholder: t('hero.search.placeholder'),
-                placeholderShort: t('hero.search.placeholderShort'),
-                clear: t('hero.search.clear'),
-                results: t('hero.search.results'),
-                counts: pluralForms('hero.search.count'),
-                found: t('hero.found.status', { name: '{name}' }),
+                label: t(locale, 'hero.search.label'),
+                placeholder: t(locale, 'hero.search.placeholder'),
+                placeholderShort: t(locale, 'hero.search.placeholderShort'),
+                clear: t(locale, 'hero.search.clear'),
+                results: t(locale, 'hero.search.results'),
+                counts: pluralForms(locale, 'hero.search.count'),
+                found: t(locale, 'hero.found.status', { name: '{name}' }),
               }}
               foundLabels={{
-                title: t('hero.found.title'),
-                events: t('hero.found.events'),
-                departments: t('hero.found.departments'),
-                close: t('hero.found.close'),
+                title: t(locale, 'hero.found.title'),
+                events: t(locale, 'hero.found.events'),
+                departments: t(locale, 'hero.found.departments'),
+                close: t(locale, 'hero.found.close'),
               }}
             />
           </div>
         </div>
         <div className="flex flex-col lg:col-span-5">
-          <HeroMosaic />
-          <NextEventBrick event={next} />
+          <HeroMosaic locale={locale} />
+          <NextEventBrick locale={locale} event={next} />
         </div>
       </div>
       {/* the next band's light squares rise into the hero's foot */}

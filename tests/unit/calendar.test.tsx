@@ -53,7 +53,7 @@ describe('calendarStatus', () => {
 })
 
 describe('MonthGrid', () => {
-  const grid = () => render(<MonthGrid month="2026-11" events={events} seatsLeft={seats} now={NOW} />).container
+  const grid = () => render(<MonthGrid locale="ar" month="2026-11" events={events} seatsLeft={seats} now={NOW} />).container
 
   it('shows at md and up only, in whole weeks of seven starting on Sunday', () => {
     const root = grid().querySelector('[data-testid="month-grid"]') as HTMLElement
@@ -85,16 +85,16 @@ describe('MonthGrid', () => {
     const root = grid()
     const brick = (id: number) => root.querySelector(`[data-event="${id}"]`) as HTMLElement
     expect(within(brick(1)).getByRole('link').getAttribute('href')).toBe('/events/1')
-    expect(brick(3).textContent).toContain(t('event.badge.ended'))
-    expect(brick(4).textContent).toContain(t('event.badge.cancelled'))
-    expect(brick(2).textContent).toContain(t('event.badge.almostFull'))
-    expect(brick(1).textContent).not.toContain(t('event.badge.almostFull'))
-    expect(brick(5).textContent).not.toContain(t('event.badge.almostFull'))
+    expect(brick(3).textContent).toContain(t('ar', 'event.badge.ended'))
+    expect(brick(4).textContent).toContain(t('ar', 'event.badge.cancelled'))
+    expect(brick(2).textContent).toContain(t('ar', 'event.badge.almostFull'))
+    expect(brick(1).textContent).not.toContain(t('ar', 'event.badge.almostFull'))
+    expect(brick(5).textContent).not.toContain(t('ar', 'event.badge.almostFull'))
   })
 })
 
 describe('EventList', () => {
-  const list = () => render(<EventList month="2026-11" events={events} seatsLeft={seats} now={NOW} />).container
+  const list = () => render(<EventList locale="ar" month="2026-11" events={events} seatsLeft={seats} now={NOW} />).container
 
   it('shows below md only, one group per Riyadh day that has events', () => {
     const root = list().querySelector('[data-testid="event-list"]') as HTMLElement
@@ -107,9 +107,9 @@ describe('EventList', () => {
   it('badges rows the same way and shows seat meters only for open events', () => {
     const root = list()
     const row = (id: number) => root.querySelector(`[data-event="${id}"]`) as HTMLElement
-    expect(row(3).textContent).toContain(t('event.badge.ended'))
-    expect(row(4).textContent).toContain(t('event.badge.cancelled'))
-    expect(row(2).textContent).toContain(t('event.badge.almostFull'))
+    expect(row(3).textContent).toContain(t('ar', 'event.badge.ended'))
+    expect(row(4).textContent).toContain(t('ar', 'event.badge.cancelled'))
+    expect(row(2).textContent).toContain(t('ar', 'event.badge.almostFull'))
     expect(row(1).querySelector('[data-testid="seat-meter"]')).not.toBeNull()
     expect(row(4).querySelector('[data-testid="seat-meter"]')).toBeNull()
   })
@@ -127,15 +127,15 @@ describe('EventList', () => {
 describe('CalendarView', () => {
   it('features the next event with its photo, and links to its month when that is another month', () => {
     const next = ev({ id: 77, title: 'التالية', startsAt: '2026-12-02T15:00:00Z', endsAt: '2026-12-02T17:00:00Z' })
-    const { container } = render(<CalendarView month="2026-10" events={[]} seatsLeft={new Map()} now={NOW} next={next} />)
+    const { container } = render(<CalendarView locale="ar" month="2026-10" events={[]} seatsLeft={new Map()} now={NOW} next={next} />)
     const banner = container.querySelector('[data-testid="next-banner"]') as HTMLElement
     expect(within(banner).getAllByRole('link').map((a) => a.getAttribute('href'))).toEqual(['/events/77', '/events?m=2026-12'])
     expect(decodeURIComponent(banner.querySelector('img')?.getAttribute('srcset') ?? '')).toContain(eventCover(next).src)
-    expect(container.textContent).toContain(t('calendar.empty'))
+    expect(container.textContent).toContain(t('ar', 'calendar.empty'))
   })
 
   it('features the next event above the month even when the month still has events ahead', () => {
-    const { container } = render(<CalendarView month="2026-11" events={events} seatsLeft={seats} now={NOW} next={upcoming} />)
+    const { container } = render(<CalendarView locale="ar" month="2026-11" events={events} seatsLeft={seats} now={NOW} next={upcoming} />)
     const banner = container.querySelector('[data-testid="next-banner"]') as HTMLElement
     // the event is in the month on screen, so there is no "its month" link
     expect(within(banner).getAllByRole('link').map((a) => a.getAttribute('href'))).toEqual(['/events/1'])
@@ -146,7 +146,7 @@ describe('CalendarView', () => {
   })
 
   it('omits the banner without a next event', () => {
-    const { container } = render(<CalendarView month="2026-10" events={[]} seatsLeft={new Map()} now={NOW} next={null} />)
+    const { container } = render(<CalendarView locale="ar" month="2026-10" events={[]} seatsLeft={new Map()} now={NOW} next={null} />)
     expect(container.querySelector('[data-testid="next-banner"]')).toBeNull()
   })
 })

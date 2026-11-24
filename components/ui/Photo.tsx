@@ -19,7 +19,7 @@ const GRID: Record<PhotoRatio, [cols: number, rows: number]> = {
 type Props = {
   /** a SiteImage or EventCover from lib/data/images, or any { src } */
   image: { src: string; blurDataURL?: string }
-  /** resolved text (t(image.alt) on the server); '' only when the photo is decoration */
+  /** resolved text (t(locale, image.alt) on the server); '' only when the photo is decoration */
   alt: string
   ratio: PhotoRatio
   /** required: how wide the photo is at each breakpoint, e.g. "(min-width: 1024px) 33vw, 100vw" */

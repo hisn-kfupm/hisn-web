@@ -45,7 +45,7 @@ describe('RootLayout (app/[locale]/layout.tsx)', () => {
   it('answers an address that matches no route with the site 404 page, header and footer included', () => {
     const html = renderToStaticMarkup(<GlobalNotFound />)
     expect(html).toMatch(/<html lang="ar" dir="rtl"/)
-    expect(html).toContain(t('notFound.title'))
+    expect(html).toContain(t('ar', 'notFound.title'))
     expect(html).toContain('data-testid="site-header"')
     // without the flag Next ignores app/global-not-found.tsx and serves its bare default 404
     expect(nextConfig.experimental?.globalNotFound).toBe(true)
@@ -84,7 +84,7 @@ describe('until D2-4 lands (its proxy redirects every unprefixed path; delete th
 describe('HeaderNav across the move to /ar and /en (D1-5 prefixes the links)', () => {
   const current = (pathname: string, href: string) => {
     nav.pathname = pathname
-    const { unmount } = render(<HeaderNav label="nav" departmentsLabel="depts" departments={[]} items={[{ href, label: 'events' }, { href: href.replace('events', 'library'), label: 'library' }]} />)
+    const { unmount } = render(<HeaderNav locale="ar" label="nav" departmentsLabel="depts" departments={[]} items={[{ href, label: 'events' }, { href: href.replace('events', 'library'), label: 'library' }]} />)
     const marked = [screen.getByRole('link', { name: 'events' }), screen.getByRole('link', { name: 'library' })].map((a) => a.getAttribute('aria-current'))
     unmount()
     return marked

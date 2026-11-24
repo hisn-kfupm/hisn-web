@@ -8,8 +8,10 @@ import type { PublicEvent } from '@/lib/events/types'
 import { formatRiyadh, formatRiyadhTimeRange } from '@/lib/time/riyadh'
 import { t, type StringKey } from '@/lib/i18n/t'
 import { cn } from '@/lib/cn'
+import type { Locale } from '@/lib/i18n/locale'
 
 type Props = {
+  locale: Locale
   event: PublicEvent
   /** 'upcoming' for events still to come, 'recording' for ended events with a recording */
   variant: 'upcoming' | 'recording'
@@ -21,7 +23,7 @@ type Props = {
  * link sits above it. No seat counts: the pages that use this card are cached, and seats are live
  * (D1-10 adds them where the page is dynamic).
  */
-export function EventCard({ event, variant }: Props) {
+export function EventCard({ locale, event, variant }: Props) {
   const cancelled = event.status === 'cancelled'
   const quiet = cancelled || variant === 'recording'
   const online = event.format === 'online'
@@ -45,7 +47,7 @@ export function EventCard({ event, variant }: Props) {
         <div className="flex min-w-0 flex-col gap-2 px-5 pt-4 pb-5">
           {event.departmentCode && (
             <p data-testid="event-dept" className="text-label text-accent-strong">
-              {t(`dept.${event.departmentCode}.title` as StringKey)}
+              {t(locale, `dept.${event.departmentCode}.title` as StringKey)}
             </p>
           )}
           <h3 className="line-clamp-2 text-h3">
@@ -54,7 +56,7 @@ export function EventCard({ event, variant }: Props) {
               className={cn('no-underline after:absolute after:inset-0 hover:underline', cancelled ? 'text-muted' : 'text-deep')}
             >
               {event.title}
-              <span className="sr-only">{t('a11y.when', { when: formatRiyadh(event.startsAt, 'date') })}</span>
+              <span className="sr-only">{t(locale, 'a11y.when', { when: formatRiyadh(event.startsAt, 'date') })}</span>
             </Link>
           </h3>
           <ul className="m-0 flex list-none flex-col gap-0.5 p-0 text-small text-muted">
@@ -65,28 +67,28 @@ export function EventCard({ event, variant }: Props) {
             {(online || event.location) && (
               <li className="flex items-center gap-2">
                 <Icon icon={online ? Video : MapPin} size={16} />
-                <span>{online ? t('event.format.online') : <Place text={event.location ?? ''} />}</span>
+                <span>{online ? t(locale, 'event.format.online') : <Place text={event.location ?? ''} />}</span>
               </li>
             )}
           </ul>
 
           <div className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-2 pt-1.5 text-small">
             {cancelled ? (
-              <Tag tone="danger" icon={Ban}>{t('event.badge.cancelled')}</Tag>
+              <Tag tone="danger" icon={Ban}>{t(locale, 'event.badge.cancelled')}</Tag>
             ) : variant === 'recording' ? (
               <>
-                <Tag tone="muted" icon={Check}>{t('event.badge.ended')}</Tag>
+                <Tag tone="muted" icon={Check}>{t(locale, 'event.badge.ended')}</Tag>
                 {event.recordingUrl && (
                   <Link href="/library" className="relative z-10 inline-flex min-h-11 items-center gap-1.5 font-semibold text-teal underline-offset-4 hover:underline">
                     <Icon icon={Play} size={16} />
-                    {t('event.watchRecording')}
+                    {t(locale, 'event.watchRecording')}
                   </Link>
                 )}
               </>
             ) : (
               // a visual cue only: the stretched title link already takes you there
               <span aria-hidden="true" className="inline-flex min-h-11 items-center gap-1.5 font-semibold text-teal">
-                {t('event.card.details')}
+                {t(locale, 'event.card.details')}
                 <Icon icon={ArrowRight} mirror size={16} />
               </span>
             )}

@@ -7,6 +7,7 @@ import { eventCover } from '@/lib/data/images'
 import type { PublicEvent } from '@/lib/events/types'
 import { t, type StringKey } from '@/lib/i18n/t'
 import { formatRiyadh, riyadhMonth } from '@/lib/time/riyadh'
+import type { Locale } from '@/lib/i18n/locale'
 
 /**
  * The photo's rendered width in each CalendarView layout. The card goes side by side once it is
@@ -24,7 +25,7 @@ export const NEXT_EVENT_SIZES = {
  * the card is 56rem wide and beside it from then on. The whole card links to the event; when the
  * event falls in another month than the one on screen, a second link opens that month.
  */
-export function NextEventBanner({ event, month, sizes = NEXT_EVENT_SIZES.full }: { event: PublicEvent; month: string; sizes?: string }) {
+export function NextEventBanner({ locale, event, month, sizes = NEXT_EVENT_SIZES.full }: { locale: Locale; event: PublicEvent; month: string; sizes?: string }) {
   const eventMonth = riyadhMonth(event.startsAt)
   return (
     <aside data-testid="next-banner" aria-labelledby="next-banner-title" className="cal-banner group relative @container text-white">
@@ -47,7 +48,7 @@ export function NextEventBanner({ event, month, sizes = NEXT_EVENT_SIZES.full }:
           <div className="min-w-0">
             <p className="mb-3 flex items-center gap-3 text-label text-on-dark">
               <SectionMarks />
-              {t('calendar.nextEvent')}
+              {t(locale, 'calendar.nextEvent')}
             </p>
             <h2 id="next-banner-title" className="text-[1.375rem] leading-[1.45] font-bold sm:text-[1.875rem] sm:leading-[1.4]">
               {/* the link's ::after covers the whole card, photo and arrow included; its own z-index
@@ -57,13 +58,13 @@ export function NextEventBanner({ event, month, sizes = NEXT_EVENT_SIZES.full }:
               </Link>
             </h2>
             <p className="mt-2 text-small text-on-dark sm:text-body">
-              {t('event.weekdayDate', { weekday: formatRiyadh(event.startsAt, 'weekday'), date: formatRiyadh(event.startsAt, 'date') })}
+              {t(locale, 'event.weekdayDate', { weekday: formatRiyadh(event.startsAt, 'weekday'), date: formatRiyadh(event.startsAt, 'date') })}
               <span aria-hidden="true" className="mx-2 text-mint/60">■</span>
               {formatRiyadh(event.startsAt, 'time')}
               {event.departmentCode && (
                 <>
                   <span aria-hidden="true" className="mx-2 text-mint/60">■</span>
-                  <span className="font-semibold text-mint">{t(`dept.${event.departmentCode}.title` as StringKey)}</span>
+                  <span className="font-semibold text-mint">{t(locale, `dept.${event.departmentCode}.title` as StringKey)}</span>
                 </>
               )}
             </p>
@@ -75,7 +76,7 @@ export function NextEventBanner({ event, month, sizes = NEXT_EVENT_SIZES.full }:
           <div className="col-span-2 flex flex-wrap items-center justify-between gap-4 border-t border-white/12 pt-4">
             {eventMonth !== month && (
               <ArrowLink href={`/events?m=${eventMonth}`} scroll={false} tone="dark" className="relative z-10">
-                {t('calendar.nextEvent.month', { month: formatRiyadh(event.startsAt, 'month') })}
+                {t(locale, 'calendar.nextEvent.month', { month: formatRiyadh(event.startsAt, 'month') })}
               </ArrowLink>
             )}
             <span aria-hidden="true" className="cal-banner-go ms-auto grid size-12 place-items-center bg-mint text-deep">

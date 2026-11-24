@@ -5,6 +5,7 @@ import { X } from 'lucide-react'
 import { ArrowGlyph } from '@/components/ui/ArrowGlyph'
 import { Icon } from '@/components/ui/Icon'
 import { MajorSearch, type SearchLabels, type SearchMajor } from './MajorSearch'
+import type { Locale } from '@/lib/i18n/locale'
 
 export type FoundLabels = { title: string; events: string; departments: string; close: string }
 
@@ -22,7 +23,7 @@ function lightBricks(codes: string[] | null, picked: string | null) {
  * Choosing a major shows «لتخصصك مكان في حصن» with the two ways on (the events and the
  * departments) in place of the list; Escape or the close button returns to the field.
  */
-export function HeroSearch({ majors, labels, foundLabels }: { majors: SearchMajor[]; labels: SearchLabels; foundLabels: FoundLabels }) {
+export function HeroSearch({ locale, majors, labels, foundLabels }: { locale: Locale; majors: SearchMajor[]; labels: SearchLabels; foundLabels: FoundLabels }) {
   const input = useRef<HTMLInputElement>(null)
   const rest = useRef<(() => void) | null>(null)
   const card = useRef<HTMLDivElement>(null)
@@ -48,7 +49,7 @@ export function HeroSearch({ majors, labels, foundLabels }: { majors: SearchMajo
 
   return (
     <div className="relative w-full max-w-[29rem]">
-      <MajorSearch
+      <MajorSearch locale={locale}
         majors={majors}
         labels={labels}
         inputRef={input}
@@ -73,7 +74,7 @@ export function HeroSearch({ majors, labels, foundLabels }: { majors: SearchMajo
           <div className="flex items-start justify-between gap-4">
             <p id="found-title" className="text-[1.1875rem] leading-[1.45] font-bold text-white">
               {foundLabels.title}
-              <span className="mt-1 block text-small font-semibold text-mint-200">{found.ar}</span>
+              <span className="mt-1 block text-small font-semibold text-mint-200">{found[locale]}</span>
             </p>
             <button type="button" onClick={() => close()} aria-label={foundLabels.close} className="-me-2 -mt-2 grid size-11 shrink-0 place-items-center text-teal-100 hover:text-white">
               <Icon icon={X} size={18} />

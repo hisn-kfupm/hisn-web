@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { PageHead } from '@/components/brand/PageHead'
 import { LibraryBody, LibraryFallback, loadLibrary } from '@/components/library/LibraryBody'
 import { images } from '@/lib/data/images'
+import { localeOf } from '@/lib/i18n/page-locale'
 import { t } from '@/lib/i18n/t'
 import { tp } from '@/lib/i18n/plural'
 
@@ -13,20 +14,25 @@ import { tp } from '@/lib/i18n/plural'
   LIBRARY_REQUIRES_SIGN_IN is on, a signed-out visitor is sent to /sign-in?returnTo=/library.
 */
 
-export const metadata: Metadata = { title: t('nav.library') }
+type Params = Promise<{ locale: string }>
+
+export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
+  return { title: t(await localeOf(params), 'nav.library') }
+}
 
 type SearchParams = Promise<{ d?: string | string[] }>
 
-export default async function LibraryPage({ searchParams }: { searchParams: SearchParams }) {
+export default async function LibraryPage({ params, searchParams }: { params: Params; searchParams: SearchParams }) {
+  const locale = await localeOf(params)
   const { all } = await loadLibrary(null)
   return (
     <>
-      <PageHead crumbs={[{ href: '/', label: t('crumbs.home') }, { label: t('nav.library') }]} kicker={t('library.kicker')} title={t('nav.library')} photo={{ image: images.library, alt: t(images.library.alt) }}>
-        <p className="mt-5 max-w-[34em] text-body text-on-dark">{t('library.intro')}</p>
-        <p className="mt-6 inline-flex items-center gap-3 border-s-4 border-mint ps-4 text-h3 text-white">{tp('library.count', all.length)}</p>
+      <PageHead locale={locale} crumbs={[{ href: '/', label: t(locale, 'crumbs.home') }, { label: t(locale, 'nav.library') }]} kicker={t(locale, 'library.kicker')} title={t(locale, 'nav.library')} photo={{ image: images.library, alt: t(locale, images.library.alt) }}>
+        <p className="mt-5 max-w-[34em] text-body text-on-dark">{t(locale, 'library.intro')}</p>
+        <p className="mt-6 inline-flex items-center gap-3 border-s-4 border-mint ps-4 text-h3 text-white">{tp(locale, 'library.count', all.length)}</p>
       </PageHead>
       <Suspense fallback={<LibraryFallback />}>
-        <LibraryBody searchParams={searchParams} />
+        <LibraryBody searchParams={searchParams} locale={locale} />
       </Suspense>
     </>
   )

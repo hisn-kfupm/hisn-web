@@ -37,8 +37,8 @@ describe('shell without smooth scroll (revision 04 §3)', () => {
     render(
       <MobileMenu
         labels={{ open: 'open', close: 'close', nav: 'nav', departments: 'deps', university: 'uni' }}
-        departments={departmentNav()}
-        items={primaryNav()}
+        departments={departmentNav('ar')}
+        items={primaryNav('ar')}
       />,
     )
     const toggle = screen.getByRole('button', { name: 'open' })

@@ -1,16 +1,20 @@
 import { RIYADH_LOCALE } from '@/lib/time/riyadh'
+import type { Locale } from './locale'
 
 const formats = new Map<string, Intl.NumberFormat>()
 
+/** Arabic pages use the Eastern Arabic digits of their dates and times; English pages use Latin digits */
+const NUMBER_LOCALE: Record<Locale, string> = { ar: RIYADH_LOCALE, en: 'en-GB-u-nu-latn' }
+
 /**
- * A number for display, in the same Eastern Arabic digits as dates and times (discovery G-8
- * `fmtNum`): fmtNum(7) → «٧», fmtNum(1, { minimumIntegerDigits: 2 }) → «٠١».
+ * A number for display in the page's language (discovery G-8 `fmtNum`): fmtNum(7, 'ar') → «٧»,
+ * fmtNum(7, 'en') → "7", fmtNum(1, 'ar', { minimumIntegerDigits: 2 }) → «٠١».
  */
-export function fmtNum(n: number, options: Intl.NumberFormatOptions = {}): string {
-  const key = JSON.stringify(options)
+export function fmtNum(n: number, locale: Locale, options: Intl.NumberFormatOptions = {}): string {
+  const key = `${locale} ${JSON.stringify(options)}`
   let format = formats.get(key)
   if (!format) {
-    format = new Intl.NumberFormat(RIYADH_LOCALE, options)
+    format = new Intl.NumberFormat(NUMBER_LOCALE[locale], options)
     formats.set(key, format)
   }
   return format.format(n)

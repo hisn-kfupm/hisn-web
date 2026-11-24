@@ -4,7 +4,7 @@ import { plex } from '@/app/fonts'
 import { t } from '@/lib/i18n/t'
 import '../globals.css'
 
-export const metadata: Metadata = { title: t('meta.title'), robots: { index: false, follow: false } }
+export const metadata: Metadata = { title: t('ar', 'meta.title'), robots: { index: false, follow: false } }
 
 /**
  * The admin's own root layout (dev-1 D1-1): Arabic only, right to left, outside the locale

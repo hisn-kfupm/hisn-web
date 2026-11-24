@@ -6,18 +6,19 @@ import { Icon } from '@/components/ui/Icon'
 import type { PublicEvent } from '@/lib/events/types'
 import { t } from '@/lib/i18n/t'
 import { formatRiyadh, formatRiyadhTimeRange } from '@/lib/time/riyadh'
+import type { Locale } from '@/lib/i18n/locale'
 
 /**
  * The event's key facts in the dark head (redesign §6, D1-11), as a <dl> set like a ticket: the
  * day as a huge figure that drops in like a brick, with month and weekday; then the Riyadh time
  * range, format and place, and the presenter.
  */
-export function EventFacts({ event }: { event: PublicEvent }) {
+export function EventFacts({ locale, event }: { locale: Locale; event: PublicEvent }) {
   const online = event.format === 'online'
   return (
-    <dl aria-label={t('event.facts')} className="ev-facts mt-10 grid gap-x-10 gap-y-6 border-t border-white/15 pt-8 sm:grid-cols-2 lg:mt-14 lg:grid-cols-[auto_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] lg:items-end">
+    <dl aria-label={t(locale, 'event.facts')} className="ev-facts mt-10 grid gap-x-10 gap-y-6 border-t border-white/15 pt-8 sm:grid-cols-2 lg:mt-14 lg:grid-cols-[auto_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] lg:items-end">
       <div className="flex items-end gap-4 sm:col-span-2 lg:col-span-1 lg:pe-4">
-        <dt className="sr-only">{t('event.fact.date')}</dt>
+        <dt className="sr-only">{t(locale, 'event.fact.date')}</dt>
         <dd className="flex items-end gap-4">
           <span className="ev-day text-[clamp(6rem,4rem+8vw,10.5rem)] leading-[0.95] font-bold text-white">{formatRiyadh(event.startsAt, 'day')}</span>
           <span className="flex flex-col pb-[0.6em] leading-[1.35]">
@@ -26,12 +27,12 @@ export function EventFacts({ event }: { event: PublicEvent }) {
           </span>
         </dd>
       </div>
-      <Fact icon={Clock} term={t('event.fact.time')}>
+      <Fact icon={Clock} term={t(locale, 'event.fact.time')}>
         <span className="block">{formatRiyadhTimeRange(event.startsAt, event.endsAt)}</span>
-        <span className="block text-small font-normal text-on-dark">{t('event.riyadhTime')}</span>
+        <span className="block text-small font-normal text-on-dark">{t(locale, 'event.riyadhTime')}</span>
       </Fact>
-      <Fact icon={online ? Video : MapPin} term={t('event.fact.place')}>
-        <span className="block">{t(online ? 'event.format.online' : 'event.format.inPerson')}</span>
+      <Fact icon={online ? Video : MapPin} term={t(locale, 'event.fact.place')}>
+        <span className="block">{t(locale, online ? 'event.format.online' : 'event.format.inPerson')}</span>
         {!online && event.location && (
           <span className="block text-small font-normal text-on-dark">
             <Place text={event.location} />
@@ -39,7 +40,7 @@ export function EventFacts({ event }: { event: PublicEvent }) {
         )}
       </Fact>
       {event.presenter && (
-        <Fact icon={Mic} term={t('event.fact.presenter')}>
+        <Fact icon={Mic} term={t(locale, 'event.fact.presenter')}>
           <Place text={event.presenter} />
         </Fact>
       )}
