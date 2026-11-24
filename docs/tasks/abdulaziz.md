@@ -440,7 +440,7 @@ Languages (columns from A-19): users whose number is divisible by 4 (`u04`, `u08
 
 **Tests to write:** none in code. Verification below.
 
-**Done when:** a throwaway PR containing a deliberately broken migration (`select * from nope;`) fails at `npm run db:reset` in job `db`; after reverting, all three jobs pass.
+**Done when:** a throwaway PR containing a deliberately broken migration (`select * from nope;`) fails in job `db` when its migrations are applied. On a fresh runner `supabase start` applies every migration itself, so the job stops at `supabase start`, before `npm run db:reset`. After reverting, all three jobs pass.
 
 ---
 
