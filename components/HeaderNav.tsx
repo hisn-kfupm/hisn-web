@@ -6,6 +6,7 @@ import { ChevronDown } from 'lucide-react'
 import { Icon } from '@/components/ui/Icon'
 import { useDisclosure } from '@/components/ui/useDisclosure'
 import { deptIcon } from '@/lib/data/dept-icons'
+import { LOCALES } from '@/lib/i18n/locale'
 import type { NavItem } from '@/components/nav-items'
 
 type Props = {
@@ -15,7 +16,18 @@ type Props = {
   items: NavItem[]
 }
 
-const isCurrent = (pathname: string | null, href: string) => !!pathname && (pathname === href || pathname.startsWith(href + '/'))
+/*
+  Both sides lose their /ar or /en prefix before comparing, so the current tab is marked on both
+  languages' pages with today's unprefixed links and with the localePath() links D1-5 brings.
+*/
+const LOCALE_PREFIX = new RegExp(`^/(?:${LOCALES.join('|')})(?=/|$)`)
+const withoutLocale = (path: string) => path.replace(LOCALE_PREFIX, '') || '/'
+const isCurrent = (pathname: string | null, href: string) => {
+  if (!pathname) return false
+  const path = withoutLocale(pathname)
+  const target = withoutLocale(href)
+  return path === target || path.startsWith(target + '/')
+}
 const arabicDigits = new Intl.NumberFormat('ar-SA-u-nu-arab', { minimumIntegerDigits: 2 })
 
 /** Desktop navigation (≥1024 px). Strings arrive as props so ar.json never ships to the browser. */

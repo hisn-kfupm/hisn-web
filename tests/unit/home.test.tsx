@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import { cacheLife } from 'next/cache'
-import Home from '@/app/page'
+import Home from '@/app/[locale]/page'
 import { upcomingEvents, latestRecordings } from '@/lib/events/queries'
 import { seatsTaken } from '@/lib/events/seats'
 import { departments } from '@/lib/data/labels'

@@ -3,7 +3,7 @@ import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { renderToStaticMarkup } from 'react-dom/server'
-import RootLayout from '@/app/layout'
+import RootLayout from '@/app/[locale]/layout'
 import { MobileMenu } from '@/components/MobileMenu'
 import { departmentNav, primaryNav } from '@/components/nav-items'
 
@@ -23,8 +23,8 @@ describe('shell without smooth scroll (revision 04 §3)', () => {
     expect(importers).toEqual([])
   })
 
-  it('puts the skip link first, then the header, main and the footer in normal flow (no curtain)', () => {
-    const html = renderToStaticMarkup(<RootLayout><p>x</p></RootLayout>)
+  it('puts the skip link first, then the header, main and the footer in normal flow (no curtain)', async () => {
+    const html = renderToStaticMarkup(await RootLayout({ children: <p>x</p>, params: Promise.resolve({ locale: 'ar' }) }))
     const at = (s: string) => html.indexOf(s)
     expect(at('href="#main"')).toBeGreaterThan(-1)
     expect(at('href="#main"')).toBeLessThan(at('data-testid="site-header"'))

@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import { notFound } from 'next/navigation'
-import { generateStaticParams } from '@/app/departments/[slug]/page'
+import { generateStaticParams } from '@/app/[locale]/departments/[slug]/page'
 import { DepartmentView } from '@/components/department/DepartmentView'
 import { upcomingEvents } from '@/lib/events/queries'
 import { departments } from '@/lib/data/labels'
