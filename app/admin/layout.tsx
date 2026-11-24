@@ -34,7 +34,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
         <SkipLink locale="ar" />
         <header data-band="dark" className="on-dark bg-deep-600 text-on-dark">
           <div className="wrap flex h-16 items-center gap-4">
-            <Link href="/admin" aria-label={t('ar', 'admin.area')} className="shrink-0">
+            <Link href="/admin" aria-label={t('ar', 'admin.home')} className="shrink-0">
               <Logo tone="reversed" height={34} idPrefix="admin" />
             </Link>
             <span className="border-s border-white/20 ps-4 text-label text-mint">{t('ar', 'admin.area')}</span>

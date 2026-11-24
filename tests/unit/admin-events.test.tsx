@@ -6,7 +6,7 @@ import { render, screen, within } from '@testing-library/react'
   it) and the database is the stand-in's in-memory client, filled per test and wrapped to record
   the ranges the loader asks for.
 */
-const db = vi.hoisted(() => ({ tables: {} as Record<string, Record<string, unknown>[]>, ranges: [] as [number, number][] }))
+const db = vi.hoisted(() => ({ tables: {} as Record<string, Record<string, unknown>[]>, pages: [] as string[] }))
 
 vi.mock('next/server', () => ({ connection: vi.fn(async () => {}) }))
 vi.mock('@/lib/admin/require-admin', () => ({ requireAdmin: vi.fn(async () => ({ userId: 'u1' })) }))
@@ -19,10 +19,10 @@ vi.mock('@/lib/db/prod-stub', async (importOriginal) => {
       return {
         from(table: string) {
           const query = client.from(table)
-          const range = query.range.bind(query)
-          query.range = (from: number, to: number) => {
-            db.ranges.push([from, to])
-            return range(from, to)
+          const gt = query.gt.bind(query)
+          query.gt = (column: string, value: unknown) => {
+            db.pages.push(`${table} after ${String(value)}`)
+            return gt(column, value)
           }
           return query
         },
@@ -32,7 +32,7 @@ vi.mock('@/lib/db/prod-stub', async (importOriginal) => {
 })
 
 import { requireAdmin } from '@/lib/admin/require-admin'
-import { adminEvents, REGISTRATIONS_PAGE } from '@/lib/admin/events'
+import { adminEvents, PAGE } from '@/lib/admin/events'
 import { supabaseProdServer } from '@/lib/db/prod-stub'
 import { fmtNum } from '@/lib/i18n/number'
 import { t } from '@/lib/i18n/t'
@@ -61,7 +61,7 @@ function fill(events: Record<string, unknown>[], registrations: Record<string, u
 beforeEach(() => {
   vi.mocked(requireAdmin).mockClear()
   vi.mocked(supabaseProdServer).mockClear()
-  db.ranges = []
+  db.pages = []
   fill(
     [
       event(3, -5),
@@ -87,22 +87,27 @@ describe('adminEvents', () => {
     expect(past[0]).toMatchObject({ id: 3, registered: 20, waitlisted: 0 })
   })
 
-  it('reads registrations page by page, past the API row limit', async () => {
-    fill([event(1, 2, { capacity: null })], regs(1, 'registered', 2 * REGISTRATIONS_PAGE + 500))
+  it('reads registrations page by page after the last id, past the API row limit', async () => {
+    fill([event(1, 2, { capacity: null })], regs(1, 'registered', 2 * PAGE + 500))
     const { upcoming } = await adminEvents(NOW)
-    expect(upcoming[0].registered).toBe(2 * REGISTRATIONS_PAGE + 500)
-    expect(db.ranges).toEqual([
-      [0, REGISTRATIONS_PAGE - 1],
-      [REGISTRATIONS_PAGE, 2 * REGISTRATIONS_PAGE - 1],
-      [2 * REGISTRATIONS_PAGE, 3 * REGISTRATIONS_PAGE - 1],
+    expect(upcoming[0].registered).toBe(2 * PAGE + 500)
+    expect(db.pages.filter((p) => p.startsWith('registrations'))).toEqual([
+      'registrations after 0',
+      `registrations after ${PAGE}`,
+      `registrations after ${2 * PAGE}`,
+      `registrations after ${2 * PAGE + 500}`,
     ])
   })
 
+  it('reads every event, past the API row limit', async () => {
+    fill(Array.from({ length: PAGE + 200 }, (_, i) => event(i + 1, i % 2 === 0 ? 3 : -3)), [])
+    const { upcoming, past } = await adminEvents(NOW)
+    expect(upcoming.length + past.length).toBe(PAGE + 200)
+  })
+
   it('fails loudly when the database returns an error, rather than showing wrong counts', async () => {
-    vi.mocked(supabaseProdServer).mockImplementationOnce(async () => ({
-      from: () => ({ select: () => ({ order: async () => ({ data: null, error: { message: 'permission denied' } }) }) }),
-    }) as never)
-    await expect(adminEvents(NOW)).rejects.toThrow('permission denied')
+    db.tables = { registrations: [] }
+    await expect(adminEvents(NOW)).rejects.toThrow('relation "public.events" does not exist')
   })
 })
 

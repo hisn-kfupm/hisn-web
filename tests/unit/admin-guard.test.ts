@@ -16,7 +16,6 @@ vi.mock('next/navigation', () => ({
     throw new Error(`NEXT_REDIRECT ${to}`)
   }),
 }))
-vi.mock('next/server', () => ({ connection: vi.fn(async () => {}) }))
 // STAND-IN paths: D2-4 makes this '@/lib/auth/session', A-2 makes the next one '@/lib/db/prod'
 vi.mock('@/lib/auth/session-stub', () => ({ getSession: vi.fn(async () => state.session) }))
 vi.mock('@/lib/db/prod-stub', () => ({
@@ -35,12 +34,10 @@ vi.mock('@/lib/db/prod-stub', () => ({
 }))
 
 import { redirect } from 'next/navigation'
-import { connection } from 'next/server'
 import { requireAdmin } from '@/lib/admin/require-admin'
 
 beforeEach(() => {
   vi.mocked(redirect).mockClear()
-  vi.mocked(connection).mockClear()
   state.session = null
   state.profile = { data: null, error: null }
   state.queries = []
@@ -80,12 +77,5 @@ describe('requireAdmin', () => {
     state.profile = { data: null, error: { message: 'connection refused' } }
     await expect(requireAdmin()).rejects.toThrow()
     expect(redirect).not.toHaveBeenCalledWith('/admin')
-  })
-
-  it('runs per request, never in a prerender', async () => {
-    state.session = { userId: 'u1', email: 'a@kfupm.edu.sa' }
-    state.profile = { data: { is_admin: true }, error: null }
-    await requireAdmin()
-    expect(connection).toHaveBeenCalled()
   })
 })

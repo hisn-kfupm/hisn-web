@@ -1,5 +1,4 @@
 import { redirect } from 'next/navigation'
-import { connection } from 'next/server'
 // STAND-IN imports: '@/lib/auth/session' when D2-4 is on main, '@/lib/db/prod' when A-2 is
 import { getSession } from '@/lib/auth/session-stub'
 import { supabaseProdServer } from '@/lib/db/prod-stub'
@@ -16,11 +15,10 @@ export const ADMIN_SIGN_IN = '/ar/sign-in?returnTo=/admin'
  * - the profile can't be read → throws, so nobody gets in on an error (P-1)
  *
  * It reads the caller's own profile with their own session (supabaseProdServer, never the service
- * key), and runs on every request: never inside 'use cache', never in a prerender.
+ * key). That client reads the request's cookies, so the check runs on every request; never call
+ * it inside 'use cache'.
  */
 export async function requireAdmin(): Promise<{ userId: string }> {
-  // cookies() will make this per-request once D2-4's getSession is in; connection() says so today
-  await connection()
   const session = await getSession()
   if (!session) redirect(ADMIN_SIGN_IN)
   const db = await supabaseProdServer()

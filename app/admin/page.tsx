@@ -53,7 +53,7 @@ const short = `${cell} whitespace-nowrap`
 
 function EventTable({ id, title, events }: { id: string; title: string; events: AdminEvent[] }) {
   return (
-    <section aria-labelledby={id} className="mt-12">
+    <section className="mt-12">
       <h2 id={id} className="mb-4 text-h3 text-deep">
         {title}
       </h2>

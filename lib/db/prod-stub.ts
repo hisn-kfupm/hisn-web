@@ -1,10 +1,11 @@
+import { connection } from 'next/server'
 import { DEMO_SESSION } from '@/lib/auth/session-stub'
 import { standInRows, standInSeatsTaken, STAND_IN_IDS, type EventRow } from '@/lib/events/stand-in'
 
 /*
   STAND-IN for A-2's supabaseProdServer() (lib/db/prod.ts), so the admin code can be written as it
-  will run: the same calls (from, select, eq, in, order, range, maybeSingle) answered from memory,
-  as { data, error } like PostgREST. When A-2 is on main: point the admin imports at
+  will run: the same calls (from, select, eq, gt, in, order, limit, range, maybeSingle) answered
+  from memory as { data, error }, at most 1000 rows per answer, like PostgREST's max_rows. When A-2 is on main: point the admin imports at
   '@/lib/db/prod', move memoryClient to tests/fixtures (tests/unit/admin-events.test.tsx uses it),
   and delete this file.
 
@@ -15,12 +16,16 @@ import { standInRows, standInSeatsTaken, STAND_IN_IDS, type EventRow } from '@/l
 */
 
 type Row = Record<string, unknown>
+
+/** PostgREST answers no request with more rows than this (max_rows in supabase/config.toml) */
+const MAX_ROWS = 1000
 type Result<T> = { data: T; error: { message: string } | null }
 
 class MemoryQuery implements PromiseLike<Result<Row[] | null>> {
   private filters: ((row: Row) => boolean)[] = []
   private sorts: { column: string; ascending: boolean }[] = []
   private window: [number, number] | null = null
+  private cap: number | null = null
   private columns: string[] | null = null
 
   constructor(private readonly rows: Row[] | undefined, private readonly table: string) {}
@@ -35,6 +40,11 @@ class MemoryQuery implements PromiseLike<Result<Row[] | null>> {
     return this
   }
 
+  gt(column: string, value: unknown): this {
+    this.filters.push((row) => compare(row[column], value) > 0)
+    return this
+  }
+
   in(column: string, values: readonly unknown[]): this {
     this.filters.push((row) => values.includes(row[column]))
     return this
@@ -42,6 +52,11 @@ class MemoryQuery implements PromiseLike<Result<Row[] | null>> {
 
   order(column: string, options: { ascending?: boolean } = {}): this {
     this.sorts.push({ column, ascending: options.ascending ?? true })
+    return this
+  }
+
+  limit(count: number): this {
+    this.cap = count
     return this
   }
 
@@ -72,6 +87,7 @@ class MemoryQuery implements PromiseLike<Result<Row[] | null>> {
       out = [...out].sort((a, b) => compare(a[column], b[column]) * (ascending ? 1 : -1))
     }
     if (this.window) out = out.slice(this.window[0], this.window[1] + 1)
+    out = out.slice(0, Math.min(this.cap ?? MAX_ROWS, MAX_ROWS))
     const columns = this.columns
     return { data: columns ? out.map((row) => Object.fromEntries(columns.map((c) => [c, row[c]]))) : out, error: null }
   }
@@ -115,7 +131,11 @@ function standInTables(now: number): Record<string, Row[]> {
   return { events, registrations: registrations.map((r, i) => ({ id: i + 1, ...r })), profiles }
 }
 
-/** STAND-IN: same name and shape as A-2's cookie-bound client */
+/**
+ * STAND-IN: same name and shape as A-2's cookie-bound client. A-2's reads cookies(), which keeps
+ * every caller out of prerenders and caches; connection() does the same here.
+ */
 export async function supabaseProdServer() {
+  await connection()
   return memoryClient(standInTables(Date.now()))
 }

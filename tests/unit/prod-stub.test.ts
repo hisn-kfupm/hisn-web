@@ -1,4 +1,7 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+
+vi.mock('next/server', () => ({ connection: vi.fn(async () => {}) }))
+
 import { memoryClient, supabaseProdServer } from '@/lib/db/prod-stub'
 import { STAND_IN_IDS, standInSeatsTaken } from '@/lib/events/stand-in'
 
@@ -20,6 +23,14 @@ describe('memoryClient', () => {
     expect((await db.from('t').select('id').in('id', [2, 3])).data).toEqual([{ id: 2 }, { id: 3 }])
     expect((await db.from('t').select('id').order('n', { ascending: false })).data).toEqual([{ id: 1 }, { id: 3 }, { id: 2 }])
     expect((await db.from('t').select('id').order('id').range(1, 5)).data).toEqual([{ id: 2 }, { id: 3 }])
+    expect((await db.from('t').select('id').gt('id', 1).order('id').limit(1)).data).toEqual([{ id: 2 }])
+  })
+
+  it('never answers with more than 1000 rows, like PostgREST', async () => {
+    const db = memoryClient({ t: Array.from({ length: 1500 }, (_, i) => ({ id: i + 1 })) })
+    expect((await db.from('t').select('id')).data).toHaveLength(1000)
+    expect((await db.from('t').select('id').limit(5000)).data).toHaveLength(1000)
+    expect((await db.from('t').select('id').gt('id', 1000)).data).toHaveLength(500)
   })
 
   it('returns one row or null with maybeSingle, and an error for more than one', async () => {
