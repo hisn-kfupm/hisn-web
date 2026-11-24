@@ -13,15 +13,20 @@
     "test:scripts": "vitest run --project scripts",
     "test:e2e": "playwright test",
     "check:content": "tsx scripts/check-content.ts",
-    "db:reset": "supabase db reset"
+    "db:reset": "supabase db reset && bash scripts/ci/apply-talent.sh",
+    "env:local": "bash scripts/ci/write-env.sh"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.119.2",
     "gsap": "^3.15.1",
     "lucide-react": "^1.73.0",
     "next": "16.4.6",
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "server-only": "^0.0.1",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@playwright/test": "^1.65.1",
