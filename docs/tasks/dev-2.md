@@ -941,7 +941,7 @@ export async function notifyChangeAction(eventId: number): Promise<{ total: numb
 **Build:** Three Playwright journeys from spec §15, plus one English journey and a language-switcher check, that run against a production build and local Supabase, reading sign-in codes and emails from the local mail catcher.
 
 **Files:**
-- `playwright.config.ts` (`webServer: { command: 'npm run build && npm start', port: 3000 }`, `use.baseURL: 'http://localhost:3000'`, one worker)
+- Modify `playwright.config.ts`: A-7 created it with only `testDir: 'tests/e2e'` (so `playwright test` skips the Vitest files). Keep that and add `webServer: { command: 'npm run build && npm start', port: 3000 }`, `use.baseURL: 'http://localhost:3000'` and one worker; don't create a new file.
 - `tests/e2e/helpers/mail.ts`
 - `tests/e2e/journey.spec.ts`, `tests/e2e/waitlist.spec.ts`, `tests/e2e/talent-closed.spec.ts`, `tests/e2e/talent-open.spec.ts`, `tests/e2e/english.spec.ts`
 
@@ -966,7 +966,7 @@ export async function waitForEmail(email: string, subjectIncludes: string, timeo
   - **Root:** visiting `/` lands on `/ar` with `<html lang="ar" dir="rtl">`.
 - Tags use Playwright's `test('…', { tag: '@talent-open' }, async ({ page }) => …)`. Run 1 command: `npm run test:e2e -- --grep-invert @talent-open`. Run 2 command: `TALENT_FORM_OPEN=true npm run test:e2e -- --grep @talent-open`.
 
-**Needs first:** everything above; A-7 (the CI `e2e` job); A-19 (the English code email); D1-5 (`LanguageSwitcher`).
+**Needs first:** everything above; A-7 (the CI `e2e` job and `playwright.config.ts`); A-19 (the English code email); D1-5 (`LanguageSwitcher`).
 
 **Blocks:** launch (Abdulaziz's checklist).
 
