@@ -1,5 +1,5 @@
 import { connection } from 'next/server'
-import { DEMO_SESSION } from '@/lib/auth/session-stub'
+import { DEMO_SESSION, demoSignedIn } from '@/lib/auth/session-stub'
 import { standInRows, standInSeatsTaken, STAND_IN_IDS, type EventRow } from '@/lib/events/stand-in'
 
 /*
@@ -11,8 +11,8 @@ import { standInRows, standInSeatsTaken, STAND_IN_IDS, type EventRow } from '@/l
 
   The tables come from the stand-in events. There is one profile, the demo user of
   lib/auth/session-stub.ts, and it is an admin; it exists only while DEMO_SIGNED_IN=1, the switch
-  that already previews the signed-in states, so /admin can be previewed the same way. No real
-  data is read here, ever.
+  that already previews the signed-in states, so /admin can be previewed the same way, locally:
+  in production demoSignedIn() throws. No real data is read here, ever.
 */
 
 type Row = Record<string, unknown>
@@ -127,7 +127,7 @@ function standInTables(now: number): Record<string, Row[]> {
     if (e.capacity !== null && taken >= e.capacity) for (let i = 0; i < 4; i++) registrations.push({ event_id: e.id, status: 'waitlisted' })
     if (e.id === STAND_IN_IDS.cancelled) registrations.push({ event_id: e.id, status: 'cancelled' })
   }
-  const profiles = process.env.DEMO_SIGNED_IN === '1' ? [{ id: DEMO_SESSION.userId, is_admin: true }] : []
+  const profiles = demoSignedIn() ? [{ id: DEMO_SESSION.userId, is_admin: true }] : []
   return { events, registrations: registrations.map((r, i) => ({ id: i + 1, ...r })), profiles }
 }
 
