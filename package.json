@@ -13,7 +13,8 @@
     "test:scripts": "vitest run --project scripts",
     "test:e2e": "playwright test",
     "check:content": "tsx scripts/check-content.ts",
-    "db:reset": "supabase db reset"
+    "db:reset": "supabase db reset && bash scripts/ci/apply-talent.sh",
+    "env:local": "bash scripts/ci/write-env.sh"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
