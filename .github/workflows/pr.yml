@@ -35,3 +35,68 @@ jobs:
       - name: Placeholder text left
         run: npm run check:content
         continue-on-error: true
+
+  # A-7: a throwaway local Supabase with every migration applied on the seed, then the pgTAP, database and script tests.
+  db:
+    name: db
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      # 3.x: supabase/config.toml uses [local_smtp], which older CLIs reject
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 3.1.0
+
+      - run: supabase start
+      - run: npm run db:reset
+      - run: npm run env:local
+      - run: supabase test db
+      - run: npm run test:db
+      - run: npm run test:scripts
+
+  # A-7: the same database, then the Playwright journeys in two runs (D2-16 decides which spec goes in which).
+  e2e:
+    name: e2e
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 3.1.0
+
+      - run: supabase start
+      - run: npm run db:reset
+      - run: npm run env:local
+      - run: npx playwright install --with-deps chromium
+
+      # Run 1: the talent form closed (TALENT_FORM_OPEN=false from .env.local)
+      - name: E2E run 1 (talent form closed)
+        run: npm run test:e2e -- --grep-invert @talent-open --pass-with-no-tests
+
+      # Run 2: the talent form open. The form opens only when both consent files are final (A-11), so both fixtures
+      # are copied in. The copies exist only inside this job and are never committed. The process environment wins
+      # over .env.local; Playwright's webServer (D2-16) rebuilds the app, so the copied consent is compiled in.
+      - name: E2E run 2 (talent form open)
+        run: |
+          mkdir -p content/talent-consent
+          cp tests/fixtures/talent-consent-final.ar.md content/talent-consent/v1.ar.md
+          cp tests/fixtures/talent-consent-final.en.md content/talent-consent/v1.en.md
+          TALENT_FORM_OPEN=true npm run test:e2e -- --grep @talent-open --pass-with-no-tests
