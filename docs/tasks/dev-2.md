@@ -6,7 +6,7 @@
 
 ## Summary
 
-**You own:** signed tokens; all email in Arabic and English (templates, `.ics`, the outbox that sends them, the cron, announcements with unsubscribe); the middleware (locale redirect and cookie refresh); sign-in; the profile step and announcement-consent rules; the registration and waitlist database functions and the server actions that call them; the signed cancel and unsubscribe pages (both languages); the admin notice actions (Arabic only); and the end-to-end tests.
+**You own:** signed tokens; all email in Arabic and English (templates, `.ics`, the outbox that sends them, the cron, announcements with unsubscribe); the proxy (`proxy.ts`: locale redirect and cookie refresh); sign-in; the profile step and announcement-consent rules; the registration and waitlist database functions and the server actions that call them; the signed cancel and unsubscribe pages (both languages); the admin notice actions (Arabic only); and the end-to-end tests.
 
 **You need from others before you can start:**
 
@@ -23,7 +23,7 @@
 | `localePath`, then `eventText` (English event text with Arabic fallback) | Abdulrahman (D1-5, D1-8) | Mon 16 – Thu 19 Nov |
 
 **Waiting on you:**
-- Abdulrahman needs `getSession`/`signOut(locale)` (D2-4, Sun 15), `FieldErrors` and `saveProfile` (D2-6, Tue 17; including `locale` for the account page's "Email language" field), `useProfileGate` (D2-7, Wed 18), and the SQL functions (D2-9/D2-10, Fri 20 – Sun 22). Every public page relies on your locale middleware (D2-4).
+- Abdulrahman needs `getSession`/`signOut(locale)` (D2-4, Sun 15), `FieldErrors` and `saveProfile` (D2-6, Tue 17; including `locale` for the account page's "Email language" field), `useProfileGate` (D2-7, Wed 18), and the SQL functions (D2-9/D2-10, Fri 20 – Sun 22). Every public page relies on your locale redirect in `proxy.ts` (D2-4).
 - Abdulaziz needs `reportError` (D2-5) and `verifyTokenDetailed` (D2-1). His bilingual sign-in code email (A-19) reads `user_metadata.locale`, which `sendCode` sets (D2-5) and `saveProfile` keeps equal to `profiles.locale` (D2-6).
 - Everyone needs sign-in working on a preview (D2-5, Mon 16). Abdulaziz tests it against real inboxes on Tue 17, including once from `/en/sign-in`.
 
@@ -206,16 +206,19 @@ export function subject(kind: DeliveryKind, locale: Locale, vars: { title: strin
 
 ---
 
-## D2-4 · Session, returnTo and middleware (plan T6)
+## D2-4 · Session, returnTo and proxy (plan T6)
 
 **Date:** Sun 15 Nov.
 
-**Build:** Server helpers to read the signed-in user and sign out, safe `returnTo` handling, the university-email check, and the middleware: locale redirect plus Supabase cookie refresh.
+**Build:** Server helpers to read the signed-in user and sign out, safe `returnTo` handling, the university-email check, and the locale redirect plus Supabase cookie refresh in `proxy.ts`. Next 16 renamed `middleware.ts` to `proxy.ts` (exporting `proxy`), and only one of the two may exist: `next build` fails with both. `proxy.ts` already exists from PR #8 (it answers missing department and event pages with a real 404); add your logic to that file instead of creating `middleware.ts`.
 
 **Files:**
 - `lib/auth/session.ts`, `lib/auth/return-to.ts`
-- `middleware.ts`
-- `tests/unit/return-to.test.ts`, `tests/unit/session.test.ts`, `tests/unit/middleware.test.ts`
+- Modify `proxy.ts` (from PR #8)
+- `tests/unit/return-to.test.ts`, `tests/unit/session.test.ts`, `tests/unit/proxy.test.ts`
+- Modify `tests/unit/not-found-status.test.ts` (PR #8's matcher assertion changes with the wider matcher)
+- Modify `next.config.ts`: delete PR #9's temporary `redirects()` block and its `OLD_PAGES` list
+- Modify `tests/unit/layout.test.tsx`: delete its "until D2-4 lands" block (the test of those redirects)
 
 **Interfaces — produces:**
 ```ts
@@ -232,12 +235,14 @@ export function safeReturnTo(input: string | null | undefined): string
 export function isInstitutionalEmail(email: string): boolean
   // domain = part after '@', lowercased; true iff domain === 'edu' or ends with '.edu' or '.edu.sa'
 ```
-- `middleware.ts`, in this order:
+- `proxy.ts` (`export async function proxy(request: NextRequest)`), in this order:
   1. **Locale redirect:** `/` → redirect (`NextResponse.redirect`, 307) to `/ar` (always; no browser-language detection). A path without a locale prefix that is not `/admin…`, `/api…`, `/_next…` or a static file (last segment contains a `.`) → redirect to `/ar` + path, query kept (`/events?m=2026-12` → `/ar/events?m=2026-12`). `/ar…`, `/en…`, `/admin…` and `/api…` pass through. Use `isLocale` from `lib/i18n/locale.ts` (D1-1).
-  2. The standard `@supabase/ssr` cookie refresh on everything that passes through.
-  - `matcher` excludes `_next/static`, `_next/image`, `favicon.ico`, `api/cron`.
+  2. **PR #8's missing-page rewrite, kept as it is:** if `isMissingPage(pathname, eventExists)` (`lib/routing/missing.ts`) is true, rewrite to `NOT_FOUND_PATH` so the page answers 404.
+  3. The standard `@supabase/ssr` cookie refresh on everything that passes through.
+  - `matcher` excludes `_next/static`, `_next/image`, `favicon.ico`, `api/cron`. It replaces PR #8's narrower matcher.
+- **Delete PR #9's temporary redirects.** PR #9 added a `redirects()` block to `next.config.ts` (`/` and the old unprefixed pages → `/ar`) as a bridge until this task. Those redirects run before `proxy.ts`, so once your locale redirect handles every unprefixed path, delete the block, its `OLD_PAGES` list and its test in `tests/unit/layout.test.tsx`. The locale redirect then lives only in `proxy.ts`.
 
-**Needs first:** A-2; D1-1 (`lib/i18n/locale.ts`).
+**Needs first:** A-2; D1-1 (`lib/i18n/locale.ts`); PR #8 (`proxy.ts`, `lib/routing/missing.ts`).
 
 **Blocks:** D2-5 (yours); Abdulrahman (D1-5 header, D1-13 admin guard; unprefixed links reach `/ar` through the locale redirect).
 
@@ -251,12 +256,14 @@ export function isInstitutionalEmail(email: string): boolean
   - `isInstitutionalEmail('a@kfupm.edu.sa') === true`; `('a@stanford.edu') === true`; `('a@gmail.com') === false`; `('a@edu.sa.com') === false`
 - `session.test.ts` (mock `supabaseProdServer`): `auth.getUser` → `{ data: { user: { id: 'u1', email: 'a@b.com' } } }` → `{ userId: 'u1', email: 'a@b.com' }`; `{ data: { user: null } }` → `null`.
   - `signOut('en')` → `auth.signOut` called once, then `redirect('/en')`; `signOut('ar')` → `redirect('/ar')`; `signOut('fr' as Locale)` → `redirect('/ar')` (mock `next/navigation`).
-- `middleware.test.ts` (call `middleware(new NextRequest(url))`; mock `@supabase/ssr`'s `createServerClient`):
+- `proxy.test.ts` (call `proxy(new NextRequest(url))`; mock `@supabase/ssr`'s `createServerClient`):
   - `/` → status 307 or 308, `Location` ends with `/ar`.
   - `/events` → `Location` ends with `/ar/events`; `/events?m=2026-12` → ends with `/ar/events?m=2026-12`.
   - `/ar/events`, `/en/events`, `/admin`, `/admin/events/3`, `/api/unsubscribe?t=x` and `/robots.txt` → not redirected (no `Location` header).
+  - The temporary redirects are gone (import `@/next.config`): `nextConfig.redirects` is undefined or returns `[]`. A former bridge path still reaches Arabic through the proxy: `/library?x=1` → `Location` ends with `/ar/library?x=1`.
+  - PR #8's 404 still works after the redirect: `/departments/nope` → redirected to `/ar/departments/nope`; `/ar/departments/nope` and `/en/events/999999` → rewritten to `NOT_FOUND_PATH` (`x-middleware-rewrite` header); `/ar/departments/<first slug>` → neither redirected nor rewritten.
 
-**Done when:** `npm test -- tests/unit/return-to.test.ts tests/unit/session.test.ts tests/unit/middleware.test.ts` passes.
+**Done when:** `npm test -- tests/unit/return-to.test.ts tests/unit/session.test.ts tests/unit/proxy.test.ts tests/unit/not-found-status.test.ts tests/unit/layout.test.tsx` passes, and `next build` passes with `proxy.ts` and no `middleware.ts`.
 
 ---
 
