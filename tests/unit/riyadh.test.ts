@@ -2,9 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { formatRiyadh, formatRiyadhTimeRange, riyadhDateKey, riyadhMonth } from '@/lib/time/riyadh'
 
 /*
-  dev-1 D1-7: Riyadh time in both languages. Arabic keeps the brand guide's Eastern Arabic digits
-  (RIYADH_LOCALE, on main since D1-01), so dev-1's Arabic examples ('6:00', '18', '2026') are checked
-  here in those digits. English follows dev-1's tests as written.
+  dev-1 D1-7: Riyadh time in both languages. Arabic uses the brand guide's Eastern Arabic digits
+  (RIYADH_LOCALE, approved by Abdulaziz), English uses Latin digits and a 12-hour clock.
 */
 const ARABIC_LETTERS = /[؀-ۿ]/
 
