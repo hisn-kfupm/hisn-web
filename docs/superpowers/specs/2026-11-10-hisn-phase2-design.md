@@ -438,7 +438,7 @@ Withdrawal: insert a `withdrawal` row into `hisn-talent` first, then set `withdr
 - **Strings:** every interface string in `lib/i18n/ar.json` and `lib/i18n/en.json`, flat dotted keys, **identical key sets**; data-file labels are the one exception (§9.4).
 - **Lookup:** `t(locale, key, vars)`; the locale is always the first argument. Public pages pass the page's locale; admin passes `'ar'`.
 - **Key parity:** a unit test compares the sorted keys of both files and names every missing key per file; it runs in CI, so a key added to one file only fails the build.
-- **Routing:** public pages live under `app/[locale]/…`; the locale layout renders `<html lang dir>` and both locales are generated statically; an unknown locale is a 404. `/admin` has its own Arabic-only layout outside the locale segment; `/api` routes have no locale. Middleware redirects `/` and unprefixed paths to `/ar` (§6.6). Links are built with `localePath(locale, path)`; the switcher uses `switchLocalePath`; hreflang alternates come from `alternatesFor(path)`.
+- **Routing:** public pages live under `app/[locale]/…`; the locale layout renders `<html lang dir>` and both locales are generated statically; an unknown locale is a 404. `/admin` has its own Arabic-only layout outside the locale segment; `/api` routes have no locale. The proxy (`proxy.ts`, Next 16's replacement for middleware) redirects `/` and unprefixed paths to `/ar` (§6.6). Links are built with `localePath(locale, path)`; the switcher uses `switchLocalePath`; hreflang alternates come from `alternatesFor(path)`.
 - **Data-file labels:** `label(file, code, locale)` returns the Arabic or English label (§9.4).
 - **Event text:** `events.title_en` and `events.description_en` are optional. On `/en`, a missing one falls back to the Arabic text, rendered with `lang="ar" dir="rtl"` (wrapped in `<bdi>` when inline).
 - **Dates:** `formatRiyadh(date, style, locale)`; Arabic keeps its format, English uses `en-GB` with 12-hour time like the Arabic (`6:00 pm`), Gregorian, Latin digits; both in Riyadh time.
@@ -644,7 +644,7 @@ List-Unsubscribe-Post: List-Unsubscribe=One-Click
 ```
 
 - `POST /api/unsubscribe` unsubscribes and returns 200 with an empty body.
-- `GET /api/unsubscribe` redirects to `/unsubscribe?t=…` (confirm button; the middleware adds `/ar`, §6.6). Never acts (HR-5). The header URL has no language.
+- `GET /api/unsubscribe` redirects to `/unsubscribe?t=…` (confirm button; the proxy, `proxy.ts`, adds `/ar`, §6.6). Never acts (HR-5). The header URL has no language.
 - Effective immediately. Resend does not add these headers for API sends; the code does, and a test asserts it.
 
 ### 10.5 Non-production email
@@ -747,7 +747,7 @@ Saudi Arabia has no daylight saving time.
 
 ### Unit (Vitest)
 
-Tokens; announcement rules table (§10.2); audience dedup and language; Riyadh formatting and day grouping (both languages); almost-full threshold; talent field validation; `returnTo` sanitising; every `t()` key exists; `ar.json` and `en.json` have identical keys; announcement headers present; middleware (`/` → `/ar`, unprefixed path → `/ar` + path, `/admin` not redirected); `<html lang dir>` on `/ar`, `/en` and `/admin`; language switcher keeps the page and query; hreflang alternates; event-text fallback; every email kind renders in both languages (`dir`), with links carrying the language.
+Tokens; announcement rules table (§10.2); audience dedup and language; Riyadh formatting and day grouping (both languages); almost-full threshold; talent field validation; `returnTo` sanitising; every `t()` key exists; `ar.json` and `en.json` have identical keys; announcement headers present; proxy (`/` → `/ar`, unprefixed path → `/ar` + path, `/admin` not redirected); `<html lang dir>` on `/ar`, `/en` and `/admin`; language switcher keeps the page and query; hreflang alternates; event-text fallback; every email kind renders in both languages (`dir`), with links carrying the language.
 
 ### Scripts
 

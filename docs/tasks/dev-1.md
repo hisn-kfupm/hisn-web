@@ -383,7 +383,7 @@ export type CancelResult = 'cancelled' | 'not_found' | 'started'
 export type ButtonState = 'open' | 'open_almost_full' | 'registered' | 'full' | 'waitlisted' | 'closed' | 'cancelled' | 'ended'
 
 // lib/time/riyadh.ts
-export const RIYADH_LOCALE = 'ar-SA-u-ca-gregory-nu-latn'   // Gregorian calendar, Latin digits
+export const RIYADH_LOCALE = 'ar-SA-u-ca-gregory-nu-arab'   // Gregorian calendar, Eastern Arabic digits (brand decision, 15 Nov)
 export function riyadhDateKey(utcIso: string): string        // 'YYYY-MM-DD' in Asia/Riyadh
 export function riyadhMonth(utcIso: string): string          // 'YYYY-MM'
 export function formatRiyadh(utcIso: string, style: 'date' | 'time' | 'datetime', locale: Locale): string
@@ -399,7 +399,7 @@ export function eventButtonState(e: PublicEvent, seatsLeft: number | null,
 ```
 - `eventButtonState` evaluates in this exact order; the first match wins: `status === 'cancelled'` → `cancelled`; `now >= endsAt` → `ended`; `mine === 'registered'` → `registered`; `mine === 'waitlisted'` → `waitlisted`; `now >= registrationClosesAt` → `closed`; `seatsLeft === 0` → `full`; `isAlmostFull(capacity, seatsLeft)` → `open_almost_full`; otherwise `open`.
 - `riyadhDateKey` uses `Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Riyadh' })`. `formatRiyadh` on `ar` uses `RIYADH_LOCALE` with `timeZone: 'Asia/Riyadh'`; on `en` it uses `'en-GB'` with `timeZone: 'Asia/Riyadh'` and `hour12: true`, so English times are 12-hour like the Arabic (`6:00 pm`) (Gregorian calendar, Latin digits). Both languages show Riyadh time.
-- Numbers use Latin digits in both languages (Arabic through `nu-latn`), so counts passed as `t()` vars need no per-locale formatting.
+- Digits: Arabic uses Eastern Arabic digits (٠١٢٣), as the brand guide requires (decision of 15 Nov); English uses Latin digits. `riyadhDateKey` stays Latin: it is a machine key.
 
 **Needs first:** D1-2.
 
@@ -410,8 +410,8 @@ export function eventButtonState(e: PublicEvent, seatsLeft: number | null,
   - `riyadhDateKey('2026-11-30T20:30:00Z') === '2026-11-30'`
   - `riyadhDateKey('2026-11-30T21:30:00Z') === '2026-12-01'`
   - `riyadhMonth('2026-11-30T21:30:00Z') === '2026-12'`
-  - `formatRiyadh('2026-11-18T15:00:00Z', 'time', 'ar')` contains `'6:00'` and does not contain `'15:00'`
-  - `formatRiyadh('2026-11-18T15:00:00Z', 'date', 'ar')` contains `'18'` and `'2026'` and does not contain `'1448'` (guards against the Hijri calendar default)
+  - `formatRiyadh('2026-11-18T15:00:00Z', 'time', 'ar')` contains `'٦:٠٠'` and does not contain `'١٥:٠٠'`
+  - `formatRiyadh('2026-11-18T15:00:00Z', 'date', 'ar')` contains `'١٨'` and `'٢٠٢٦'`, does not contain `'١٤٤٨'` (guards against the Hijri calendar default), and contains no Latin digits (`/[0-9]/`)
   - `formatRiyadh('2026-11-18T15:00:00Z', 'time', 'en')` contains `'6:00'` and `'pm'` (12-hour, Riyadh time) and contains neither `'18:00'` nor `'15:00'`
   - `formatRiyadh('2026-11-18T15:00:00Z', 'date', 'en')` contains `'18'` and `'2026'`, does not contain `'1448'`, and contains no Arabic letters (`/[؀-ۿ]/`)
   - `formatRiyadh('2026-11-30T21:30:00Z', 'date', 'en')` does not contain `'30'` (it shows the Riyadh day, 1 December)
