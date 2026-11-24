@@ -298,5 +298,27 @@
   "img.event-workshop-tables": "Workshop participants around long tables «مؤقت»",
   "img.event-lecture-slide": "A lecturer explaining an equation on the screen to the audience «مؤقت»",
   "img.talent-design-showcase": "A student team presenting their project at an engineering exhibition «مؤقت»",
-  "img.notfound-empty-socket": "An empty electrical socket in a bare warehouse «مؤقت»"
+  "img.notfound-empty-socket": "An empty electrical socket in a bare warehouse «مؤقت»",
+
+  "admin.area": "Admin «مؤقت»",
+  "admin.toSite": "View the site «مؤقت»",
+  "admin.events.title": "Events «مؤقت»",
+  "admin.events.new": "New event «مؤقت»",
+  "admin.events.upcoming": "Upcoming «مؤقت»",
+  "admin.events.past": "Past «مؤقت»",
+  "admin.events.none": "No events here. «مؤقت»",
+  "admin.events.edit": "Edit: {title} «مؤقت»",
+  "admin.edit": "Edit «مؤقت»",
+  "admin.col.title": "Event «مؤقت»",
+  "admin.col.date": "Date «مؤقت»",
+  "admin.col.status": "Status «مؤقت»",
+  "admin.col.seats": "Registered / seats «مؤقت»",
+  "admin.col.waitlist": "Waitlist «مؤقت»",
+  "admin.col.announce": "Announcement «مؤقت»",
+  "admin.col.actions": "Actions «مؤقت»",
+  "admin.status.draft": "Draft «مؤقت»",
+  "admin.status.published": "Published «مؤقت»",
+  "admin.status.cancelled": "Cancelled «مؤقت»",
+  "admin.announce.notSent": "Not sent «مؤقت»",
+  "admin.announce.started": "Sending started «مؤقت»"
 }

@@ -6,9 +6,10 @@
 */
 export type Session = { userId: string; email: string }
 
-const DEMO: Session = { userId: '00000000-0000-0000-0000-00000000d3e0', email: 'demo@example.com' }
+/** the demo user; lib/db/prod-stub.ts makes it the stand-in admin */
+export const DEMO_SESSION: Session = { userId: '00000000-0000-0000-0000-00000000d3e0', email: 'demo@example.com' }
 
 /** the signed-in user, or null (always null until auth lands, unless DEMO_SIGNED_IN=1) */
 export async function getSession(): Promise<Session | null> {
-  return process.env.DEMO_SIGNED_IN === '1' ? DEMO : null
+  return process.env.DEMO_SIGNED_IN === '1' ? DEMO_SESSION : null
 }
