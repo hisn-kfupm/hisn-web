@@ -206,16 +206,17 @@ export function subject(kind: DeliveryKind, locale: Locale, vars: { title: strin
 
 ---
 
-## D2-4 · Session, returnTo and middleware (plan T6)
+## D2-4 · Session, returnTo and proxy (plan T6)
 
 **Date:** Sun 15 Nov.
 
-**Build:** Server helpers to read the signed-in user and sign out, safe `returnTo` handling, the university-email check, and the middleware: locale redirect plus Supabase cookie refresh.
+**Build:** Server helpers to read the signed-in user and sign out, safe `returnTo` handling, the university-email check, and the locale redirect plus Supabase cookie refresh in `proxy.ts`. Next 16 renamed `middleware.ts` to `proxy.ts` (exporting `proxy`), and only one of the two may exist: `next build` fails with both. `proxy.ts` already exists from PR #8 (it answers missing department and event pages with a real 404); add your logic to that file instead of creating `middleware.ts`.
 
 **Files:**
 - `lib/auth/session.ts`, `lib/auth/return-to.ts`
-- `middleware.ts`
-- `tests/unit/return-to.test.ts`, `tests/unit/session.test.ts`, `tests/unit/middleware.test.ts`
+- Modify `proxy.ts` (from PR #8)
+- `tests/unit/return-to.test.ts`, `tests/unit/session.test.ts`, `tests/unit/proxy.test.ts`
+- Modify `tests/unit/not-found-status.test.ts` (PR #8's matcher assertion changes with the wider matcher)
 
 **Interfaces — produces:**
 ```ts
@@ -232,12 +233,13 @@ export function safeReturnTo(input: string | null | undefined): string
 export function isInstitutionalEmail(email: string): boolean
   // domain = part after '@', lowercased; true iff domain === 'edu' or ends with '.edu' or '.edu.sa'
 ```
-- `middleware.ts`, in this order:
+- `proxy.ts` (`export async function proxy(request: NextRequest)`), in this order:
   1. **Locale redirect:** `/` → redirect (`NextResponse.redirect`, 307) to `/ar` (always; no browser-language detection). A path without a locale prefix that is not `/admin…`, `/api…`, `/_next…` or a static file (last segment contains a `.`) → redirect to `/ar` + path, query kept (`/events?m=2026-12` → `/ar/events?m=2026-12`). `/ar…`, `/en…`, `/admin…` and `/api…` pass through. Use `isLocale` from `lib/i18n/locale.ts` (D1-1).
-  2. The standard `@supabase/ssr` cookie refresh on everything that passes through.
-  - `matcher` excludes `_next/static`, `_next/image`, `favicon.ico`, `api/cron`.
+  2. **PR #8's missing-page rewrite, kept as it is:** if `isMissingPage(pathname, eventExists)` (`lib/routing/missing.ts`) is true, rewrite to `NOT_FOUND_PATH` so the page answers 404.
+  3. The standard `@supabase/ssr` cookie refresh on everything that passes through.
+  - `matcher` excludes `_next/static`, `_next/image`, `favicon.ico`, `api/cron`. It replaces PR #8's narrower matcher.
 
-**Needs first:** A-2; D1-1 (`lib/i18n/locale.ts`).
+**Needs first:** A-2; D1-1 (`lib/i18n/locale.ts`); PR #8 (`proxy.ts`, `lib/routing/missing.ts`).
 
 **Blocks:** D2-5 (yours); Abdulrahman (D1-5 header, D1-13 admin guard; unprefixed links reach `/ar` through the locale redirect).
 
@@ -251,12 +253,13 @@ export function isInstitutionalEmail(email: string): boolean
   - `isInstitutionalEmail('a@kfupm.edu.sa') === true`; `('a@stanford.edu') === true`; `('a@gmail.com') === false`; `('a@edu.sa.com') === false`
 - `session.test.ts` (mock `supabaseProdServer`): `auth.getUser` → `{ data: { user: { id: 'u1', email: 'a@b.com' } } }` → `{ userId: 'u1', email: 'a@b.com' }`; `{ data: { user: null } }` → `null`.
   - `signOut('en')` → `auth.signOut` called once, then `redirect('/en')`; `signOut('ar')` → `redirect('/ar')`; `signOut('fr' as Locale)` → `redirect('/ar')` (mock `next/navigation`).
-- `middleware.test.ts` (call `middleware(new NextRequest(url))`; mock `@supabase/ssr`'s `createServerClient`):
+- `proxy.test.ts` (call `proxy(new NextRequest(url))`; mock `@supabase/ssr`'s `createServerClient`):
   - `/` → status 307 or 308, `Location` ends with `/ar`.
   - `/events` → `Location` ends with `/ar/events`; `/events?m=2026-12` → ends with `/ar/events?m=2026-12`.
   - `/ar/events`, `/en/events`, `/admin`, `/admin/events/3`, `/api/unsubscribe?t=x` and `/robots.txt` → not redirected (no `Location` header).
+  - PR #8's 404 still works after the redirect: `/departments/nope` → redirected to `/ar/departments/nope`; `/ar/departments/nope` and `/en/events/999999` → rewritten to `NOT_FOUND_PATH` (`x-middleware-rewrite` header); `/ar/departments/<first slug>` → neither redirected nor rewritten.
 
-**Done when:** `npm test -- tests/unit/return-to.test.ts tests/unit/session.test.ts tests/unit/middleware.test.ts` passes.
+**Done when:** `npm test -- tests/unit/return-to.test.ts tests/unit/session.test.ts tests/unit/proxy.test.ts tests/unit/not-found-status.test.ts` passes, and `next build` passes with `proxy.ts` and no `middleware.ts`.
 
 ---
 
