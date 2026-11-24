@@ -3,7 +3,8 @@
  *
  *   npm run check:content
  *
- * Scans lib/i18n/ar.json and content/**\/*.md, prints each hit, and exits 1 if there are any.
+ * Scans both string files (lib/i18n/ar.json and en.json) and content/**\/*.md, prints each hit, and
+ * exits 1 if there are any. The English drafts carry the marker too until Abdulaziz approves them.
  * In CI it runs with `continue-on-error` until the approved copy is in.
  */
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
@@ -32,7 +33,7 @@ function keysWithMarker(value: unknown, at: string[] = []): string[] {
   return []
 }
 
-/** the files the CLI checks: the string file, then every Markdown file under content/ */
+/** the files the CLI checks: both string files, then every Markdown file under content/ */
 export function contentFiles(root = process.cwd()): string[] {
   const contentDir = path.join(root, 'content')
   const markdown = existsSync(contentDir)
@@ -41,7 +42,7 @@ export function contentFiles(root = process.cwd()): string[] {
         .map((f) => path.posix.join('content', f.split(path.sep).join('/')))
         .sort()
     : []
-  return ['lib/i18n/ar.json', ...markdown]
+  return ['lib/i18n/ar.json', 'lib/i18n/en.json', ...markdown]
 }
 
 function main() {
