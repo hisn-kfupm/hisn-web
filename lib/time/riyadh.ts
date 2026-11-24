@@ -1,10 +1,17 @@
+import type { Locale } from '@/lib/i18n/locale'
+
 /**
- * Times are stored in UTC and shown in Riyadh time (Asia/Riyadh, UTC+3 all year).
+ * Times are stored in UTC and shown in Riyadh time (Asia/Riyadh, UTC+3 all year), in both languages.
  *
- * Digits: Eastern Arabic (٠١٢٣), as the brand guide requires (redesign, 15 Nov 2026; this settles
- * open question Q1 of design/01-discovery.md). `riyadhDateKey` stays Latin: it is a machine key.
+ * Arabic digits: Eastern Arabic (٠١٢٣), as the brand guide requires (redesign, 15 Nov 2026; this settles
+ * open question Q1 of design/01-discovery.md). English: British day-month order with Latin digits and
+ * 12-hour times, like the Arabic («6:00 pm»; dev-1 D1-7). `riyadhDateKey` stays Latin: it is a machine key.
  */
 export const RIYADH_LOCALE = 'ar-SA-u-ca-gregory-nu-arab' // Gregorian calendar, Eastern Arabic digits
+export const ENGLISH_DATE_LOCALE = 'en-GB-u-ca-gregory-nu-latn' // Gregorian calendar, Latin digits
+
+/** the Intl locale for dates in each language */
+export const DATE_LOCALE: Record<Locale, string> = { ar: RIYADH_LOCALE, en: ENGLISH_DATE_LOCALE }
 
 const TIME_ZONE = 'Asia/Riyadh'
 
@@ -29,12 +36,14 @@ const STYLES = {
 
 type Style = keyof typeof STYLES
 
-const formats = new Map<Style, Intl.DateTimeFormat>()
-const formatFor = (style: Style) => {
-  let format = formats.get(style)
+const formats = new Map<string, Intl.DateTimeFormat>()
+const formatFor = (style: Style, locale: Locale) => {
+  const id = `${locale}:${style}`
+  let format = formats.get(id)
   if (!format) {
-    format = new Intl.DateTimeFormat(RIYADH_LOCALE, { timeZone: TIME_ZONE, ...STYLES[style] })
-    formats.set(style, format)
+    // en-GB defaults to a 24-hour clock; hour12 matches the Arabic, which is 12-hour already
+    format = new Intl.DateTimeFormat(DATE_LOCALE[locale], { timeZone: TIME_ZONE, hour12: true, ...STYLES[style] })
+    formats.set(id, format)
   }
   return format
 }
@@ -50,12 +59,15 @@ export function riyadhMonth(utcIso: string): string {
   return riyadhDateKey(utcIso).slice(0, 7)
 }
 
-/** for display: «١٨ نوفمبر ٢٠٢٦», «٦:٠٠ م», both, or one part («١٨», «نوفمبر», «الأربعاء», «نوفمبر ٢٠٢٦») */
-export function formatRiyadh(utcIso: string, style: Style): string {
-  return formatFor(style).format(new Date(utcIso))
+/**
+ * For display, in Riyadh time: «١٨ نوفمبر ٢٠٢٦» / "18 November 2026", «٦:٠٠ م» / "6:00 pm", both, or one
+ * part («١٨», «نوفمبر», «الأربعاء», «نوفمبر ٢٠٢٦» / "18", "November", "Wednesday", "November 2026").
+ */
+export function formatRiyadh(utcIso: string, style: Style, locale: Locale): string {
+  return formatFor(style, locale).format(new Date(utcIso))
 }
 
-/** start–end clock times in Riyadh: «٦:٠٠–٨:٠٠ م», or «٩:٠٠ ص – ٨:٠٠ م» when the periods differ */
-export function formatRiyadhTimeRange(startIso: string, endIso: string): string {
-  return formatFor('time').formatRange(new Date(startIso), new Date(endIso))
+/** start–end clock times in Riyadh: «٦:٠٠–٨:٠٠ م» / "6:00 – 8:00 pm", naming both periods when they differ */
+export function formatRiyadhTimeRange(startIso: string, endIso: string, locale: Locale): string {
+  return formatFor('time', locale).formatRange(new Date(startIso), new Date(endIso))
 }

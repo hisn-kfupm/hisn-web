@@ -19,6 +19,9 @@ import { monthRangeUtc } from './month'
 export const PUBLIC_EVENT_COLUMNS =
   'id,title,description,department_code,starts_at,ends_at,format,location,presenter,capacity,registration_closes_at,status,image_url,recording_url'
 
+/** an optional text column: null when the row has none (a stand-in row, or no English yet) */
+const optionalText = (value: unknown) => (typeof value === 'string' ? stripDraft(value) : null)
+
 /** snake_case row → PublicEvent; copies only the public columns, so nothing else can leak */
 export function toPublicEvent(row: Record<string, unknown>): PublicEvent {
   return {
@@ -26,6 +29,8 @@ export function toPublicEvent(row: Record<string, unknown>): PublicEvent {
     // stand-in copy carries « «مؤقت» »; demos (NEXT_PUBLIC_HIDE_DRAFT_MARKERS=1) leave it out
     title: stripDraft(row.title as string),
     description: stripDraft(row.description as string),
+    titleEn: optionalText(row.title_en),
+    descriptionEn: optionalText(row.description_en),
     departmentCode: row.department_code as string | null,
     startsAt: row.starts_at as string,
     endsAt: row.ends_at as string,

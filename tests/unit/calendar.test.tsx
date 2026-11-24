@@ -18,6 +18,8 @@ const ev = (over: Partial<PublicEvent>): PublicEvent => ({
   id: 1,
   title: 'فعالية',
   description: 'وصف',
+  titleEn: null,
+  descriptionEn: null,
   departmentCode: 'SECTOR_AWARENESS',
   startsAt: '2026-11-18T15:00:00Z',
   endsAt: '2026-11-18T17:00:00Z',
@@ -90,6 +92,18 @@ describe('MonthGrid', () => {
     expect(brick(2).textContent).toContain(t('ar', 'event.badge.almostFull'))
     expect(brick(1).textContent).not.toContain(t('ar', 'event.badge.almostFull'))
     expect(brick(5).textContent).not.toContain(t('ar', 'event.badge.almostFull'))
+  })
+})
+
+describe('MonthGrid in English', () => {
+  it('names the weekday columns and the month in English, with Latin digits', () => {
+    const { container } = render(<MonthGrid locale="en" month="2026-11" events={events} seatsLeft={seats} now={NOW} />)
+    expect(within(container).getAllByRole('columnheader').map((h) => h.textContent)).toEqual([
+      'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday',
+    ])
+    expect(container.querySelector('#cal-grid-title')?.textContent).toContain('November 2026')
+    expect(container.textContent).toMatch(/6:00\spm/)
+    expect(container.textContent).not.toMatch(/[٠-٩]/)
   })
 })
 

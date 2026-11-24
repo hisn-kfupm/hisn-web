@@ -38,8 +38,8 @@ export function MonthGrid({ locale, month, events, seatsLeft, now }: Props) {
   const weeks = Array.from({ length: cells.length / 7 }, (_, i) => cells.slice(i * 7, i * 7 + 7))
   const byDay = groupByDay(events)
   const today = dayKeyOf(now)
-  const names = weekdayNames()
-  const label = formatRiyadh(monthMidpoint(month), 'monthYear')
+  const names = weekdayNames(locale)
+  const label = formatRiyadh(monthMidpoint(month), 'monthYear', locale)
 
   return (
     <div data-testid="month-grid" className="hidden md:block">
@@ -108,7 +108,7 @@ function DayCell({ locale, day, outside, weekend, today, past, events, seatsLeft
           {fmtNum(n, locale)}
         </span>
         {(n === 1 || today) && (
-          <span className="text-label">{today ? t(locale, 'calendar.today') : formatRiyadh(`${day}T12:00:00.000Z`, 'month')}</span>
+          <span className="text-label">{today ? t(locale, 'calendar.today') : formatRiyadh(`${day}T12:00:00.000Z`, 'month', locale)}</span>
         )}
       </p>
       {events.length > 0 && (
@@ -129,11 +129,11 @@ function EventBrick({ locale, event, left, now }: { locale: Locale; event: Publi
     <li data-event={event.id} data-status={status} data-slot className="cal-ev relative">
       <span aria-hidden="true" className="cal-fill pointer-events-none absolute inset-0" />
       <div className="relative flex flex-col gap-1 py-2 ps-3 pe-2">
-        <p className="cal-time text-[0.8125rem] leading-[1.3] font-semibold">{formatRiyadh(event.startsAt, 'time')}</p>
+        <p className="cal-time text-[0.8125rem] leading-[1.3] font-semibold">{formatRiyadh(event.startsAt, 'time', locale)}</p>
         <h3 className="cal-title line-clamp-3 text-[0.9375rem] leading-[1.5] font-bold">
           <Link href={`/events/${event.id}`} className="text-inherit no-underline after:absolute after:inset-0 after:z-10">
             {event.title}
-            <span className="sr-only">{t(locale, 'a11y.when', { when: formatRiyadh(event.startsAt, 'datetime') })}</span>
+            <span className="sr-only">{t(locale, 'a11y.when', { when: formatRiyadh(event.startsAt, 'datetime', locale) })}</span>
           </Link>
         </h3>
         {event.departmentCode && (

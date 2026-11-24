@@ -139,7 +139,7 @@ describe('/admin', () => {
     await renderPage()
     const first = row('فعالية 1')
     const cells = within(first)
-    expect(first.textContent).toContain(formatRiyadh(at(2), 'datetime'))
+    expect(first.textContent).toContain(formatRiyadh(at(2), 'datetime', 'ar'))
     expect(first.textContent).toContain(t('ar', 'admin.status.published'))
     expect(first.textContent).toContain(`${fmtNum(12, 'ar')} / ${fmtNum(30, 'ar')}`)
     expect(cells.getByText(fmtNum(3, 'ar'))).toBeInTheDocument()

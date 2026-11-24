@@ -20,15 +20,15 @@ export function EventFacts({ locale, event }: { locale: Locale; event: PublicEve
       <div className="flex items-end gap-4 sm:col-span-2 lg:col-span-1 lg:pe-4">
         <dt className="sr-only">{t(locale, 'event.fact.date')}</dt>
         <dd className="flex items-end gap-4">
-          <span className="ev-day text-[clamp(6rem,4rem+8vw,10.5rem)] leading-[0.95] font-bold text-white">{formatRiyadh(event.startsAt, 'day')}</span>
+          <span className="ev-day text-[clamp(6rem,4rem+8vw,10.5rem)] leading-[0.95] font-bold text-white">{formatRiyadh(event.startsAt, 'day', locale)}</span>
           <span className="flex flex-col pb-[0.6em] leading-[1.35]">
-            <span className="ev-month text-[clamp(1.375rem,1.1rem+1vw,1.875rem)] font-bold text-white">{formatRiyadh(event.startsAt, 'month')}</span>
-            <span className="text-[1.0625rem] text-on-dark">{formatRiyadh(event.startsAt, 'weekday')}</span>
+            <span className="ev-month text-[clamp(1.375rem,1.1rem+1vw,1.875rem)] font-bold text-white">{formatRiyadh(event.startsAt, 'month', locale)}</span>
+            <span className="text-[1.0625rem] text-on-dark">{formatRiyadh(event.startsAt, 'weekday', locale)}</span>
           </span>
         </dd>
       </div>
       <Fact icon={Clock} term={t(locale, 'event.fact.time')}>
-        <span className="block">{formatRiyadhTimeRange(event.startsAt, event.endsAt)}</span>
+        <span className="block">{formatRiyadhTimeRange(event.startsAt, event.endsAt, locale)}</span>
         <span className="block text-small font-normal text-on-dark">{t(locale, 'event.riyadhTime')}</span>
       </Fact>
       <Fact icon={online ? Video : MapPin} term={t(locale, 'event.fact.place')}>

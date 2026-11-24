@@ -67,11 +67,11 @@ function TimetableRow({ locale, event, taken }: { locale: Locale; event: PublicE
         <span aria-hidden="true" className="tt-fill pointer-events-none absolute -inset-x-3 inset-y-0 bg-teal lg:-inset-x-5" />
         <div aria-hidden="true" className="relative row-span-3 flex flex-col items-start lg:row-span-1 lg:flex-row lg:items-center lg:gap-4">
           <span data-day className="tt-day tt-ink text-[3.75rem] leading-[1] font-bold text-teal sm:text-[4.75rem] lg:text-[6.25rem]">
-            {formatRiyadh(event.startsAt, 'day')}
+            {formatRiyadh(event.startsAt, 'day', locale)}
           </span>
           <span className="mt-1 flex flex-col leading-[1.35] lg:mt-0">
-            <span className="tt-ink text-[0.9375rem] font-semibold text-deep lg:text-[1.125rem]">{formatRiyadh(event.startsAt, 'month')}</span>
-            <span className="tt-soft text-label font-normal text-muted">{formatRiyadh(event.startsAt, 'weekday')}</span>
+            <span className="tt-ink text-[0.9375rem] font-semibold text-deep lg:text-[1.125rem]">{formatRiyadh(event.startsAt, 'month', locale)}</span>
+            <span className="tt-soft text-label font-normal text-muted">{formatRiyadh(event.startsAt, 'weekday', locale)}</span>
           </span>
         </div>
         <div className="relative min-w-0">
@@ -81,10 +81,10 @@ function TimetableRow({ locale, event, taken }: { locale: Locale; event: PublicE
           <h3 className="text-[1.1875rem] leading-[1.5] font-bold lg:text-[1.5rem] lg:leading-[1.45]">
             <Link href={`/events/${event.id}`} className="tt-ink text-deep no-underline after:absolute after:inset-0 after:z-10">
               {event.title}
-              <span className="sr-only">{t(locale, 'a11y.when', { when: formatRiyadh(event.startsAt, 'datetime') })}</span>
+              <span className="sr-only">{t(locale, 'a11y.when', { when: formatRiyadh(event.startsAt, 'datetime', locale) })}</span>
             </Link>
           </h3>
-          <p className="tt-soft mt-1 text-small text-muted">{formatRiyadhTimeRange(event.startsAt, event.endsAt)}</p>
+          <p className="tt-soft mt-1 text-small text-muted">{formatRiyadhTimeRange(event.startsAt, event.endsAt, locale)}</p>
         </div>
         <p className="tt-soft relative flex items-start gap-2 text-small text-muted lg:text-body">
           <Icon icon={online ? Video : MapPin} size={18} className="mt-1" />
