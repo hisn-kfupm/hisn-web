@@ -1,6 +1,5 @@
 'use client'
 import { Suspense, type ReactNode } from 'react'
-import Link from 'next/link'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { Globe } from 'lucide-react'
 import { Icon } from '@/components/ui/Icon'
@@ -20,15 +19,19 @@ const VARIANTS = {
  * The link half of LanguageSwitcher (dev-1 D1-5): the current page in `target`, query kept. It
  * reads the address, so it runs in the browser; the label comes from the server, so the string
  * files stay there. No link on a path without a language (/admin is Arabic only).
+ *
+ * A plain <a>, not next/link: the language is the root layout's segment, and a client-side
+ * navigation keeps the previous language's whole document (header, main, footer) hidden in the
+ * page, so a switch loads the new language's page fresh.
  */
 export function LanguageLink({ target, label, variant }: Props) {
   const pathname = usePathname()
   if (!pathname || !localeOfPath(pathname)) return null
   const link = (href: string) => (
-    <Link href={href} lang={target} hrefLang={target} prefetch={false} data-testid="language-switcher" className={cn('group', VARIANTS[variant])}>
+    <a href={href} lang={target} hrefLang={target} data-testid="language-switcher" className={cn('group', VARIANTS[variant])}>
       <Icon icon={Globe} size={variant === 'bar' ? 18 : 20} className="text-mint" />
       {label}
-    </Link>
+    </a>
   )
   // the query is known only in the browser: a prerendered page links without it, then fills it in
   return (
