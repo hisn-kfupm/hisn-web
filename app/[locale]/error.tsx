@@ -24,7 +24,7 @@ export default function ErrorPage({ error, retry }: { error: unknown; retry: () 
     <>
       <PageHead locale={locale} title={t(locale, 'error.title')}>
         <p className="mt-4 max-w-[34rem] text-on-dark">{t(locale, 'error.body')}</p>
-        <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+        <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           <button type="button" onClick={() => retry()} className={buttonClass({ tone: 'dark' })}>{t(locale, 'error.retry')}</button>
           <Link href={localePath(locale, '/')} className={buttonClass({ variant: 'secondary', tone: 'dark' })}>{t(locale, 'error.home')}</Link>
         </div>

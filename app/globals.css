@@ -241,7 +241,10 @@
     align-items: center;
     justify-content: center;
     gap: 0.6rem;
-    white-space: nowrap;
+    /* a long label wraps onto balanced, centred lines rather than widen a narrow column (WCAG 1.4.10
+       at 320 px); centred as a <button> already is, so an <a> and a <button> wrap alike */
+    text-wrap: balance;
+    text-align: center;
     border: 1.5px solid var(--btn-line, transparent);
     background-color: var(--btn-bg, transparent);
     color: var(--btn-fg);
@@ -869,11 +872,14 @@ a.cal-today:is(:hover, :focus-visible) { transform: translateY(-3px); box-shadow
 }
 .recording-item:target .video-card { outline: 3px solid var(--color-mint); outline-offset: 8px; }
 
-/* /talent: a short wall in running bond with one empty socket, the brick still to be laid */
-.socket-wall { display: grid; gap: 6px; inline-size: min(100%, 17rem); }
+/* /talent: a short wall in running bond with one empty socket, the brick still to be laid. A brick
+   is 4.25rem × 2.25rem, smaller when the wall's own grid (its .wrap, an @container: 100cqi is that
+   grid's width) is too narrow for the offset row of four bricks and three gaps, so the wall never
+   widens the page at 320 px. */
+.socket-wall { display: grid; gap: 6px; inline-size: min(100%, 17rem); --brick: min(4.25rem, (100cqi - 18px) / 4.5); }
 .socket-row { display: flex; gap: 6px; }
-.socket-row:nth-child(2) { margin-inline-start: 2.1rem; }
-.socket-brick { flex: 0 0 auto; block-size: 2.25rem; inline-size: 4.25rem; background-color: var(--color-mid); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.12), inset 0 -2px 0 rgb(0 8 10 / 0.35); }
+.socket-row:nth-child(2) { margin-inline-start: calc(var(--brick) * 2.1 / 4.25); }
+.socket-brick { flex: 0 0 auto; block-size: calc(var(--brick) * 9 / 17); inline-size: var(--brick); background-color: var(--color-mid); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.12), inset 0 -2px 0 rgb(0 8 10 / 0.35); }
 .socket-brick:nth-child(odd) { background-color: var(--color-teal-800); }
 .socket-brick.is-empty { background: transparent; box-shadow: none; outline: 2px dashed var(--color-mint); outline-offset: -2px; }
 

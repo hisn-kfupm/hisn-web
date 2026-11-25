@@ -16,8 +16,9 @@ import { t } from '@/lib/i18n/t'
 /**
  * Site header (dev-1 D1-5, redesign §4). Fixed over the page: transparent over dark heads, a solid
  * deep bar over light content, hidden on scroll down (HeaderShell). The sign-in / account entry
- * is always visible and never inside the mobile menu. Below 360 px it collapses to an icon with
- * its full accessible name (WCAG 1.4.10). Every link stays in the page's language (localePath), and
+ * is always visible and never inside the mobile menu. It keeps its label on one line (buttons
+ * elsewhere may wrap); below 360 px it collapses to an icon with its full accessible name
+ * (WCAG 1.4.10). Every link stays in the page's language (localePath), and
  * the language switcher sits in the bar (from 640 px) and in the mobile menu.
  */
 export function Header(props: { locale: Locale; session: { email: string } | null }) {
@@ -37,9 +38,9 @@ export function Header(props: { locale: Locale; session: { email: string } | nul
             {props.session ? (
               <AccountMenu locale={locale} email={props.session.email} labels={{ account: t(locale, 'auth.account'), menu: t(locale, 'auth.accountMenu'), signOut: t(locale, 'auth.signOut') }} />
             ) : (
-              <Link href={localePath(locale, '/sign-in')} className={buttonClass({ variant: 'secondary', tone: 'dark', size: 'sm', className: 'max-[359px]:w-11 max-[359px]:px-0' })}>
-                <Icon icon={LogIn} size={18} mirror className="hidden max-[359px]:block" />
-                <span className="max-[359px]:sr-only">{t(locale, 'auth.signIn')}</span>
+              <Link href={localePath(locale, '/sign-in')} className={buttonClass({ variant: 'secondary', tone: 'dark', size: 'sm', className: 'whitespace-nowrap max-[360px]:w-11 max-[360px]:px-0' })}>
+                <Icon icon={LogIn} size={18} mirror className="hidden max-[360px]:block" />
+                <span className="max-[360px]:sr-only">{t(locale, 'auth.signIn')}</span>
               </Link>
             )}
           </div>

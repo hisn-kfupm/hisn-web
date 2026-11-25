@@ -22,9 +22,9 @@ export function AccountMenu({ locale, email, labels }: Props) {
   const item = 'flex min-h-11 w-full items-center gap-2 px-4 text-start font-medium text-deep no-underline hover:bg-box disabled:opacity-60'
   return (
     <div className="relative">
-      <button ref={buttonRef} type="button" aria-expanded={open} aria-controls={id} onClick={toggle} aria-label={labels.menu} className={buttonClass({ variant: 'secondary', tone: 'dark', size: 'sm', className: 'max-[359px]:w-11 max-[359px]:px-0' })}>
+      <button ref={buttonRef} type="button" aria-expanded={open} aria-controls={id} onClick={toggle} aria-label={labels.menu} className={buttonClass({ variant: 'secondary', tone: 'dark', size: 'sm', className: 'whitespace-nowrap max-[360px]:w-11 max-[360px]:px-0' })}>
         <Icon icon={UserRound} size={18} />
-        <span className="max-[359px]:sr-only">{labels.account}</span>
+        <span className="max-[360px]:sr-only">{labels.account}</span>
       </button>
       <div
         ref={panelRef}

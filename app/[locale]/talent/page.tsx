@@ -72,7 +72,7 @@ export default async function TalentPage({ params }: { params: Params }) {
 
       {/* D1-17: when A-11's TALENT_FORM_OPEN is true (and the consent text is final), TalentForm renders here instead */}
       <section aria-labelledby="talent-soon-title" data-band="dark" className="on-dark bg-deep py-14 text-white lg:py-20">
-        <div className="wrap grid items-center gap-10 md:grid-cols-[minmax(0,1fr)_auto]">
+        <div className="wrap @container grid items-center gap-10 md:grid-cols-[minmax(0,1fr)_auto]">
           <div>
             <p className="text-label text-mint">{t(locale, 'nav.talent')}</p>
             <h2 id="talent-soon-title" className="mt-3 text-h1">

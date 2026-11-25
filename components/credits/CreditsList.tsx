@@ -24,8 +24,8 @@ export function CreditsList({ locale, credits }: { locale: Locale; credits: Cred
         return (
           <li key={credit.file} data-credit={credit.file} className="grid grid-cols-[6rem_minmax(0,1fr)] items-start gap-4 border-b border-line py-5">
             {image ? <Photo image={image} alt={t(locale, image.alt)} ratio="4/3" sizes="96px" reveal={false} /> : <span aria-hidden="true" />}
-            <div className="flex min-w-0 flex-col gap-1 text-small">
-              <a href={credit.sourceUrl} className={`flex min-h-11 items-center font-semibold break-words text-deep ${linkClass}`}>
+            <div className="flex min-w-0 flex-col gap-1 text-small wrap-anywhere">
+              <a href={credit.sourceUrl} className={`flex min-h-11 items-center font-semibold text-deep ${linkClass}`}>
                 <Bdi lang="en">{credit.title}</Bdi>
               </a>
               <p className="text-muted">
