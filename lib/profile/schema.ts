@@ -26,16 +26,27 @@ const levelCodes = new Set(academicLevels.map((l) => l.code))
 
 const error = (key: StringKey) => ({ error: key })
 
-/** major_other for OTHER: 2 to 80 characters once trimmed (the table checks the same) */
+/** text Postgres can store: no NUL character and no half of a surrogate pair */
+const storable = (text: string) => text.isWellFormed() && !text.includes('\u0000')
+
+/** major_other for OTHER: 2 to 80 characters once trimmed, counted in code points as the table's check and zod count them */
 const validOther = (other: string | null | undefined) => {
-  const length = other?.trim().length ?? 0
-  return length >= 2 && length <= 80
+  const text = other?.trim() ?? ''
+  const length = [...text].length
+  return storable(text) && length >= 2 && length <= 80
 }
 
 export const profileSchema: z.ZodType<ProfileInput> = z
   .object(
     {
-      full_name_ar: z.string(error('profile.error.name')).trim().min(2, error('profile.error.name')).max(100, error('profile.error.name')),
+      full_name_ar: z
+        .string(error('profile.error.name'))
+        .trim()
+        .min(2, error('profile.error.name'))
+        .max(100, error('profile.error.name'))
+        .refine(storable, error('profile.error.name'))
+        // at least one letter: not only invisible characters such as zero-width spaces
+        .refine((name) => /\p{L}/u.test(name), error('profile.error.name')),
       major_code: z.string(error('profile.error.major')).refine((code) => majorCodes.has(code), error('profile.error.major')),
       // checked against major_code below
       major_other: z.string(error('profile.error.majorOther')).nullish(),
@@ -49,9 +60,12 @@ export const profileSchema: z.ZodType<ProfileInput> = z
   .refine((profile) => profile.major_code !== 'OTHER' || validOther(profile.major_other), {
     path: ['major_other'],
     ...error('profile.error.majorOther'),
-    // zod skips object checks once any field is invalid; run this one whenever its two fields are
-    // fine, so the form shows every problem at once
-    when: (payload) => !payload.issues.some((issue) => issue.path?.[0] === 'major_code' || issue.path?.[0] === 'major_other'),
+    // zod skips object checks once any field is invalid; run this one whenever the input is an object
+    // and its two fields are fine, so the form shows every problem at once
+    when: (payload) =>
+      typeof payload.value === 'object' &&
+      payload.value !== null &&
+      !payload.issues.some((issue) => issue.path?.[0] === 'major_code' || issue.path?.[0] === 'major_other'),
   })
   .transform((profile) => ({ ...profile, major_other: profile.major_code === 'OTHER' ? (profile.major_other?.trim() ?? null) : null }))
 

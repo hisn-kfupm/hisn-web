@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { profileSchema } from '@/lib/profile/schema'
+import { profileErrors, profileSchema } from '@/lib/profile/schema'
 
 const valid = {
   full_name_ar: 'سارة أحمد',
@@ -14,10 +14,10 @@ const valid = {
 /** the valid input with one field left out */
 const without = (field: keyof typeof valid) => Object.fromEntries(Object.entries(valid).filter(([key]) => key !== field))
 
-/** the field each problem was reported on, with its string key */
+/** the problems as saveProfile returns them: field → string key */
 const problems = (input: unknown) => {
   const result = profileSchema.safeParse(input)
-  return result.success ? {} : Object.fromEntries(result.error.issues.map((issue) => [String(issue.path[0]), issue.message]))
+  return result.success ? {} : profileErrors(result.error)
 }
 
 /* dev-2 D2-6 */
@@ -40,8 +40,7 @@ describe('profileSchema', () => {
   })
 
   it('reads a missing announcements choice as no', () => {
-    const result = profileSchema.safeParse(without('announcements_opt_in'))
-    expect(result.success && result.data.announcements_opt_in).toBe(false)
+    expect(profileSchema.parse(without('announcements_opt_in')).announcements_opt_in).toBe(false)
   })
 
   it('drops keys it does not know, is_admin included (HR-4)', () => {
@@ -78,5 +77,28 @@ describe('profileSchema', () => {
   // the form shows every problem at once, not one per submit
   it('reports every bad field together', () => {
     expect(Object.keys(problems({ ...valid, full_name_ar: '', major_code: 'OTHER', gender: 'x' })).sort()).toStrictEqual(['full_name_ar', 'gender', 'major_other'])
+  })
+
+  /* Input that must come back as errors, never as a crash or a database error */
+  it('answers input that is not an object with a form error, without throwing', () => {
+    for (const input of [null, undefined, 'x', 42, []]) expect(problems(input), String(input)).toStrictEqual({ form: 'profile.error.invalid' })
+  })
+
+  it('counts characters as the database does: an emoji is one', () => {
+    expect(problems({ ...valid, major_code: 'OTHER', major_other: '😀' })).toStrictEqual({ major_other: 'profile.error.majorOther' })
+    expect(profileSchema.safeParse({ ...valid, major_code: 'OTHER', major_other: '😀'.repeat(41) }).success).toBe(true)
+  })
+
+  it('rejects text the database cannot store: a NUL, or half a surrogate pair', () => {
+    for (const bad of ['سا\u0000رة', 'سارة\ud800']) {
+      expect(problems({ ...valid, full_name_ar: bad })).toStrictEqual({ full_name_ar: 'profile.error.name' })
+      expect(problems({ ...valid, major_code: 'OTHER', major_other: `تخصص ${bad}` })).toStrictEqual({ major_other: 'profile.error.majorOther' })
+    }
+    // for a listed major, major_other is dropped anyway
+    expect(profileSchema.parse({ ...valid, major_other: 'x\u0000' }).major_other).toBeNull()
+  })
+
+  it('needs a letter in the name, not only invisible characters', () => {
+    expect(problems({ ...valid, full_name_ar: '​​' })).toStrictEqual({ full_name_ar: 'profile.error.name' })
   })
 })

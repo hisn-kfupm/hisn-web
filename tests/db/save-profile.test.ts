@@ -5,17 +5,33 @@ import { pgAdmin } from './helpers'
 
 vi.mock('server-only', () => ({}))
 
-const as = vi.hoisted(() => ({ user: null as { id: string; email: string } | null }))
+const as = vi.hoisted(() => ({ user: null as { id: string; email: string } | null, failUnsubscribes: false }))
 // The action runs as this test's user: their own client, so row-level security applies, and their session.
 vi.mock('@/lib/db/prod', async (original) => {
   const { clientAs } = await import('./helpers')
-  return { ...(await original<typeof import('@/lib/db/prod')>()), supabaseProdServer: async () => clientAs(as.user!) }
+  const real = await original<typeof import('@/lib/db/prod')>()
+  return {
+    ...real,
+    supabaseProdServer: async () => clientAs(as.user!),
+    // as.failUnsubscribes makes every write to email_unsubscribes fail, as an outage would
+    supabaseProdService: () => {
+      const client = real.supabaseProdService()
+      if (!as.failUnsubscribes) return client
+      const from = client.from.bind(client)
+      const failed = { data: null, error: { message: 'injected failure', code: '57014' } }
+      client.from = ((table: string) =>
+        table === 'email_unsubscribes' ? { delete: () => ({ eq: async () => failed }), upsert: async () => failed } : from(table)) as typeof client.from
+      return client
+    },
+  }
 })
 vi.mock('@/lib/auth/session', () => ({ getSession: async () => as.user && { userId: as.user.id, email: as.user.email } }))
+vi.mock('@/lib/monitoring/report', () => ({ reportError: vi.fn() }))
 vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }))
 
 import { revalidatePath } from 'next/cache'
 import { saveProfile } from '@/app/account/actions'
+import { reportError } from '@/lib/monitoring/report'
 import type { ProfileInput } from '@/lib/profile/schema'
 
 const input: ProfileInput = {
@@ -61,6 +77,7 @@ let user: { id: string; email: string }
 
 beforeEach(async () => {
   vi.clearAllMocks()
+  as.failUnsubscribes = false
   user = await newUser()
   users.push(user)
   as.user = user
@@ -112,12 +129,14 @@ describe('saveProfile', () => {
     await saveProfile({ ...input, locale: 'en' })
     await saveProfile({ ...input, locale: 'en', full_name_ar: 'سارة محمد' })
     expect((await profile(user.id)).locale).toBe('en')
+    expect(await metadataLocale(user.id)).toBe('en')
   })
 
   /* The rest of D2-6's interface */
-  it('needs a session', async () => {
+  it('needs a session, before anything else', async () => {
     as.user = null
     await expect(saveProfile(input)).rejects.toThrow('unauthenticated')
+    await expect(saveProfile({ ...input, major_code: 'OTHER' })).rejects.toThrow('unauthenticated')
   })
 
   it('returns field errors and writes nothing for bad input', async () => {
@@ -153,6 +172,62 @@ describe('saveProfile', () => {
     await saveProfile({ ...input, announcements_opt_in: false, full_name_ar: 'سارة محمد' })
     expect((await profile(user.id)).announcements_updated_at).toStrictEqual(before)
     expect(await unsubscribe(user.email)).toBeNull()
+  })
+
+  it('keeps the source of an earlier unsubscribe when the box is unticked', async () => {
+    await saveProfile({ ...input, announcements_opt_in: true })
+    await query("insert into email_unsubscribes (email, source) values ($1, 'bounce')", [user.email])
+    await saveProfile({ ...input, announcements_opt_in: false })
+    expect(await unsubscribe(user.email)).toStrictEqual({ source: 'bounce' })
+  })
+
+  /* A write that fails part-way: the person never gets more than they asked for, and a retry finishes the job */
+  it('first save with yes: a failed unsubscribe write stores nothing, and the retry completes', async () => {
+    await query("insert into email_unsubscribes (email, source) values ($1, 'link')", [user.email])
+    as.failUnsubscribes = true
+    await expect(saveProfile({ ...input, announcements_opt_in: true, locale: 'en' })).rejects.toBeTruthy()
+    expect(reportError).toHaveBeenCalled()
+    expect(await profile(user.id)).toBeNull()
+
+    as.failUnsubscribes = false
+    expect(await saveProfile({ ...input, announcements_opt_in: true, locale: 'en' })).toStrictEqual({ ok: true })
+    expect(await unsubscribe(user.email)).toBeNull()
+    expect(await metadataLocale(user.id)).toBe('en')
+  })
+
+  it('ticking later: a failed unsubscribe removal keeps the profile at no, and the retry completes', async () => {
+    await saveProfile({ ...input, announcements_opt_in: false })
+    await query("insert into email_unsubscribes (email, source) values ($1, 'link')", [user.email])
+    as.failUnsubscribes = true
+    await expect(saveProfile({ ...input, announcements_opt_in: true })).rejects.toBeTruthy()
+    expect((await profile(user.id)).announcements_opt_in).toBe(false)
+
+    as.failUnsubscribes = false
+    await saveProfile({ ...input, announcements_opt_in: true })
+    expect((await profile(user.id)).announcements_opt_in).toBe(true)
+    expect(await unsubscribe(user.email)).toBeNull()
+  })
+
+  it('unticking later: the opt-out holds even when recording the unsubscribe fails', async () => {
+    await saveProfile({ ...input, announcements_opt_in: true })
+    as.failUnsubscribes = true
+    await expect(saveProfile({ ...input, announcements_opt_in: false })).rejects.toBeTruthy()
+    expect(reportError).toHaveBeenCalled()
+    expect((await profile(user.id)).announcements_opt_in).toBe(false)
+  })
+
+  // Review Focus 3: a double tap on a slow connection
+  it('two first saves at once both succeed, with one row', async () => {
+    const results = await Promise.allSettled([saveProfile(input), saveProfile(input)])
+    expect(results.map((result) => result.status)).toStrictEqual(['fulfilled', 'fulfilled'])
+    expect((await query('select 1 from profiles where id = $1', [user.id])).length).toBe(1)
+  })
+
+  it('answers odd input with field errors, never a database error', async () => {
+    expect(await saveProfile(null as never)).toStrictEqual({ ok: false, errors: { form: 'profile.error.invalid' } })
+    expect(await saveProfile({ ...input, major_code: 'OTHER', major_other: '😀' })).toStrictEqual({ ok: false, errors: { major_other: 'profile.error.majorOther' } })
+    expect(await saveProfile({ ...input, full_name_ar: 'سا\u0000رة' })).toStrictEqual({ ok: false, errors: { full_name_ar: 'profile.error.name' } })
+    expect(await profile(user.id)).toBeNull()
   })
 
   it('refreshes both account pages', async () => {

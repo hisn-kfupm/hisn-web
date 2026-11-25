@@ -67,6 +67,13 @@ describe('applyAnnouncementChoice', () => {
     expect(await row(email)).toBeNull()
   })
 
+  it('account, no, over an earlier unsubscribe: keeps its source', async () => {
+    const email = fresh()
+    await unsubscribed(email, 'complaint')
+    await applyAnnouncementChoice(email, false, 'account')
+    expect(await row(email)).toStrictEqual({ email, source: 'complaint' })
+  })
+
   it('account, no, twice: still one row', async () => {
     const email = fresh()
     await applyAnnouncementChoice(email, false, 'account')

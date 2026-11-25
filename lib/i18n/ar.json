@@ -139,7 +139,7 @@
   "profile.error.name": "اكتب اسمك الكامل بالعربية، من حرفين إلى ١٠٠ حرف. «مؤقت»",
   "profile.error.major": "اختر تخصصك. «مؤقت»",
   "profile.error.majorOther": "اكتب اسم تخصصك، من حرفين إلى ٨٠ حرفًا. «مؤقت»",
-  "profile.error.level": "اختر مستواك الدراسي. «مؤقت»",
+  "profile.error.level": "اختر المرحلة العلمية. «مؤقت»",
   "profile.error.gender": "اختر الجنس. «مؤقت»",
   "profile.error.announcements": "حدّد إن كنت تريد أن تصلك الإعلانات. «مؤقت»",
   "profile.error.locale": "اختر لغة رسائل البريد. «مؤقت»",

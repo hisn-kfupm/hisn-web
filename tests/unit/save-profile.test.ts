@@ -5,12 +5,12 @@ vi.mock('server-only', () => ({}))
 
 // A profile store with no database, for what tests/db can't make happen: the auth API failing.
 const fake = vi.hoisted(() => {
-  const state = { existing: null as Record<string, unknown> | null }
+  const state = { existing: null as Record<string, unknown> | null, insertError: null as { code: string; message: string } | null }
   const profiles = {
     select: () => profiles,
     eq: () => profiles,
     maybeSingle: async () => ({ data: state.existing, error: null }),
-    insert: async () => ({ error: null }),
+    insert: async () => ({ error: state.insertError }),
     update: () => ({ eq: async () => ({ error: null }) }),
   }
   return { state, client: { from: () => profiles }, updateUserById: vi.fn() }
@@ -33,6 +33,8 @@ const input: ProfileInput = { full_name_ar: 'سارة أحمد', major_code: 'SW
 beforeEach(() => {
   vi.clearAllMocks()
   fake.state.existing = null
+  fake.state.insertError = null
+  fake.updateUserById.mockResolvedValue({ data: {}, error: null })
 })
 
 /* dev-2 D2-6: the email language is mirrored into auth, and a failure there does not fail the save */
@@ -52,9 +54,19 @@ describe('saveProfile, mirroring the email language', () => {
     expect(reportError).toHaveBeenCalledWith(thrown, { level: 'error' })
   })
 
-  it('does not call the auth API when the language did not change', async () => {
-    fake.state.existing = { announcements_opt_in: false, locale: 'en' }
+  // so a mirror that failed once is repaired by the next save, even one in the same language
+  it('mirrors on every save', async () => {
+    fake.state.existing = { announcements_opt_in: false }
     await saveProfile(input)
+    expect(fake.updateUserById).toHaveBeenCalledWith('u1', { user_metadata: { locale: 'en' } })
+  })
+})
+
+describe('saveProfile, when the profile write fails', () => {
+  it('reports it, rethrows it, and mirrors nothing', async () => {
+    fake.state.insertError = { code: '57014', message: 'canceled' }
+    await expect(saveProfile(input)).rejects.toBe(fake.state.insertError)
+    expect(reportError).toHaveBeenCalledWith(fake.state.insertError, { level: 'error' })
     expect(fake.updateUserById).not.toHaveBeenCalled()
   })
 })
