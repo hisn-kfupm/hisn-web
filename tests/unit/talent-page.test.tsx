@@ -23,8 +23,8 @@ describe('talent page (form not open yet)', () => {
     expect(h1).toHaveLength(1)
     expect(h1[0].textContent).toBe(t('ar', 'home.talent.line'))
     const hrefs = screen.getAllByRole('link').map((a) => a.getAttribute('href'))
-    expect(hrefs).toContain('/events')
-    expect(hrefs).toContain('/privacy')
+    expect(hrefs).toContain('/ar/events')
+    expect(hrefs).toContain('/ar/privacy')
   })
 
   it('never asks for the profile fields the server copies (HR-2)', async () => {

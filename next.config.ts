@@ -6,7 +6,7 @@ import type { NextConfig } from "next";
   string (/events?m=2026-12 → /ar/events?m=2026-12). Abdullah's proxy (D2-4) redirects every
   unprefixed path the same way, so that PR deletes this whole redirects() block and its test in
   tests/unit/layout.test.tsx. Until then these redirects run before any Proxy (Next's execution
-  order). D1-5's localePath() links stop internal links from needing it; bookmarks still will.
+  order). Internal links carry the language since D1-5 (localePath), so only bookmarks and old links need it.
 */
 const OLD_PAGES = ["/events", "/events/:id", "/departments/:slug", "/library", "/talent", "/privacy", "/sign-in", "/credits"];
 

@@ -11,6 +11,7 @@ import { t, type StringKey } from '@/lib/i18n/t'
 import { formatRiyadh } from '@/lib/time/riyadh'
 import { cn } from '@/lib/cn'
 import type { Locale } from '@/lib/i18n/locale'
+import { localePath } from '@/lib/i18n/paths'
 
 type Props = {
   locale: Locale
@@ -131,7 +132,7 @@ function EventBrick({ locale, event, left, now }: { locale: Locale; event: Publi
       <div className="relative flex flex-col gap-1 py-2 ps-3 pe-2">
         <p className="cal-time text-[0.8125rem] leading-[1.3] font-semibold">{formatRiyadh(event.startsAt, 'time', locale)}</p>
         <h3 className="cal-title line-clamp-3 text-[0.9375rem] leading-[1.5] font-bold">
-          <Link href={`/events/${event.id}`} className="text-inherit no-underline after:absolute after:inset-0 after:z-10">
+          <Link href={localePath(locale, `/events/${event.id}`)} className="text-inherit no-underline after:absolute after:inset-0 after:z-10">
             {event.title}
             <span className="sr-only">{t(locale, 'a11y.when', { when: formatRiyadh(event.startsAt, 'datetime', locale) })}</span>
           </Link>

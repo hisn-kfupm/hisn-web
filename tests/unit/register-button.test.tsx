@@ -13,14 +13,14 @@ vi.mock('@/lib/profile/gate-stub', () => ({ useProfileGate: () => gate }))
 
 const labels = registerLabels('ar')
 
-function setup(over: Partial<{ eventId: number; state: ButtonState; position: number | null; signedIn: boolean; recordingUrl: string | null; register: () => Promise<RegisterResult> }> = {}) {
+function setup(over: Partial<{ locale: 'ar' | 'en'; eventId: number; state: ButtonState; position: number | null; signedIn: boolean; recordingUrl: string | null; register: () => Promise<RegisterResult> }> = {}) {
   const actions = {
     register: vi.fn(over.register ?? (async () => 'registered' as const)),
     joinWaitlist: vi.fn(async () => ({ result: 'waitlisted' as const, position: 1 })),
     cancel: vi.fn(async () => 'cancelled' as const),
   }
   render(
-    <RegisterButton locale="ar"
+    <RegisterButton locale={over.locale ?? 'ar'}
       eventId={over.eventId ?? 1}
       state={over.state ?? 'open'}
       position={over.position ?? null}
@@ -53,8 +53,13 @@ describe('RegisterButton', () => {
 
   it('signed out: a link to sign in that returns to the event, and no button', () => {
     setup({ state: 'open', signedIn: false, eventId: 7 })
-    expect(screen.getByRole('link')).toHaveAttribute('href', '/sign-in?returnTo=/events/7')
+    expect(screen.getByRole('link')).toHaveAttribute('href', '/ar/sign-in?returnTo=/ar/events/7')
     expect(screen.queryByRole('button')).toBeNull()
+  })
+
+  it('signed out on /en: signs in and returns in English', () => {
+    setup({ locale: 'en', state: 'open', signedIn: false, eventId: 7 })
+    expect(screen.getByRole('link')).toHaveAttribute('href', '/en/sign-in?returnTo=/en/events/7')
   })
 
   it('disables the button while the action is pending', async () => {
@@ -72,6 +77,6 @@ describe('RegisterButton', () => {
 
   it('ended with a recording: a link to watch it', () => {
     setup({ state: 'ended', recordingUrl: 'https://youtu.be/abc' })
-    expect(screen.getByRole('link', { name: t('ar', 'event.watchRecording') })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: t('ar', 'event.watchRecording') })).toHaveAttribute('href', '/ar/library#recording-1')
   })
 })

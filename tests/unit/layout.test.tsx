@@ -86,7 +86,7 @@ describe('until D2-4 lands (its proxy redirects every unprefixed path; delete th
 
 })
 
-describe('HeaderNav across the move to /ar and /en (D1-5 prefixes the links)', () => {
+describe('HeaderNav marks the current tab in both languages', () => {
   const current = (pathname: string, href: string) => {
     nav.pathname = pathname
     const { unmount } = render(<HeaderNav locale="ar" label="nav" departmentsLabel="depts" departments={[]} items={[{ href, label: 'events' }, { href: href.replace('events', 'library'), label: 'library' }]} />)
@@ -95,11 +95,11 @@ describe('HeaderNav across the move to /ar and /en (D1-5 prefixes the links)', (
     return marked
   }
 
-  it('marks the current tab with today’s unprefixed links', () => {
+  it('for a link without the language segment', () => {
     expect(current('/en/events', '/events')).toEqual(['page', null])
   })
 
-  it('still marks it once the links carry the locale', () => {
+  it('for the links localePath gives (dev-1 D1-5)', () => {
     expect(current('/ar/events', '/ar/events')).toEqual(['page', null])
     expect(current('/en/events/9001', '/en/events')).toEqual(['page', null])
   })

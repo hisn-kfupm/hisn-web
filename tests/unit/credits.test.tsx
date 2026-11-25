@@ -81,7 +81,7 @@ describe('the stand-in photo credits', () => {
     const headings = container.querySelectorAll('h1')
     expect(headings).toHaveLength(1)
     expect(headings[0].textContent).toBe(t('ar', 'credits.title'))
-    expect(within(container).getByRole('link', { name: t('ar', 'crumbs.home') }).getAttribute('href')).toBe('/')
+    expect(within(container).getByRole('link', { name: t('ar', 'crumbs.home') }).getAttribute('href')).toBe('/ar')
     expect(container.textContent).toContain(t('ar', 'credits.intro'))
     expect(container.querySelectorAll('[data-credit]')).toHaveLength(credits.length)
   })
@@ -90,6 +90,6 @@ describe('the stand-in photo credits', () => {
 describe('Footer', () => {
   it('links to the photo credits', () => {
     const { container } = render(<Footer locale="ar" />)
-    expect(within(container).getByRole('link', { name: t('ar', 'footer.credits') }).getAttribute('href')).toBe('/credits')
+    expect(within(container).getByRole('link', { name: t('ar', 'footer.credits') }).getAttribute('href')).toBe('/ar/credits')
   })
 })

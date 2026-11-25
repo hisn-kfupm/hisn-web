@@ -14,6 +14,7 @@ import { t, type StringKey } from '@/lib/i18n/t'
 import { formatRiyadh, formatRiyadhTimeRange } from '@/lib/time/riyadh'
 import { cn } from '@/lib/cn'
 import type { Locale } from '@/lib/i18n/locale'
+import { localePath } from '@/lib/i18n/paths'
 
 type Props = {
   locale: Locale
@@ -81,7 +82,7 @@ function ListRow({ locale, event, left, now }: { locale: Locale; event: PublicEv
         <div className="flex min-w-0 flex-col gap-1.5">
           {event.departmentCode && <p className="tt-dept text-label text-accent-strong">{t(locale, `dept.${event.departmentCode}.title` as StringKey)}</p>}
           <h4 className={cn('text-[1.125rem] leading-[1.5] font-bold', status === 'cancelled' && 'line-through decoration-2')}>
-            <Link href={`/events/${event.id}`} className={cn('tt-ink no-underline after:absolute after:inset-0 after:z-10', quiet ? 'text-muted' : 'text-deep')}>
+            <Link href={localePath(locale, `/events/${event.id}`)} className={cn('tt-ink no-underline after:absolute after:inset-0 after:z-10', quiet ? 'text-muted' : 'text-deep')}>
               {event.title}
               <span className="sr-only">{t(locale, 'a11y.when', { when: formatRiyadh(event.startsAt, 'datetime', locale) })}</span>
             </Link>
@@ -89,7 +90,7 @@ function ListRow({ locale, event, left, now }: { locale: Locale; event: PublicEv
           <p className="tt-soft text-small text-muted">{formatRiyadhTimeRange(event.startsAt, event.endsAt, locale)}</p>
           <p className="tt-soft flex items-start gap-1.5 text-small text-muted">
             <Icon icon={online ? Video : MapPin} size={16} className="mt-1" />
-            <span>{online ? t(locale, 'event.format.online') : event.location ? <Place text={event.location} /> : t(locale, 'event.format.inPerson')}</span>
+            <span>{online ? t(locale, 'event.format.online') : event.location ? <Place locale={locale} text={event.location} /> : t(locale, 'event.format.inPerson')}</span>
           </p>
           {(meter || status !== 'open') && (
             <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-2">

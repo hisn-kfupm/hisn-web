@@ -8,6 +8,7 @@ import { departmentImage } from '@/lib/data/images'
 import { departments } from '@/lib/data/labels'
 import { t, type StringKey } from '@/lib/i18n/t'
 import type { Locale } from '@/lib/i18n/locale'
+import { localePath } from '@/lib/i18n/paths'
 
 /**
  * «الأقسام» (revision 04 §4.4) on the deep band: six photo tiles (3 × 2 on desktop, 2 × 3 on
@@ -31,7 +32,7 @@ export function DepartmentTiles({ locale, number }: { locale: Locale; number: nu
                 <div className="dept-panel flex-1 border-t-4 border-mint bg-deep-800 px-5 pt-4 pb-5">
                   <h3 className="flex items-center gap-3 text-[1.1875rem] leading-[1.45] font-semibold">
                     <Icon icon={deptIcon(d.code)} size={22} className="shrink-0 text-mint" />
-                    <Link href={`/departments/${d.slug}`} aria-describedby={summaryId} className="text-white no-underline after:absolute after:inset-0 after:z-20">
+                    <Link href={localePath(locale, `/departments/${d.slug}`)} aria-describedby={summaryId} className="text-white no-underline after:absolute after:inset-0 after:z-20">
                       <span className="draw-line pb-0.5">{name}</span>
                     </Link>
                     <span aria-hidden="true" className="ms-auto text-mint">

@@ -4,13 +4,16 @@ import type { Metadata } from 'next'
 import { PageHead } from '@/components/brand/PageHead'
 import { CreditsList } from '@/components/credits/CreditsList'
 import { parseCredits } from '@/lib/data/credits'
+import { alternatesFor } from '@/lib/i18n/alternates'
 import { localeOf } from '@/lib/i18n/page-locale'
 import { t } from '@/lib/i18n/t'
+import { localePath } from '@/lib/i18n/paths'
 
 type Params = Promise<{ locale: string }>
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
-  return { title: t(await localeOf(params), 'credits.title') }
+  const locale = await localeOf(params)
+  return { title: t(locale, 'credits.title'), alternates: alternatesFor('/credits', locale) }
 }
 
 /*
@@ -29,7 +32,7 @@ export default async function CreditsPage({ params }: { params: Params }) {
   const locale = await localeOf(params)
   return (
     <>
-      <PageHead locale={locale} crumbs={[{ href: '/', label: t(locale, 'crumbs.home') }, { label: t(locale, 'credits.title') }]} kicker={t(locale, 'credits.kicker')} title={t(locale, 'credits.title')}>
+      <PageHead locale={locale} crumbs={[{ href: localePath(locale, '/'), label: t(locale, 'crumbs.home') }, { label: t(locale, 'credits.title') }]} kicker={t(locale, 'credits.kicker')} title={t(locale, 'credits.title')}>
         <p className="mt-5 max-w-[36em] text-body text-on-dark">{t(locale, 'credits.intro')}</p>
       </PageHead>
       <section className="wrap pt-10 pb-20 lg:pt-14 lg:pb-28">

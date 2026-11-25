@@ -39,6 +39,13 @@ describe('homepage', () => {
     expect(screen.queryByText(t('ar', 'home.verbs.title'))).toBeNull()
   })
 
+  it('keeps every link on /en in English', async () => {
+    const { container } = render(await Home(inLocale('en')))
+    const internal = [...container.querySelectorAll('a')].map((a) => a.getAttribute('href') ?? '').filter((href) => href.startsWith('/'))
+    expect(internal.length).toBeGreaterThan(10)
+    for (const href of internal) expect(href).toMatch(/^\/en(\/|$|#|\?)/)
+  })
+
   it('has one h1: the slogan', async () => {
     render(await Home(inLocale('ar')))
     const h1 = screen.getAllByRole('heading', { level: 1 })
@@ -49,7 +56,7 @@ describe('homepage', () => {
   it('gives the hero one primary action, to the events, and the major search as the second path', async () => {
     const { container } = render(await Home(inLocale('ar')))
     const hero = section(container, 'hero')
-    expect(within(hero).getByRole('link', { name: t('ar', 'home.hero.primary') }).getAttribute('href')).toBe('/events')
+    expect(within(hero).getByRole('link', { name: t('ar', 'home.hero.primary') }).getAttribute('href')).toBe('/ar/events')
     expect(within(hero).getByRole('combobox', { name: t('ar', 'hero.search.label') })).toBeInTheDocument()
   })
 
@@ -67,7 +74,7 @@ describe('homepage', () => {
     const [next] = await upcomingEvents({ limit: 1 })
     const { container } = render(await Home(inLocale('ar')))
     const card = section(container, 'next-event')
-    expect(within(card).getByRole('link', { name: new RegExp(next.title) }).getAttribute('href')).toBe(`/events/${next.id}`)
+    expect(within(card).getByRole('link', { name: new RegExp(next.title) }).getAttribute('href')).toBe(`/ar/events/${next.id}`)
   })
 
   it('sets the three verbs of the approved description, each with a photo and one line', async () => {
@@ -88,7 +95,7 @@ describe('homepage', () => {
     const upcoming = section(container, 'upcoming')
     const cards = [...upcoming.querySelectorAll('li[data-card]')]
     expect(cards).toHaveLength(next.length)
-    expect(cards.map((c) => c.querySelector('h3 a')?.getAttribute('href'))).toEqual(next.map((e) => `/events/${e.id}`))
+    expect(cards.map((c) => c.querySelector('h3 a')?.getAttribute('href'))).toEqual(next.map((e) => `/ar/events/${e.id}`))
     for (const card of cards) {
       expect(card.querySelectorAll('a')).toHaveLength(1)
       expect(card.querySelector('img')).not.toBeNull()
@@ -96,14 +103,14 @@ describe('homepage', () => {
     const metered = next.filter((e) => e.capacity !== null && taken.has(e.id))
     expect(metered.length).toBeGreaterThan(0)
     expect(upcoming.querySelectorAll('[data-testid="seat-meter"]')).toHaveLength(metered.length)
-    expect(within(upcoming).getByRole('link', { name: t('ar', 'home.events.all') }).getAttribute('href')).toBe('/events')
+    expect(within(upcoming).getByRole('link', { name: t('ar', 'home.events.all') }).getAttribute('href')).toBe('/ar/events')
   })
 
   it('tiles the six departments, one link each to its page, with a photo, described by its summary', async () => {
     const { container } = render(await Home(inLocale('ar')))
     const tiles = section(container, 'departments')
     const links = [...tiles.querySelectorAll('h3 a')]
-    expect(links.map((a) => a.getAttribute('href'))).toEqual(departments.map((d) => `/departments/${d.slug}`))
+    expect(links.map((a) => a.getAttribute('href'))).toEqual(departments.map((d) => `/ar/departments/${d.slug}`))
     const described = links[0].getAttribute('aria-describedby')!
     expect(container.querySelector(`[id="${described}"]`)?.textContent).toBe(t('ar', `dept.${departments[0].code}.summary` as never))
     const items = tiles.querySelectorAll('li')
@@ -121,10 +128,10 @@ describe('homepage', () => {
     expect(strip.querySelectorAll('article')).toHaveLength(latest.length)
     for (const e of latest) {
       expect(strip.textContent).toContain(e.title)
-      expect(strip.querySelector(`a[href="/library#recording-${e.id}"]`)).not.toBeNull()
+      expect(strip.querySelector(`a[href="/ar/library#recording-${e.id}"]`)).not.toBeNull()
     }
     expect(strip.querySelectorAll('img')).toHaveLength(latest.length)
-    expect(within(strip).getByRole('link', { name: t('ar', 'home.recordings.all') }).getAttribute('href')).toBe('/library')
+    expect(within(strip).getByRole('link', { name: t('ar', 'home.recordings.all') }).getAttribute('href')).toBe('/ar/library')
   })
 
   it('invites to the talent base in one split band: a photo, the guide’s line and one CTA', async () => {
@@ -134,7 +141,7 @@ describe('homepage', () => {
     expect(band.querySelectorAll('img')).toHaveLength(1)
     const links = within(band).getAllByRole('link')
     expect(links).toHaveLength(1)
-    expect(links[0].getAttribute('href')).toBe('/talent')
+    expect(links[0].getAttribute('href')).toBe('/ar/talent')
     expect(links[0].textContent).toContain(t('ar', 'home.talent.cta'))
   })
 

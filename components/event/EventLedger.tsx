@@ -6,6 +6,7 @@ import { fmtNum } from '@/lib/i18n/number'
 import { t, type StringKey } from '@/lib/i18n/t'
 import { formatRiyadh } from '@/lib/time/riyadh'
 import type { Locale } from '@/lib/i18n/locale'
+import { localePath } from '@/lib/i18n/paths'
 
 /**
  * Under the description: the event's ledger as a short wall in running bond (D1-11). Two bricks
@@ -35,7 +36,7 @@ export function EventLedger({ locale, event }: { locale: Locale; event: PublicEv
           </div>
         )}
       </Courses>
-      <Link href="/events" className="group mt-8 inline-flex min-h-11 items-center gap-2 font-semibold text-teal no-underline">
+      <Link href={localePath(locale, '/events')} className="group mt-8 inline-flex min-h-11 items-center gap-2 font-semibold text-teal no-underline">
         <span className="draw-line pb-0.5">{t(locale, 'home.events.all')}</span>
       </Link>
     </section>

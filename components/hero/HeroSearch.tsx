@@ -6,6 +6,7 @@ import { ArrowGlyph } from '@/components/ui/ArrowGlyph'
 import { Icon } from '@/components/ui/Icon'
 import { MajorSearch, type SearchLabels, type SearchMajor } from './MajorSearch'
 import type { Locale } from '@/lib/i18n/locale'
+import { localePath } from '@/lib/i18n/paths'
 
 export type FoundLabels = { title: string; events: string; departments: string; close: string }
 
@@ -82,7 +83,7 @@ export function HeroSearch({ locale, majors, labels, foundLabels }: { locale: Lo
           </div>
           <ul className="mt-4 grid list-none gap-px p-0 sm:grid-cols-2">
             <li>
-              <Link href="/events" className="group flex min-h-12 items-center justify-between gap-3 bg-mid px-4 font-semibold text-white no-underline hover:bg-teal">
+              <Link href={localePath(locale, '/events')} className="group flex min-h-12 items-center justify-between gap-3 bg-mid px-4 font-semibold text-white no-underline hover:bg-teal">
                 {foundLabels.events}
                 <ArrowGlyph />
               </Link>

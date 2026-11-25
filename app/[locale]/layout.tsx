@@ -6,6 +6,7 @@ import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
 import { ProgressHairline } from '@/components/ProgressHairline'
 import { SkipLink } from '@/components/ui/SkipLink'
+import { siteUrl } from '@/lib/config/site-url'
 import { dirFor, isLocale, LOCALES } from '@/lib/i18n/locale'
 import { localeOf } from '@/lib/i18n/page-locale'
 import { t } from '@/lib/i18n/t'
@@ -14,6 +15,8 @@ import '../globals.css'
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const locale = await localeOf(params)
   return {
+    // pages' canonical and hreflang paths (alternatesFor, dev-1 D1-5) become absolute URLs on it
+    metadataBase: siteUrl(),
     title: { default: t(locale, 'meta.title'), template: `%s · ${t(locale, 'meta.title')}` },
     description: t(locale, 'meta.description'),
   }

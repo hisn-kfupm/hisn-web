@@ -1,5 +1,5 @@
 'use client'
-import { useCallback, useEffect, useId, useRef, useState, type CSSProperties } from 'react'
+import { useCallback, useEffect, useId, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Menu, X } from 'lucide-react'
@@ -13,6 +13,8 @@ type Props = {
   labels: { open: string; close: string; nav: string; departments: string; university: string }
   departments: NavItem[]
   items: NavItem[]
+  /** the language switcher, rendered by the server header (dev-1 D1-5) */
+  switcher?: ReactNode
 }
 
 const FOCUSABLE = 'a[href], button:not([disabled])'
@@ -22,8 +24,9 @@ const FOCUSABLE = 'a[href], button:not([disabled])'
  * in like bricks. Focus moves into the panel, Tab cycles between the toggle and the panel's links,
  * Escape closes and returns focus to the toggle. The sign-in button is NOT in here: it stays in
  * the header bar (dev-1 D1-5), so `data-testid="auth-entry"` is never a descendant of this panel.
+ * The language switcher is in here too, after the departments.
  */
-export function MobileMenu({ labels, departments, items }: Props) {
+export function MobileMenu({ labels, departments, items, switcher }: Props) {
   const [open, setOpen] = useState(false)
   const id = useId()
   const buttonRef = useRef<HTMLButtonElement>(null)
@@ -120,6 +123,7 @@ export function MobileMenu({ labels, departments, items }: Props) {
               </li>
             ))}
           </ul>
+          {switcher && <div className="mt-8">{switcher}</div>}
           <p className="mt-auto flex items-center gap-3 pt-10 text-label text-on-dark">
             <SectionMarks />
             {labels.university}

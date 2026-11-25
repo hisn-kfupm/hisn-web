@@ -4,6 +4,7 @@ import type { PublicEvent } from '@/lib/events/types'
 import { formatRiyadh, formatRiyadhTimeRange } from '@/lib/time/riyadh'
 import { t, type StringKey } from '@/lib/i18n/t'
 import type { Locale } from '@/lib/i18n/locale'
+import { localePath } from '@/lib/i18n/paths'
 
 /**
  * The next event as a compact card at the foot of the hero wall (revision 04 §4.1): a date brick
@@ -26,7 +27,7 @@ export function NextEventBrick({ locale, event }: { locale: Locale; event: Publi
           <div className="min-w-0">
             <h2 id="next-event-label" className="text-label text-mint-200">{t(locale, 'home.next.label')}</h2>
             <h3 className="mt-1 line-clamp-2 text-[1.0625rem] leading-[1.5] font-bold">
-              <Link href={`/events/${event.id}`} className="text-white no-underline after:absolute after:inset-0">
+              <Link href={localePath(locale, `/events/${event.id}`)} className="text-white no-underline after:absolute after:inset-0">
                 <span className="draw-line pb-0.5">{event.title}</span>
                 <span className="sr-only">{t(locale, 'a11y.when', { when: formatRiyadh(event.startsAt, 'datetime', locale) })}</span>
               </Link>

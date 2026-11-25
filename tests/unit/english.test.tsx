@@ -1,5 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import CatchAll from '@/app/[locale]/[...rest]/page'
+import ErrorPage from '@/app/[locale]/error'
 import NotFound from '@/app/[locale]/not-found'
 import { Footer } from '@/components/Footer'
 import { Header } from '@/components/Header'
@@ -7,14 +9,23 @@ import { localeOf, pageLocale } from '@/lib/i18n/page-locale'
 import { t } from '@/lib/i18n/t'
 import { setRootLocale } from '@/tests/stubs/root-params'
 
+const route = vi.hoisted(() => ({ params: { locale: 'ar' } as Record<string, string> }))
 vi.mock('next/navigation', async (importOriginal) => ({
   ...(await importOriginal<typeof import('next/navigation')>()),
   notFound: vi.fn(() => {
     throw new Error('NEXT_NOT_FOUND')
   }),
+  useParams: () => route.params,
 }))
 
-afterEach(() => setRootLocale('ar'))
+afterEach(() => {
+  setRootLocale('ar')
+  route.params = { locale: 'ar' }
+})
+
+/** the internal links in a rendered tree */
+const internalLinks = (container: HTMLElement) =>
+  [...container.querySelectorAll('a')].map((a) => a.getAttribute('href') ?? '').filter((href) => href.startsWith('/'))
 
 /* dev-1 D1-2: every call is t(locale, …) with the page's locale */
 describe('the page locale', () => {
@@ -32,11 +43,43 @@ describe('the page locale', () => {
 })
 
 describe('in English', () => {
-  it('the 404 page follows the address', async () => {
+  it('the 404 page follows the address, and its ways back stay in English', async () => {
     setRootLocale('en')
-    render(await NotFound())
+    const { container } = render(await NotFound())
     expect(screen.getByRole('heading', { level: 1 }).textContent).toContain(t('en', 'notFound.title'))
     expect(screen.queryByText(t('ar', 'notFound.title'))).toBeNull()
+    const links = internalLinks(container)
+    expect(links).toContain('/en')
+    expect(links).toContain('/en/events')
+    for (const href of links) expect(href).toMatch(/^\/en(\/|$)/)
+  })
+
+  it('an unknown address under /en reaches the catch-all page, which answers with the 404', () => {
+    // app/[locale]/[...rest]: notFound() renders app/[locale]/not-found.tsx in the address's language
+    expect(() => CatchAll()).toThrow('NEXT_NOT_FOUND')
+  })
+
+  it('the error page reads the language from the address, with English text and links', () => {
+    route.params = { locale: 'en' }
+    const logged = vi.spyOn(console, 'error').mockImplementation(() => {})
+    try {
+      const { container } = render(<ErrorPage error={new Error('boom')} retry={() => {}} />)
+      expect(screen.getByRole('heading', { level: 1 }).textContent).toContain(t('en', 'error.title'))
+      expect(screen.getByRole('button', { name: t('en', 'error.retry') })).toBeInTheDocument()
+      const links = internalLinks(container)
+      expect(links).toContain('/en')
+      for (const href of links) expect(href).toMatch(/^\/en(\/|$)/)
+    } finally {
+      logged.mockRestore()
+    }
+  })
+
+  it('the footer links stay in English: the sections, privacy and the image credits', () => {
+    const { container } = render(<Footer locale="en" />)
+    const links = internalLinks(container)
+    expect(links).toEqual(expect.arrayContaining(['/en/events', '/en/library', '/en/talent', '/en/privacy', '/en/credits']))
+    for (const href of links) expect(href).toMatch(/^\/en\//)
+    expect(container.querySelector('a[href^="mailto:"]')).not.toBeNull()
   })
 
   it('the header has the English labels and Latin digits', () => {

@@ -12,6 +12,7 @@ import type { ButtonState, CancelResult, JoinWaitlistResult, RegisterResult } fr
 import { fmtNum } from '@/lib/i18n/number'
 import { useProfileGate } from '@/lib/profile/gate-stub' // swap for D2-7's useProfileGate once it merges
 import type { Locale } from '@/lib/i18n/locale'
+import { localePath } from '@/lib/i18n/paths'
 
 type Actions = {
   register(eventId: number): Promise<RegisterResult>
@@ -81,7 +82,7 @@ export function RegisterButton({ locale, eventId, state: initialState, position:
     })
   }
 
-  const signIn = `/sign-in?returnTo=/events/${eventId}`
+  const signIn = `${localePath(locale, '/sign-in')}?returnTo=${localePath(locale, `/events/${eventId}`)}`
   const leaving = state === 'waitlisted'
 
   /** the main action: a button when signed in, a sign-in link otherwise */
@@ -165,7 +166,7 @@ export function RegisterButton({ locale, eventId, state: initialState, position:
       body = (
         <Settled icon={Check} label={labels.ended}>
           {recordingUrl ? (
-            <LinkButton href={`/library#recording-${eventId}`} variant="primary" tone="dark" size="lg" block arrow className="reg-act mt-2 min-h-16 text-[1.1875rem]">
+            <LinkButton href={localePath(locale, `/library#recording-${eventId}`)} variant="primary" tone="dark" size="lg" block arrow className="reg-act mt-2 min-h-16 text-[1.1875rem]">
               {labels.watchRecording}
             </LinkButton>
           ) : (

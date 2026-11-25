@@ -4,7 +4,9 @@ import { PageHead } from '@/components/brand/PageHead'
 import { CONTACT_EMAIL } from '@/lib/config/contact'
 import { TALENT_RETENTION_MONTHS } from '@/lib/config/retention'
 import type { Locale } from '@/lib/i18n/locale'
+import { localePath } from '@/lib/i18n/paths'
 import { fmtNum } from '@/lib/i18n/number'
+import { alternatesFor } from '@/lib/i18n/alternates'
 import { localeOf } from '@/lib/i18n/page-locale'
 import { t, type StringKey } from '@/lib/i18n/t'
 
@@ -19,7 +21,8 @@ import { t, type StringKey } from '@/lib/i18n/t'
 type Params = Promise<{ locale: string }>
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
-  return { title: t(await localeOf(params), 'privacy.title') }
+  const locale = await localeOf(params)
+  return { title: t(locale, 'privacy.title'), alternates: alternatesFor('/privacy', locale) }
 }
 
 const SECTIONS = ['collect', 'use', 'access', 'retention', 'rights', 'contact'] as const
@@ -29,7 +32,7 @@ export default async function PrivacyPage({ params }: { params: Params }) {
   const locale = await localeOf(params)
   return (
     <>
-      <PageHead locale={locale} crumbs={[{ href: '/', label: t(locale, 'crumbs.home') }, { label: t(locale, 'privacy.title') }]} kicker={t(locale, 'privacy.kicker')} title={t(locale, 'privacy.title')}>
+      <PageHead locale={locale} crumbs={[{ href: localePath(locale, '/'), label: t(locale, 'crumbs.home') }, { label: t(locale, 'privacy.title') }]} kicker={t(locale, 'privacy.kicker')} title={t(locale, 'privacy.title')}>
         <p className="mt-5 max-w-[36em] text-body text-on-dark">{t(locale, 'privacy.intro')}</p>
       </PageHead>
 

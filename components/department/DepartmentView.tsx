@@ -17,6 +17,7 @@ import { fmtNum } from '@/lib/i18n/number'
 import { localeOf } from '@/lib/i18n/page-locale'
 import { t, type StringKey } from '@/lib/i18n/t'
 import type { Locale } from '@/lib/i18n/locale'
+import { localePath } from '@/lib/i18n/paths'
 
 /*
   The body of /departments/[slug] (dev-1 D1-9). The page renders it inside <Suspense>, so reading
@@ -54,7 +55,7 @@ export async function DepartmentView({ params }: { params: Promise<{ locale: str
   return (
     <>
       <PageHead locale={locale}
-        crumbs={[{ href: '/', label: t(locale, 'crumbs.home') }, { href: '/#departments', label: t(locale, 'nav.departments') }, { label: name }]}
+        crumbs={[{ href: localePath(locale, '/'), label: t(locale, 'crumbs.home') }, { href: localePath(locale, '/#departments'), label: t(locale, 'nav.departments') }, { label: name }]}
         kicker={
           <span className="inline-flex items-center gap-2.5">
             <Icon icon={deptIcon(dept.code)} size={20} className="text-mint" />
@@ -90,7 +91,7 @@ export async function DepartmentView({ params }: { params: Promise<{ locale: str
       </section>
 
       <UpcomingEvents locale={locale} number={2} events={events} taken={new Map(taken)} title={t(locale, 'dept.events.title')} headId="dept-events-title" emptyText={t(locale, 'dept.events.none')} testId="dept-events" />
-      <LatestRecordings locale={locale} number={3} recordings={recordings} title={t(locale, 'dept.recordings.title')} headId="dept-recordings-title" link={{ href: `/library?d=${dept.code}`, label: t(locale, 'home.recordings.all') }} emptyText={t(locale, 'dept.recordings.none')} testId="dept-recordings" />
+      <LatestRecordings locale={locale} number={3} recordings={recordings} title={t(locale, 'dept.recordings.title')} headId="dept-recordings-title" link={{ href: localePath(locale, `/library?d=${dept.code}`), label: t(locale, 'home.recordings.all') }} emptyText={t(locale, 'dept.recordings.none')} testId="dept-recordings" />
       <TalentBand locale={locale} />
 
       <nav aria-label={t(locale, 'dept.siblings')} className="bg-box">
@@ -105,7 +106,7 @@ export async function DepartmentView({ params }: { params: Promise<{ locale: str
 
 function SiblingLink({ locale, dept, label }: { locale: Locale; dept: Department; label: string }) {
   return (
-    <Link href={`/departments/${dept.slug}`} className="group flex items-center gap-4 border-t-4 border-teal bg-white p-5 text-deep no-underline transition-colors duration-300 hover:bg-deep hover:text-white focus-visible:bg-deep focus-visible:text-white">
+    <Link href={localePath(locale, `/departments/${dept.slug}`)} className="group flex items-center gap-4 border-t-4 border-teal bg-white p-5 text-deep no-underline transition-colors duration-300 hover:bg-deep hover:text-white focus-visible:bg-deep focus-visible:text-white">
       <Icon icon={deptIcon(dept.code)} size={28} className="shrink-0 text-teal group-hover:text-mint group-focus-visible:text-mint" />
       <span className="flex-1">
         <span className="block text-label text-muted group-hover:text-on-dark group-focus-visible:text-on-dark">{label}</span>

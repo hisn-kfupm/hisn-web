@@ -9,6 +9,7 @@ import type { PublicEvent } from '@/lib/events/types'
 import { formatRiyadh, formatRiyadhTimeRange } from '@/lib/time/riyadh'
 import { t, type StringKey } from '@/lib/i18n/t'
 import type { Locale } from '@/lib/i18n/locale'
+import { localePath } from '@/lib/i18n/paths'
 
 type Props = {
   locale: Locale
@@ -40,7 +41,7 @@ export function EventPhotoCard({ locale, event, taken, sizes }: Props) {
       <div className="flex flex-1 flex-col border-t-4 border-teal p-5">
         {event.departmentCode && <p className="text-label text-accent-strong">{t(locale, `dept.${event.departmentCode}.title` as StringKey)}</p>}
         <h3 className="mt-1.5 line-clamp-2 text-[1.1875rem] leading-[1.5] font-bold">
-          <Link href={`/events/${event.id}`} className="text-deep no-underline after:absolute after:inset-0 after:z-20">
+          <Link href={localePath(locale, `/events/${event.id}`)} className="text-deep no-underline after:absolute after:inset-0 after:z-20">
             <span className="draw-line pb-0.5">{event.title}</span>
             <span className="sr-only">{t(locale, 'a11y.when', { when: formatRiyadh(event.startsAt, 'datetime', locale) })}</span>
           </Link>

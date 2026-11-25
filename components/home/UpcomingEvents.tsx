@@ -3,6 +3,7 @@ import type { PublicEvent } from '@/lib/events/types'
 import { t } from '@/lib/i18n/t'
 import { EventPhotoCard } from './EventPhotoCard'
 import type { Locale } from '@/lib/i18n/locale'
+import { localePath } from '@/lib/i18n/paths'
 
 /**
  * «الفعاليات القادمة» (revision 04 §4.3): three photo cards and «كل الفعاليات». A row of three on
@@ -25,7 +26,7 @@ export function UpcomingEvents({ locale, number, events, taken, title, headId = 
   return (
     <section data-testid={testId} aria-labelledby={headId} className="bg-box py-14 lg:py-20">
       <div className="wrap">
-        <SectionHead locale={locale} number={number} id={headId} title={title ?? t(locale, 'home.events.title')} link={link ?? { href: '/events', label: t(locale, 'home.events.all') }} />
+        <SectionHead locale={locale} number={number} id={headId} title={title ?? t(locale, 'home.events.title')} link={link ?? { href: localePath(locale, '/events'), label: t(locale, 'home.events.all') }} />
         {events.length > 0 ? (
           <ul className="snap-row m-0 list-none p-0 lg:mx-0 lg:grid lg:grid-cols-3 lg:gap-8 lg:overflow-visible lg:px-0">
             {events.map((event) => (

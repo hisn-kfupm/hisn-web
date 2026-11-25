@@ -4,8 +4,9 @@ import { SectionMarks } from '@/components/brand/SectionMarks'
 import { Bdi } from '@/components/Bdi'
 import { primaryNav } from '@/components/nav-items'
 import { CONTACT_EMAIL } from '@/lib/config/contact'
-import { t } from '@/lib/i18n/t'
 import type { Locale } from '@/lib/i18n/locale'
+import { localePath } from '@/lib/i18n/paths'
+import { t } from '@/lib/i18n/t'
 
 /* enough merlons for a 2,700 px wide screen */
 const MERLONS = 60
@@ -57,13 +58,13 @@ export function Footer({ locale }: { locale: Locale }) {
                 </li>
               ))}
               <li>
-                <Link href="/privacy" className={link}>
+                <Link href={localePath(locale, '/privacy')} className={link}>
                   <span className="draw-line pb-0.5">{t(locale, 'footer.privacy')}</span>
                 </Link>
               </li>
               {/* the stand-in photos' licences ask for the credit to stay with the site */}
               <li>
-                <Link href="/credits" className={link}>
+                <Link href={localePath(locale, '/credits')} className={link}>
                   <span className="draw-line pb-0.5">{t(locale, 'footer.credits')}</span>
                 </Link>
               </li>

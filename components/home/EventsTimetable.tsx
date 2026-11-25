@@ -11,6 +11,7 @@ import { formatRiyadh, formatRiyadhTimeRange } from '@/lib/time/riyadh'
 import { t, type StringKey } from '@/lib/i18n/t'
 import { LayCourses } from './LayCourses'
 import type { Locale } from '@/lib/i18n/locale'
+import { localePath } from '@/lib/i18n/paths'
 
 type Props = {
   locale: Locale
@@ -45,7 +46,7 @@ export function EventsTimetable({ locale, number, events, taken, title, classNam
           <p className="border-t-2 border-deep pt-6 text-muted">{t(locale, 'home.events.none')}</p>
         )}
         <Link
-          href="/events"
+          href={localePath(locale, '/events')}
           className="tt-all group relative mt-0 flex min-h-20 items-center justify-between gap-6 border-b border-line py-5 text-[clamp(1.375rem,1rem+1.5vw,2.25rem)] font-bold text-teal no-underline"
         >
           <span className="draw-line pb-1">{t(locale, 'home.events.all')}</span>
@@ -79,7 +80,7 @@ function TimetableRow({ locale, event, taken }: { locale: Locale; event: PublicE
             <p className="tt-dept mb-1.5 text-label text-accent-strong">{t(locale, `dept.${event.departmentCode}.title` as StringKey)}</p>
           )}
           <h3 className="text-[1.1875rem] leading-[1.5] font-bold lg:text-[1.5rem] lg:leading-[1.45]">
-            <Link href={`/events/${event.id}`} className="tt-ink text-deep no-underline after:absolute after:inset-0 after:z-10">
+            <Link href={localePath(locale, `/events/${event.id}`)} className="tt-ink text-deep no-underline after:absolute after:inset-0 after:z-10">
               {event.title}
               <span className="sr-only">{t(locale, 'a11y.when', { when: formatRiyadh(event.startsAt, 'datetime', locale) })}</span>
             </Link>
@@ -90,7 +91,7 @@ function TimetableRow({ locale, event, taken }: { locale: Locale; event: PublicE
           <Icon icon={online ? Video : MapPin} size={18} className="mt-1" />
           <span>
             <span className="tt-ink block font-semibold text-deep">{t(locale, online ? 'event.format.online' : 'event.format.inPerson')}</span>
-            {!online && event.location && <Place text={event.location} />}
+            {!online && event.location && <Place locale={locale} text={event.location} />}
           </span>
         </p>
         <div className="relative flex flex-col items-start gap-2">

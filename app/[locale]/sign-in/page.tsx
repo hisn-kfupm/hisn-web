@@ -10,13 +10,16 @@ import { PageHead } from '@/components/brand/PageHead'
 import { LinkButton } from '@/components/ui/Buttons'
 import { safeReturnTo } from '@/lib/auth/return-to'
 import type { Locale } from '@/lib/i18n/locale'
+import { localePath } from '@/lib/i18n/paths'
+import { alternatesFor } from '@/lib/i18n/alternates'
 import { localeOf } from '@/lib/i18n/page-locale'
 import { t } from '@/lib/i18n/t'
 
 type Params = Promise<{ locale: string }>
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
-  return { title: t(await localeOf(params), 'auth.signIn'), robots: { index: false } }
+  const locale = await localeOf(params)
+  return { title: t(locale, 'auth.signIn'), robots: { index: false }, alternates: alternatesFor('/sign-in', locale) }
 }
 
 type SearchParams = Promise<{ returnTo?: string | string[] }>
@@ -24,12 +27,12 @@ type SearchParams = Promise<{ returnTo?: string | string[] }>
 export default async function SignInPage({ params, searchParams }: { params: Params; searchParams: SearchParams }) {
   const locale = await localeOf(params)
   return (
-    <PageHead locale={locale} crumbs={[{ href: '/', label: t(locale, 'crumbs.home') }, { label: t(locale, 'auth.signIn') }]} kicker={t(locale, 'signin.kicker')} title={t(locale, 'auth.signIn')}>
+    <PageHead locale={locale} crumbs={[{ href: localePath(locale, '/'), label: t(locale, 'crumbs.home') }, { label: t(locale, 'auth.signIn') }]} kicker={t(locale, 'signin.kicker')} title={t(locale, 'auth.signIn')}>
       <p className="mt-5 max-w-[34em] text-body text-on-dark">{t(locale, 'signin.body')}</p>
       <div className="mt-8 flex flex-wrap gap-3">
         <Suspense
           fallback={
-            <LinkButton href="/" tone="dark" arrow>
+            <LinkButton href={localePath(locale, '/')} tone="dark" arrow>
               {t(locale, 'signin.home')}
             </LinkButton>
           }
@@ -45,7 +48,7 @@ async function BackLinks({ searchParams, locale }: { searchParams: SearchParams;
   const target = safeReturnTo((await searchParams).returnTo)
   if (target === '/') {
     return (
-      <LinkButton href="/" tone="dark" arrow>
+      <LinkButton href={localePath(locale, '/')} tone="dark" arrow>
         {t(locale, 'signin.home')}
       </LinkButton>
     )
@@ -55,7 +58,7 @@ async function BackLinks({ searchParams, locale }: { searchParams: SearchParams;
       <LinkButton href={target} tone="dark" arrow>
         {t(locale, 'signin.back')}
       </LinkButton>
-      <LinkButton href="/" variant="secondary" tone="dark">
+      <LinkButton href={localePath(locale, '/')} variant="secondary" tone="dark">
         {t(locale, 'signin.home')}
       </LinkButton>
     </>

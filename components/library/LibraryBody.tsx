@@ -14,6 +14,7 @@ import { t, type StringKey } from '@/lib/i18n/t'
 import { formatRiyadh } from '@/lib/time/riyadh'
 import { youtubeId } from '@/lib/youtube'
 import type { Locale } from '@/lib/i18n/locale'
+import { localePath } from '@/lib/i18n/paths'
 
 /** ?d=<CODE>: a department code from data/departments.json, or null (no filter) for anything else */
 export function libraryDepartment(param: string | string[] | undefined): string | null {
@@ -35,7 +36,7 @@ export async function loadLibrary(code: string | null) {
  * needs sign-in, the session), so the page renders it inside <Suspense>.
  */
 export async function LibraryBody({ locale, searchParams }: { locale: Locale; searchParams: Promise<{ d?: string | string[] }> }) {
-  if (LIBRARY_REQUIRES_SIGN_IN && !(await getSession())) redirect('/sign-in?returnTo=/library')
+  if (LIBRARY_REQUIRES_SIGN_IN && !(await getSession())) redirect(`${localePath(locale, '/sign-in')}?returnTo=${localePath(locale, '/library')}`)
   const code = libraryDepartment((await searchParams).d)
   const { all, list } = await loadLibrary(code)
   const count = (c: string | null) => (c ? all.filter((e) => e.departmentCode === c).length : all.length)
@@ -48,9 +49,9 @@ export async function LibraryBody({ locale, searchParams }: { locale: Locale; se
         </h2>
         <nav aria-label={t(locale, 'library.filter.label')} className="mb-10">
           <ul className="m-0 flex list-none flex-wrap gap-2 p-0">
-            <FilterChip locale={locale} href="/library" label={t(locale, 'library.filter.all')} n={count(null)} active={code === null} />
+            <FilterChip locale={locale} href={localePath(locale, '/library')} label={t(locale, 'library.filter.all')} n={count(null)} active={code === null} />
             {departments.map((d) => (
-              <FilterChip locale={locale} key={d.code} href={`/library?d=${d.code}`} label={t(locale, `dept.${d.code}.title` as StringKey)} n={count(d.code)} active={code === d.code} />
+              <FilterChip locale={locale} key={d.code} href={localePath(locale, `/library?d=${d.code}`)} label={t(locale, `dept.${d.code}.title` as StringKey)} n={count(d.code)} active={code === d.code} />
             ))}
           </ul>
         </nav>

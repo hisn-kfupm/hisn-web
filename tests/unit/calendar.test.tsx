@@ -86,7 +86,7 @@ describe('MonthGrid', () => {
   it('links each event and badges it: ended, cancelled, almost full', () => {
     const root = grid()
     const brick = (id: number) => root.querySelector(`[data-event="${id}"]`) as HTMLElement
-    expect(within(brick(1)).getByRole('link').getAttribute('href')).toBe('/events/1')
+    expect(within(brick(1)).getByRole('link').getAttribute('href')).toBe('/ar/events/1')
     expect(brick(3).textContent).toContain(t('ar', 'event.badge.ended'))
     expect(brick(4).textContent).toContain(t('ar', 'event.badge.cancelled'))
     expect(brick(2).textContent).toContain(t('ar', 'event.badge.almostFull'))
@@ -143,7 +143,7 @@ describe('CalendarView', () => {
     const next = ev({ id: 77, title: 'التالية', startsAt: '2026-12-02T15:00:00Z', endsAt: '2026-12-02T17:00:00Z' })
     const { container } = render(<CalendarView locale="ar" month="2026-10" events={[]} seatsLeft={new Map()} now={NOW} next={next} />)
     const banner = container.querySelector('[data-testid="next-banner"]') as HTMLElement
-    expect(within(banner).getAllByRole('link').map((a) => a.getAttribute('href'))).toEqual(['/events/77', '/events?m=2026-12'])
+    expect(within(banner).getAllByRole('link').map((a) => a.getAttribute('href'))).toEqual(['/ar/events/77', '/ar/events?m=2026-12'])
     expect(decodeURIComponent(banner.querySelector('img')?.getAttribute('srcset') ?? '')).toContain(eventCover(next).src)
     expect(container.textContent).toContain(t('ar', 'calendar.empty'))
   })
@@ -152,7 +152,7 @@ describe('CalendarView', () => {
     const { container } = render(<CalendarView locale="ar" month="2026-11" events={events} seatsLeft={seats} now={NOW} next={upcoming} />)
     const banner = container.querySelector('[data-testid="next-banner"]') as HTMLElement
     // the event is in the month on screen, so there is no "its month" link
-    expect(within(banner).getAllByRole('link').map((a) => a.getAttribute('href'))).toEqual(['/events/1'])
+    expect(within(banner).getAllByRole('link').map((a) => a.getAttribute('href'))).toEqual(['/ar/events/1'])
     for (const id of ['month-grid', 'event-list']) {
       const after = container.querySelector(`[data-testid="${id}"]`) as HTMLElement
       expect(banner.compareDocumentPosition(after) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()

@@ -9,6 +9,7 @@ import { HeroMosaic } from './HeroMosaic'
 import { HeroSearch } from './HeroSearch'
 import { NextEventBrick } from './NextEventBrick'
 import type { Locale } from '@/lib/i18n/locale'
+import { localePath } from '@/lib/i18n/paths'
 
 /**
  * Home hero (revision 04 §4.1). A server component: copy on the inline-start, the wall on the
@@ -45,7 +46,7 @@ export function Hero({ locale, next }: { locale: Locale; next: PublicEvent | nul
           </h1>
           <p className="mt-5 max-w-[34rem] text-[1.0625rem] leading-[1.8] text-on-dark lg:mt-6 lg:text-[1.125rem]">{t(locale, 'brand.about')}</p>
           <div className="mt-7 flex flex-col items-start gap-7 lg:mt-8">
-            <LinkButton href="/events" tone="dark" size="lg" arrow className="min-w-[14rem]">
+            <LinkButton href={localePath(locale, '/events')} tone="dark" size="lg" arrow className="min-w-[14rem]">
               {t(locale, 'home.hero.primary')}
             </LinkButton>
             <HeroSearch locale={locale}
