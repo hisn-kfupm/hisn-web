@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { isInstitutionalEmail, safeReturnTo } from '@/lib/auth/return-to'
+import { isInstitutionalEmail, safeReturnTo, signInReturnTo } from '@/lib/auth/return-to'
 
 /* CLAUDE.md: returnTo accepts only same-site relative paths */
 describe('safeReturnTo', () => {
@@ -43,6 +43,26 @@ describe('safeReturnTo', () => {
     const path = (length: number) => '/' + 'a'.repeat(length - 1)
     expect(safeReturnTo(path(512))).toBe(path(512))
     expect(safeReturnTo(path(513))).toBe('/')
+  })
+})
+
+/* dev-2 D2-5: the sign-in page's returnTo stays same-site and in the page's language */
+describe('signInReturnTo', () => {
+  it("goes to the page language's homepage when there is nothing usable", () => {
+    expect(signInReturnTo(undefined, 'en')).toBe('/en')
+    expect(signInReturnTo('//evil.com', 'en')).toBe('/en')
+    expect(signInReturnTo('/', 'ar')).toBe('/ar')
+  })
+
+  it('keeps a path that has its language, and the admin', () => {
+    expect(signInReturnTo('/ar/events/3', 'en')).toBe('/ar/events/3')
+    expect(signInReturnTo('/en/events?m=2026-11', 'en')).toBe('/en/events?m=2026-11')
+    expect(signInReturnTo('/admin', 'ar')).toBe('/admin')
+  })
+
+  it("gives an old link without a language the page's", () => {
+    expect(signInReturnTo('/events/3', 'en')).toBe('/en/events/3')
+    expect(signInReturnTo('/library?d=CAREER_READINESS', 'ar')).toBe('/ar/library?d=CAREER_READINESS')
   })
 })
 

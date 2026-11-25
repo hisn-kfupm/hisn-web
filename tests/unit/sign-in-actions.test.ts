@@ -34,10 +34,19 @@ describe('sendCode', () => {
     expect(auth.signInWithOtp).toHaveBeenCalledWith(expect.objectContaining({ options: { shouldCreateUser: true, data: { locale: 'en' } } }))
   })
 
-  it('reports too many requests as rate_limited, without an alert', async () => {
-    auth.signInWithOtp.mockResolvedValue({ data: {}, error: { status: 429, message: 'rate limit' } })
+  // a 429 is also the project's hourly email cap, which stops everyone: reported, but not as fatal
+  it('reports too many requests as rate_limited, with a non-fatal report', async () => {
+    const error = { status: 429, message: 'rate limit' }
+    auth.signInWithOtp.mockResolvedValue({ data: {}, error })
     expect(await sendCode('a@gmail.com', 'ar')).toStrictEqual({ ok: false, reason: 'rate_limited' })
-    expect(reportError).not.toHaveBeenCalled()
+    expect(reportError).toHaveBeenCalledWith(error, { level: 'error', tags: { alert: 'sign-in' } })
+  })
+
+  it('treats a crash on the server as send_failed, with a fatal sign-in alert', async () => {
+    const thrown = new Error('Invalid server environment: CRON_SECRET')
+    auth.signInWithOtp.mockRejectedValue(thrown)
+    expect(await sendCode('a@gmail.com', 'ar')).toStrictEqual({ ok: false, reason: 'send_failed' })
+    expect(reportError).toHaveBeenCalledWith(thrown, { level: 'fatal', tags: { alert: 'sign-in' } })
   })
 
   it('reports any other failure as send_failed, with a fatal sign-in alert', async () => {
@@ -69,6 +78,37 @@ describe('verifyCode', () => {
   it('reads any other error as a wrong code', async () => {
     auth.verifyOtp.mockResolvedValue({ data: {}, error: { message: 'Invalid token' } })
     expect(await verifyCode('a@gmail.com', '123456')).toStrictEqual({ ok: false, reason: 'wrong' })
+  })
+
+  // Supabase answers a wrong code like this too (checked against local Supabase), hence the copy
+  it('reads Supabase\'s answer to a wrong or expired code as expired', async () => {
+    auth.verifyOtp.mockResolvedValue({ data: {}, error: { status: 403, code: 'otp_expired', message: 'Token has expired or is invalid' } })
+    expect(await verifyCode('a@gmail.com', '123456')).toStrictEqual({ ok: false, reason: 'expired' })
+  })
+
+  it('accepts a code typed on an Arabic keypad', async () => {
+    await verifyCode('a@gmail.com', '١٢٣٤٥٦', '/ar')
+    expect(auth.verifyOtp).toHaveBeenCalledWith(expect.objectContaining({ token: '123456' }))
+  })
+
+  // an outage is not a wrong code: reported, and thrown so the form says the code could not be checked
+  it.each([
+    [0, 'fatal'],
+    [503, 'fatal'],
+    [429, 'error'],
+  ])('throws and reports when Supabase cannot check the code (status %i)', async (status, level) => {
+    const error = { status, message: 'unavailable' }
+    auth.verifyOtp.mockResolvedValue({ data: {}, error })
+    await expect(verifyCode('a@gmail.com', '123456')).rejects.toThrow()
+    expect(reportError).toHaveBeenCalledWith(error, { level, tags: { alert: 'sign-in' } })
+    expect(redirect).not.toHaveBeenCalled()
+  })
+
+  it('reports and rethrows a crash while checking', async () => {
+    const thrown = new Error('An error occurred on token verification.')
+    auth.verifyOtp.mockRejectedValue(thrown)
+    await expect(verifyCode('a@gmail.com', '123456')).rejects.toBe(thrown)
+    expect(reportError).toHaveBeenCalledWith(thrown, { level: 'fatal', tags: { alert: 'sign-in' } })
   })
 
   it('returns to the page the person came from, same-site only', async () => {

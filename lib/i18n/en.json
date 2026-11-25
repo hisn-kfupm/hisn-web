@@ -135,6 +135,7 @@
   "signin.error.send_failed": "We couldn't send the code. Please try again in a moment. «مؤقت»",
   "signin.error.wrong": "That code isn't right. Check it and try again. «مؤقت»",
   "signin.error.expired": "That code is wrong or has expired. Check it, or ask for a new one. «مؤقت»",
+  "signin.error.unavailable": "We couldn't check the code right now. Check your connection, or try again in a few minutes. «مؤقت»",
   "notFound.events": "Browse events «مؤقت»",
 
   "footer.nav": "Site links «مؤقت»",

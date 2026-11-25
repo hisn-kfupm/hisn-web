@@ -1,12 +1,12 @@
 /*
   Sign-in (dev-2 D2-5, spec §7.1): an email, then the 6-digit code sent to it, in the page's
-  language. A right code returns to ?returnTo (same-site paths only); without one, to this
-  language's homepage, so /en/sign-in returns to /en.
+  language. A right code returns to ?returnTo (same-site paths only, kept in this language);
+  without one, to this language's homepage, so /en/sign-in returns to /en.
 */
 import { Suspense } from 'react'
 import type { Metadata } from 'next'
 import { PageHead } from '@/components/brand/PageHead'
-import { safeReturnTo } from '@/lib/auth/return-to'
+import { signInReturnTo } from '@/lib/auth/return-to'
 import { signInLabels } from '@/lib/auth/sign-in-labels'
 import type { Locale } from '@/lib/i18n/locale'
 import { localeOf } from '@/lib/i18n/page-locale'
@@ -33,6 +33,5 @@ export default async function SignInPage({ params, searchParams }: { params: Par
 }
 
 async function Form({ locale, searchParams }: { locale: Locale; searchParams: SearchParams }) {
-  const target = safeReturnTo((await searchParams).returnTo)
-  return <SignInForm locale={locale} returnTo={target === '/' ? `/${locale}` : target} labels={signInLabels(locale)} />
+  return <SignInForm locale={locale} returnTo={signInReturnTo((await searchParams).returnTo, locale)} labels={signInLabels(locale)} />
 }

@@ -1,7 +1,8 @@
 import { t } from '@/lib/i18n/t'
 import type { Locale } from '@/lib/i18n/locale'
 
-export type SignInError = 'invalid' | 'rate_limited' | 'send_failed' | 'wrong' | 'expired'
+/** sendCode's and verifyCode's reasons, plus 'unavailable': the code could not be checked at all (offline, an outage) */
+export type SignInError = 'invalid' | 'rate_limited' | 'send_failed' | 'wrong' | 'expired' | 'unavailable'
 
 /** every string the sign-in form shows, resolved on the server (client components take strings as props) */
 export type SignInLabels = {
@@ -40,6 +41,7 @@ export function signInLabels(locale: Locale): SignInLabels {
       send_failed: t(locale, 'signin.error.send_failed'),
       wrong: t(locale, 'signin.error.wrong'),
       expired: t(locale, 'signin.error.expired'),
+      unavailable: t(locale, 'signin.error.unavailable'),
     },
   }
 }
