@@ -1,10 +1,15 @@
 import { useEffect } from 'react'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Locale } from '@/lib/i18n/locale'
 
 const actions = vi.hoisted(() => ({ saveProfile: vi.fn() }))
 vi.mock('@/app/account/actions', () => actions)
+const auth = vi.hoisted(() => ({ getSession: vi.fn() }))
+vi.mock('@/lib/auth/session', () => auth)
+/** the page the overlay is on; a test changes it to navigate */
+const nav = vi.hoisted(() => ({ pathname: '/ar/events/9001' }))
+vi.mock('next/navigation', () => ({ usePathname: () => nav.pathname }))
 
 import { label } from '@/lib/data/labels'
 import ar from '@/lib/i18n/ar.json'
@@ -38,20 +43,26 @@ type Values = { name?: string; major?: string; other?: string; level?: string; g
 /** the provider as the layout renders it, around a component that uses the gate */
 function show(locale: Locale = 'ar') {
   let gate!: Gate
-  render(
+  const tree = () => (
     <ProfileGateProvider locale={locale}>
       <Capture onGate={(handed) => (gate = handed)} />
-    </ProfileGateProvider>,
+    </ProfileGateProvider>
   )
+  const { rerender } = render(tree())
   const s = strings[locale]
   const button = (name: string) => screen.getByRole('button', { name })
   return {
     s,
-    /** gate(action), then waits for the overlay (loaded on first use) to be open */
+    /** gate(action): the overlay opens */
     open: async (action: () => Promise<void> = vi.fn(async () => {})) => {
       await act(async () => gate(action))
-      await screen.findByRole('dialog', {}, { timeout: 5000 })
+      screen.getByRole('dialog')
       return action
+    },
+    /** client-side navigation to another page (Back, a link, a redirect after signing in or out) */
+    navigate: (pathname: string) => {
+      nav.pathname = pathname
+      act(() => rerender(tree()))
     },
     field: (key: string) => screen.getByLabelText(s[key]),
     other: () => document.querySelector<HTMLInputElement>('[name="major_other"]'),
@@ -69,14 +80,10 @@ function show(locale: Locale = 'ar') {
   }
 }
 
-// The provider imports the overlay on first use. Load it once up front: compiling it inside the
-// first test can take longer than a wait, when the whole suite runs at once.
-beforeAll(async () => {
-  await import('@/components/ProfileOverlay')
-}, 30_000)
-
 beforeEach(() => {
+  nav.pathname = '/ar/events/9001'
   actions.saveProfile.mockResolvedValue({ ok: true })
+  auth.getSession.mockResolvedValue({ userId: 'u1', email: 'a@x.com' })
 })
 
 afterEach(() => {
@@ -267,13 +274,68 @@ describe('profile overlay, closing and repeating', () => {
     expect(first).not.toHaveBeenCalled()
   })
 
-  it('keeps what was typed after a close', async () => {
+  it('starts blank after a close: the next person on the tab never sees what was typed (P-1)', async () => {
     const view = show()
     await view.open()
-    fireEvent.change(view.field('profile.name'), { target: { value: 'سارة' } })
+    view.fill({ major: 'OTHER', other: 'هندسة الأنظمة', gender: 'male' })
+    fireEvent.click(screen.getByRole('checkbox', { name: FOUNDER }))
     await view.close()
     await view.open()
-    expect(view.field('profile.name')).toHaveValue('سارة')
+    expect(view.field('profile.name')).toHaveValue('')
+    expect(view.field('profile.major')).toHaveValue('')
+    expect(view.other()).toBeNull()
+    expect(view.field('profile.level')).toHaveValue('')
+    for (const radio of screen.getAllByRole('radio')) expect(radio).not.toBeChecked()
+    expect(screen.getByRole('checkbox', { name: FOUNDER })).not.toBeChecked()
+  })
+
+  it('starts blank after a save', async () => {
+    const view = show()
+    await view.open()
+    view.fill()
+    await view.save()
+    await flush()
+    expect(view.dialog()).toBeNull()
+    await view.open()
+    expect(view.field('profile.name')).toHaveValue('')
+    for (const radio of screen.getAllByRole('radio')) expect(radio).not.toBeChecked()
+  })
+
+  it('another page (Back, a link, signing in or out): closes it and discards the action', async () => {
+    const view = show()
+    const first = await view.open()
+    view.fill()
+    view.navigate('/ar/events')
+    expect(view.dialog()).toBeNull()
+    const second = await view.open()
+    expect(view.field('profile.name')).toHaveValue('')
+    view.fill()
+    await view.save()
+    await waitFor(() => expect(second).toHaveBeenCalledTimes(1))
+    expect(first).not.toHaveBeenCalled()
+  })
+
+  it('a save that finishes after the page changed runs neither action, and leaves a newer overlay open', async () => {
+    const pending = deferred<{ ok: true }>()
+    actions.saveProfile.mockReturnValueOnce(pending.promise)
+    const view = show()
+    const first = await view.open()
+    view.fill()
+    act(() => void fireEvent.click(screen.getByRole('button', { name: ar['profile.save'] })))
+    view.navigate('/ar/events')
+    const second = await view.open()
+    await act(async () => pending.resolve({ ok: true }))
+    await flush()
+    expect(first).not.toHaveBeenCalled()
+    expect(second).not.toHaveBeenCalled()
+    expect(view.dialog()).toBeInTheDocument()
+  })
+
+  it('the same page again (a search change is not a new page): stays open', async () => {
+    const view = show()
+    await view.open()
+    view.navigate('/ar/events/9001')
+    expect(view.dialog()).toBeInTheDocument()
   })
 
   it('a second gate() before saving: only the latest action runs, once', async () => {
@@ -390,6 +452,50 @@ describe('profile overlay, errors', () => {
     await flush()
     expect(screen.getByRole('group', { name: ar['profile.gender'] })).toHaveAccessibleDescription(ar['profile.error.gender'])
     expect(screen.getByRole('radio', { name: 'ذكر' })).toHaveFocus()
+    for (const radio of screen.getAllByRole('radio')) expect(radio).toHaveAccessibleDescription(ar['profile.error.gender'])
+  })
+
+  it('a session that ended: says so, with a sign-in link back to this page', async () => {
+    actions.saveProfile.mockRejectedValueOnce(new Error('unauthenticated'))
+    auth.getSession.mockResolvedValue(null)
+    nav.pathname = '/en/events/9001'
+    const view = show('en')
+    const action = await view.open()
+    view.fill()
+    await view.save()
+    await flush()
+    const notice = screen.getByRole('alert')
+    expect(notice).toHaveTextContent(en['profile.error.signedOut'])
+    expect(notice).not.toHaveTextContent(en['profile.error.failed'])
+    expect(screen.getByRole('link', { name: en['auth.signIn'] })).toHaveAttribute('href', '/en/sign-in?returnTo=%2Fen%2Fevents%2F9001')
+    expect(action).not.toHaveBeenCalled()
+  })
+
+  it('a failed save while still signed in, or with the check failing too: the connection message', async () => {
+    actions.saveProfile.mockRejectedValue(new Error('offline'))
+    const view = show()
+    await view.open()
+    view.fill()
+    await view.save()
+    await flush()
+    expect(screen.getByRole('alert')).toHaveTextContent(ar['profile.error.failed'])
+    auth.getSession.mockRejectedValue(new Error('offline'))
+    await view.save()
+    await flush()
+    expect(screen.getByRole('alert')).toHaveTextContent(ar['profile.error.failed'])
+    expect(screen.queryByRole('link', { name: ar['auth.signIn'] })).toBeNull()
+  })
+
+  it('tells a screen reader that the save is running', async () => {
+    const pending = deferred<{ ok: true }>()
+    actions.saveProfile.mockReturnValue(pending.promise)
+    const view = show()
+    await view.open()
+    view.fill()
+    expect(screen.getByRole('status')).toHaveTextContent('')
+    act(() => void fireEvent.click(screen.getByRole('button', { name: ar['profile.save'] })))
+    expect(screen.getByRole('status')).toHaveTextContent(ar['profile.saving'])
+    await act(async () => pending.resolve({ ok: true }))
   })
 
   it('an OTHER major with nothing typed: the error sits on the typed field', async () => {

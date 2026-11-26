@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { fireEvent, render, screen } from '@testing-library/react'
@@ -6,6 +6,10 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import RootLayout from '@/app/[locale]/layout'
 import { MobileMenu } from '@/components/MobileMenu'
 import { departmentNav, primaryNav } from '@/components/nav-items'
+
+// the layout's profile overlay (D2-7) calls saveProfile and getSession, server actions whose modules are server-only
+vi.mock('@/app/account/actions', () => ({ saveProfile: vi.fn() }))
+vi.mock('@/lib/auth/session', () => ({ getSession: vi.fn(), signOut: vi.fn() }))
 
 function files(dir: string): string[] {
   return readdirSync(dir).flatMap((name) => {

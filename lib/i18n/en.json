@@ -145,6 +145,8 @@
   "profile.error.locale": "Choose the language of your emails. «مؤقت»",
   "profile.error.invalid": "We couldn't read the form. Please try again. «مؤقت»",
   "profile.error.failed": "We couldn't save your details. Check your connection and try again. «مؤقت»",
+  "profile.error.signedOut": "Your session has ended, so your details weren't saved. Sign in again, then try once more. «مؤقت»",
+  "profile.saving": "Saving your details… «مؤقت»",
   "profile.title": "Complete your profile «مؤقت»",
   "profile.intro": "We ask only once, then carry on with what you started. «مؤقت»",
   "profile.name": "Full name in Arabic «مؤقت»",

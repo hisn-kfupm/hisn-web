@@ -1,31 +1,32 @@
 'use client'
-import { createContext, lazy, Suspense, useCallback, useContext, useRef, useState, type JSX, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type JSX, type ReactNode } from 'react'
+import { usePathname } from 'next/navigation'
+import { ProfileOverlay } from '@/components/ProfileOverlay'
 import type { Locale } from '@/lib/i18n/locale'
 
 type Gate = (action: () => Promise<void>) => void
 
 const GateContext = createContext<Gate | null>(null)
 
-// Loaded on the first gate(): every page has the provider, few visits need the form, and the
-// layout keeps no import of saveProfile's module.
-const ProfileOverlay = lazy(() => import('@/components/ProfileOverlay').then((module) => ({ default: module.ProfileOverlay })))
-
 /**
  * The client side of the profile step (dev-2 D2-7, spec §7.2). The [locale] layout wraps every
  * public page in it. gate(action) opens the profile overlay in the page's language; once
  * saveProfile returns { ok: true }, the overlay closes and the action runs, exactly once. Closing
- * the overlay without saving discards the action. If gate() is called again before a save, the
- * latest action replaces the earlier one.
+ * the overlay without saving discards the action, and so does leaving the page (Back, a link,
+ * signing in or out). If gate() is called again before a save, the latest action replaces the
+ * earlier one.
+ *
+ * The overlay is mounted only while it is open, so every opening starts blank: nothing one person
+ * typed is shown to the next person on the same tab (P-1).
  */
 export function ProfileGateProvider({ children, locale }: { children: ReactNode; locale: Locale }): JSX.Element {
   const waiting = useRef<(() => Promise<void>) | null>(null)
   const [open, setOpen] = useState(false)
-  // the overlay mounts on the first gate() and then stays, so what was typed survives a close
-  const [used, setUsed] = useState(false)
+  const pathname = usePathname()
+  const openedOn = useRef(pathname)
 
   const gate = useCallback<Gate>((action) => {
     waiting.current = action
-    setUsed(true)
     setOpen(true)
   }, [])
 
@@ -44,14 +45,17 @@ export function ProfileGateProvider({ children, locale }: { children: ReactNode;
     if (action) void Promise.resolve().then(action)
   }, [])
 
+  // the overlay and its action belong to the page they opened on
+  useEffect(() => {
+    if (openedOn.current === pathname) return
+    openedOn.current = pathname
+    close()
+  }, [pathname, close])
+
   return (
     <GateContext value={gate}>
       {children}
-      {used && (
-        <Suspense fallback={null}>
-          <ProfileOverlay locale={locale} open={open} onClose={close} onSaved={saved} />
-        </Suspense>
-      )}
+      {open && <ProfileOverlay locale={locale} onClose={close} onSaved={saved} />}
     </GateContext>
   )
 }

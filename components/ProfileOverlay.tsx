@@ -1,9 +1,12 @@
 'use client'
 import { useEffect, useId, useRef, useState, useTransition, type FormEvent, type KeyboardEvent, type ReactNode, type SyntheticEvent } from 'react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { CircleAlert, X } from 'lucide-react'
 import { saveProfile } from '@/app/account/actions'
 import { Button } from '@/components/ui/Buttons'
 import { Icon } from '@/components/ui/Icon'
+import { getSession } from '@/lib/auth/session'
 import { cn } from '@/lib/cn'
 import { academicLevels, label, majors } from '@/lib/data/labels'
 import type { FieldErrors } from '@/lib/forms/types'
@@ -13,8 +16,7 @@ import type { ProfileInput } from '@/lib/profile/schema'
 
 type Props = {
   locale: Locale
-  open: boolean
-  /** the close button or Escape; never while a save runs */
+  /** the close button or Escape (never while a save runs), or the browser closing the dialog */
   onClose: () => void
   /** saveProfile returned { ok: true } */
   onSaved: () => void
@@ -58,21 +60,23 @@ function Notice({ id, role, children }: { id?: string; role?: 'alert'; children:
  * name, major (with a typed major for «أخرى»), academic level, gender with nothing chosen, and the
  * announcements box unticked. There is no language field: the save carries the page's language,
  * which becomes the email language (changed later on /account). The server checks everything
- * (saveProfile) and names each problem, shown under its field. Opened by ProfileGateProvider
- * (lib/profile/gate.tsx), which stays mounted, so a closed overlay keeps what was typed.
+ * (saveProfile) and names each problem, shown under its field. ProfileGateProvider
+ * (lib/profile/gate.tsx) mounts it only while it is open, so it always starts blank.
  */
-export function ProfileOverlay({ locale, open, onClose, onSaved }: Props) {
+export function ProfileOverlay({ locale, onClose, onSaved }: Props) {
   const dialog = useRef<HTMLDialogElement>(null)
   const title = useRef<HTMLHeadingElement>(null)
-  const opener = useRef<HTMLElement | null>(null)
   /** set the moment a save starts, so a second tap before the re-render can't send it again */
   const saving = useRef(false)
   /** a save came back with errors: focus the first field that has one */
   const focusError = useRef(false)
+  /** unmounted (closed, or another page): a save that finishes now must not run a later action */
+  const gone = useRef(false)
   const id = useId()
+  const pathname = usePathname()
   const [fields, setFields] = useState<Fields>(EMPTY)
   const [errors, setErrors] = useState<FieldErrors>({})
-  const [failed, setFailed] = useState(false)
+  const [failure, setFailure] = useState<'failed' | 'signedOut' | null>(null)
   /** one more on every save, so a repeated notice is a new alert and is read out again */
   const [attempt, setAttempt] = useState(0)
   const [pending, startTransition] = useTransition()
@@ -85,20 +89,21 @@ export function ProfileOverlay({ locale, open, onClose, onSaved }: Props) {
   useEffect(() => {
     const box = dialog.current
     if (!box) return
-    if (open && !box.open) {
-      opener.current = document.activeElement instanceof HTMLElement ? document.activeElement : null
-      // jsdom has no showModal; the open attribute still shows it
-      if (typeof box.showModal === 'function') box.showModal()
-      else box.setAttribute('open', '')
-      // the title first (read out with the intro), not a field: no keyboard pops up over the form
-      title.current?.focus()
-    } else if (!open && box.open) {
+    gone.current = false
+    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null
+    // jsdom has no showModal; the open attribute still shows it
+    if (typeof box.showModal === 'function') {
+      if (!box.open) box.showModal()
+    } else box.setAttribute('open', '')
+    // the title first (read out with the intro), not a field: no keyboard pops up over the form
+    title.current?.focus()
+    return () => {
+      gone.current = true
       if (typeof box.close === 'function') box.close()
       else box.removeAttribute('open')
-      if (opener.current?.isConnected) opener.current.focus()
-      opener.current = null
+      if (opener?.isConnected) opener.focus()
     }
-  }, [open])
+  }, [])
 
   useEffect(() => {
     if (!focusError.current) return
@@ -123,7 +128,7 @@ export function ProfileOverlay({ locale, open, onClose, onSaved }: Props) {
     event.preventDefault()
     if (saving.current) return
     saving.current = true
-    setFailed(false)
+    setFailure(null)
     setAttempt((n) => n + 1)
     // sent as typed: saveProfile trims and checks it, and names every problem (a gender left
     // unchosen is its profile.error.gender)
@@ -139,6 +144,7 @@ export function ProfileOverlay({ locale, open, onClose, onSaved }: Props) {
     startTransition(async () => {
       try {
         const result = await saveProfile(input)
+        if (gone.current) return
         if (result.ok) {
           setErrors({})
           onSaved()
@@ -147,8 +153,14 @@ export function ProfileOverlay({ locale, open, onClose, onSaved }: Props) {
           setErrors({ ...result.errors })
         }
       } catch {
-        // offline, or the server could not save (it reports that itself); what was typed stays
-        setFailed(true)
+        // Offline, the server could not save (it reports that itself), or the session ended
+        // (saveProfile throws 'unauthenticated', and production hides the message): ask which.
+        // A check that fails too is taken as offline.
+        const signedIn = await getSession().then(
+          (session) => session !== null,
+          () => true,
+        )
+        if (!gone.current) setFailure(signedIn ? 'failed' : 'signedOut')
       } finally {
         saving.current = false
       }
@@ -163,7 +175,7 @@ export function ProfileOverlay({ locale, open, onClose, onSaved }: Props) {
 
   // a browser that closes the dialog itself (a repeated back gesture, say) closes it here too
   const onNativeClose = () => {
-    if (open && !dialog.current?.open) onClose()
+    if (!dialog.current?.open) onClose()
   }
 
   const onKeyDown = (event: KeyboardEvent<HTMLDialogElement>) => {
@@ -333,6 +345,9 @@ export function ProfileOverlay({ locale, open, onClose, onSaved }: Props) {
                     required
                     checked={fields.gender === value}
                     onChange={() => update('gender', value)}
+                    // on each choice as well as the group: focus lands on a choice, and not every
+                    // screen reader reads the group's description then
+                    aria-describedby={described('gender')}
                     className={choiceClass}
                   />
                   {gender[value]}
@@ -354,14 +369,25 @@ export function ProfileOverlay({ locale, open, onClose, onSaved }: Props) {
           </label>
         </div>
 
-        {(failed || general.length > 0) && (
+        {(failure || general.length > 0) && (
           <Notice key={attempt} role="alert">
-            {failed && <p>{t(locale, 'profile.error.failed')}</p>}
+            {failure === 'failed' && <p>{t(locale, 'profile.error.failed')}</p>}
+            {failure === 'signedOut' && (
+              <p>
+                {t(locale, 'profile.error.signedOut')}{' '}
+                <Link href={`/${locale}/sign-in?returnTo=${encodeURIComponent(pathname ?? `/${locale}`)}`} className="underline underline-offset-4">
+                  {t(locale, 'auth.signIn')}
+                </Link>
+              </p>
+            )}
             {general.map((key) => (
               <p key={key}>{t(locale, key)}</p>
             ))}
           </Notice>
         )}
+        <p role="status" className="sr-only">
+          {pending ? t(locale, 'profile.saving') : ''}
+        </p>
         {/* full width and wrapping on a phone: the label must never push the form sideways at 320 px */}
         <Button type="submit" tone="dark" arrow disabled={pending} className="mt-8 w-full whitespace-normal sm:w-auto">
           {t(locale, 'profile.save')}
