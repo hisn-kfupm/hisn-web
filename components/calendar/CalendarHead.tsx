@@ -22,7 +22,7 @@ type Props = {
   eventDays: string[]
 }
 
-const monthYear = (month: string) => formatRiyadh(monthMidpoint(month), 'monthYear')
+const monthYear = (month: string, locale: Locale) => formatRiyadh(monthMidpoint(month), 'monthYear', locale)
 
 /**
  * The calendar's dark head (redesign §6): the month set huge with its year, square previous and
@@ -42,7 +42,7 @@ export function CalendarHead({ locale, month, now, count, eventDays }: Props) {
       <i aria-hidden="true" className="size-3 shrink-0 bg-mint" />
       <span className="text-label text-on-dark">{t(locale, 'calendar.today')}</span>
       <span className="font-semibold text-white">
-        {formatRiyadh(nowIso, 'weekday')} {formatRiyadh(nowIso, 'day')} {formatRiyadh(nowIso, 'month')}
+        {formatRiyadh(nowIso, 'weekday', locale)} {formatRiyadh(nowIso, 'day', locale)} {formatRiyadh(nowIso, 'month', locale)}
       </span>
     </>
   )
@@ -54,7 +54,7 @@ export function CalendarHead({ locale, month, now, count, eventDays }: Props) {
       size="display"
       title={
         <span key={month} className="cal-head-title flex flex-wrap items-end gap-x-5 lg:gap-x-8">
-          <span className="text-hero" style={{ '--i': 0 } as React.CSSProperties}>{formatRiyadh(monthMidpoint(month), 'month')}</span>{' '}
+          <span className="text-hero" style={{ '--i': 0 } as React.CSSProperties}>{formatRiyadh(monthMidpoint(month), 'month', locale)}</span>{' '}
           <span className="pb-[0.4em] text-[clamp(1.75rem,1rem+2.6vw,3.75rem)] leading-[1.2] text-mint" style={{ '--i': 1 } as React.CSSProperties}>{year}</span>
         </span>
       }
@@ -81,15 +81,15 @@ export function CalendarHead({ locale, month, now, count, eventDays }: Props) {
         </div>
 
         <nav aria-label={t(locale, 'calendar.nav')} className="flex items-center justify-between gap-6 sm:justify-start">
-          <Link href={`/events?m=${prev}`} scroll={false} rel="prev" aria-label={t(locale, 'calendar.prev', { month: monthYear(prev) })} data-month-link="prev" className="group flex items-center gap-3 text-white no-underline">
+          <Link href={`/events?m=${prev}`} scroll={false} rel="prev" aria-label={t(locale, 'calendar.prev', { month: monthYear(prev, locale) })} data-month-link="prev" className="group flex items-center gap-3 text-white no-underline">
             <span className="btn btn-dark-secondary size-14 p-0">
               <Icon icon={ArrowLeft} mirror size={22} />
             </span>
-            <span aria-hidden="true" className="text-[1.0625rem] font-semibold">{formatRiyadh(monthMidpoint(prev), 'month')}</span>
+            <span aria-hidden="true" className="text-[1.0625rem] font-semibold">{formatRiyadh(monthMidpoint(prev), 'month', locale)}</span>
           </Link>
           <i aria-hidden="true" className="h-8 w-px bg-white/20" />
-          <Link href={`/events?m=${next}`} scroll={false} rel="next" aria-label={t(locale, 'calendar.next', { month: monthYear(next) })} data-month-link="next" className="group flex items-center gap-3 text-white no-underline">
-            <span aria-hidden="true" className="text-[1.0625rem] font-semibold">{formatRiyadh(monthMidpoint(next), 'month')}</span>
+          <Link href={`/events?m=${next}`} scroll={false} rel="next" aria-label={t(locale, 'calendar.next', { month: monthYear(next, locale) })} data-month-link="next" className="group flex items-center gap-3 text-white no-underline">
+            <span aria-hidden="true" className="text-[1.0625rem] font-semibold">{formatRiyadh(monthMidpoint(next), 'month', locale)}</span>
             <span className="btn btn-dark-secondary size-14 p-0">
               <Icon icon={ArrowRight} mirror size={22} />
             </span>

@@ -18,7 +18,7 @@ export function EventLedger({ locale, event }: { locale: Locale; event: PublicEv
     <section aria-label={t(locale, 'event.ledger.label')} className="mt-14 lg:mt-16">
       <Courses className="ev-ledger flex flex-col gap-[3px]">
         <div data-course-row className="grid grid-cols-2 gap-[3px]">
-          <Brick term={t(locale, 'event.ledger.closes')} value={formatRiyadh(event.registrationClosesAt, 'datetime')} />
+          <Brick term={t(locale, 'event.ledger.closes')} value={formatRiyadh(event.registrationClosesAt, 'datetime', locale)} />
           <Brick term={t(locale, 'event.ledger.capacity')} value={event.capacity === null ? t(locale, 'event.ledger.noCapacity') : fmtNum(event.capacity, locale)} big={event.capacity !== null} />
         </div>
         {dept && (

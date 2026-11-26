@@ -20,19 +20,19 @@ export function NextEventBrick({ locale, event }: { locale: Locale; event: Publi
       {event ? (
         <>
           <p aria-hidden="true" className="grid aspect-square place-items-center content-center bg-teal text-center leading-[1.15]">
-            <span className="block text-[1.875rem] font-bold">{formatRiyadh(event.startsAt, 'day')}</span>
-            <span className="block text-label font-semibold text-mint-100">{formatRiyadh(event.startsAt, 'month')}</span>
+            <span className="block text-[1.875rem] font-bold">{formatRiyadh(event.startsAt, 'day', locale)}</span>
+            <span className="block text-label font-semibold text-mint-100">{formatRiyadh(event.startsAt, 'month', locale)}</span>
           </p>
           <div className="min-w-0">
             <h2 id="next-event-label" className="text-label text-mint-200">{t(locale, 'home.next.label')}</h2>
             <h3 className="mt-1 line-clamp-2 text-[1.0625rem] leading-[1.5] font-bold">
               <Link href={`/events/${event.id}`} className="text-white no-underline after:absolute after:inset-0">
                 <span className="draw-line pb-0.5">{event.title}</span>
-                <span className="sr-only">{t(locale, 'a11y.when', { when: formatRiyadh(event.startsAt, 'datetime') })}</span>
+                <span className="sr-only">{t(locale, 'a11y.when', { when: formatRiyadh(event.startsAt, 'datetime', locale) })}</span>
               </Link>
             </h3>
             <p className="mt-1 truncate text-small text-on-dark">
-              {formatRiyadh(event.startsAt, 'weekday')} · {formatRiyadhTimeRange(event.startsAt, event.endsAt)}
+              {formatRiyadh(event.startsAt, 'weekday', locale)} · {formatRiyadhTimeRange(event.startsAt, event.endsAt, locale)}
               {event.departmentCode && ` · ${t(locale, `dept.${event.departmentCode}.title` as StringKey)}`}
             </p>
           </div>

@@ -47,7 +47,7 @@ export function LatestRecordings({ locale, number, recordings, title, headId = '
                       <span className="draw-line pb-0.5">{event.title}</span>
                     </Link>
                   </h3>
-                  <p className="mt-1 text-small text-muted">{formatRiyadh(event.startsAt, 'date')}</p>
+                  <p className="mt-1 text-small text-muted">{formatRiyadh(event.startsAt, 'date', locale)}</p>
                 </article>
               </li>
             ))}

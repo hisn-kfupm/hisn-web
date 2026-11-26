@@ -58,9 +58,9 @@ export function NextEventBanner({ locale, event, month, sizes = NEXT_EVENT_SIZES
               </Link>
             </h2>
             <p className="mt-2 text-small text-on-dark sm:text-body">
-              {t(locale, 'event.weekdayDate', { weekday: formatRiyadh(event.startsAt, 'weekday'), date: formatRiyadh(event.startsAt, 'date') })}
+              {t(locale, 'event.weekdayDate', { weekday: formatRiyadh(event.startsAt, 'weekday', locale), date: formatRiyadh(event.startsAt, 'date', locale) })}
               <span aria-hidden="true" className="mx-2 text-mint/60">■</span>
-              {formatRiyadh(event.startsAt, 'time')}
+              {formatRiyadh(event.startsAt, 'time', locale)}
               {event.departmentCode && (
                 <>
                   <span aria-hidden="true" className="mx-2 text-mint/60">■</span>
@@ -70,13 +70,13 @@ export function NextEventBanner({ locale, event, month, sizes = NEXT_EVENT_SIZES
             </p>
           </div>
           <div aria-hidden="true" className="flex flex-col items-center self-start sm:self-center">
-            <span className="text-[3.25rem] leading-[1] font-bold text-mint sm:text-[5rem]">{formatRiyadh(event.startsAt, 'day')}</span>
-            <span className="mt-1 text-label text-on-dark">{formatRiyadh(event.startsAt, 'month')}</span>
+            <span className="text-[3.25rem] leading-[1] font-bold text-mint sm:text-[5rem]">{formatRiyadh(event.startsAt, 'day', locale)}</span>
+            <span className="mt-1 text-label text-on-dark">{formatRiyadh(event.startsAt, 'month', locale)}</span>
           </div>
           <div className="col-span-2 flex flex-wrap items-center justify-between gap-4 border-t border-white/12 pt-4">
             {eventMonth !== month && (
               <ArrowLink href={`/events?m=${eventMonth}`} scroll={false} tone="dark" className="relative z-10">
-                {t(locale, 'calendar.nextEvent.month', { month: formatRiyadh(event.startsAt, 'month') })}
+                {t(locale, 'calendar.nextEvent.month', { month: formatRiyadh(event.startsAt, 'month', locale) })}
               </ArrowLink>
             )}
             <span aria-hidden="true" className="cal-banner-go ms-auto grid size-12 place-items-center bg-mint text-deep">
