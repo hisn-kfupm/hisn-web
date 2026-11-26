@@ -44,10 +44,14 @@ describe('parseMonthParam', () => {
 
 describe('weekdayNames', () => {
   it('names the seven columns from Intl, Sunday first', () => {
-    const names = weekdayNames()
+    const names = weekdayNames('ar')
     expect(names).toHaveLength(7)
     expect(names[0]).toBe(new Intl.DateTimeFormat('ar', { weekday: 'long', timeZone: 'UTC' }).format(new Date('2026-11-01T12:00:00Z')))
     expect(names[0]).toContain('الأحد')
     expect(names[6]).toContain('السبت')
+  })
+
+  it('names them in English on English pages', () => {
+    expect(weekdayNames('en')).toEqual(['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'])
   })
 })

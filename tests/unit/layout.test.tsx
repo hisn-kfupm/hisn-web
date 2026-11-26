@@ -11,7 +11,11 @@ vi.mock('next/navigation', async (original) => ({
   usePathname: () => nav.pathname,
 }))
 
+// dev-1 D1-13: the admin layout checks the visitor first; admin-guard.test.ts covers the check
+vi.mock('@/lib/admin/require-admin', () => ({ requireAdmin: vi.fn(async () => ({ userId: 'u1' })) }))
+
 import { notFound } from 'next/navigation'
+import { requireAdmin } from '@/lib/admin/require-admin'
 import RootLayout, { generateStaticParams } from '@/app/[locale]/layout'
 import GlobalNotFound from '@/app/global-not-found'
 import AdminLayout from '@/app/admin/layout'
@@ -53,8 +57,9 @@ describe('RootLayout (app/[locale]/layout.tsx)', () => {
 })
 
 describe('AdminLayout (app/admin/layout.tsx)', () => {
-  it('renders an Arabic, right-to-left document', () => {
-    expect(renderToStaticMarkup(<AdminLayout>x</AdminLayout>)).toMatch(/<html lang="ar" dir="rtl"/)
+  it('checks the visitor is an admin, then renders an Arabic, right-to-left document', async () => {
+    expect(renderToStaticMarkup(await AdminLayout({ children: 'x' }))).toMatch(/<html lang="ar" dir="rtl"/)
+    expect(requireAdmin).toHaveBeenCalled()
   })
 })
 

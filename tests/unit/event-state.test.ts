@@ -6,6 +6,8 @@ const event: PublicEvent = {
   id: 1,
   title: 'فعالية',
   description: '',
+  titleEn: null,
+  descriptionEn: null,
   departmentCode: null,
   startsAt: '2026-11-20T15:00:00Z',
   endsAt: '2026-11-20T17:00:00Z',
