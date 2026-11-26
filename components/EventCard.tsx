@@ -39,9 +39,9 @@ export function EventCard({ locale, event, variant }: Props) {
       {variant === 'recording' && <EventImage imageUrl={event.imageUrl} departmentCode={event.departmentCode} />}
       <div className="grid min-h-[13.25rem] flex-1 grid-cols-[5.25rem_minmax(0,1fr)]">
         <div data-testid="date-block" aria-hidden="true" className="flex flex-col items-center gap-0.5 bg-box px-1.5 py-4 text-center">
-          <span className={cn('text-[2.5rem] leading-[1.1] font-bold', quiet ? 'text-muted' : 'text-teal')}>{formatRiyadh(event.startsAt, 'day')}</span>
-          <span className="text-label">{formatRiyadh(event.startsAt, 'month')}</span>
-          <span className="text-label font-normal text-muted">{formatRiyadh(event.startsAt, 'weekday')}</span>
+          <span className={cn('text-[2.5rem] leading-[1.1] font-bold', quiet ? 'text-muted' : 'text-teal')}>{formatRiyadh(event.startsAt, 'day', locale)}</span>
+          <span className="text-label">{formatRiyadh(event.startsAt, 'month', locale)}</span>
+          <span className="text-label font-normal text-muted">{formatRiyadh(event.startsAt, 'weekday', locale)}</span>
         </div>
 
         <div className="flex min-w-0 flex-col gap-2 px-5 pt-4 pb-5">
@@ -56,13 +56,13 @@ export function EventCard({ locale, event, variant }: Props) {
               className={cn('no-underline after:absolute after:inset-0 hover:underline', cancelled ? 'text-muted' : 'text-deep')}
             >
               {event.title}
-              <span className="sr-only">{t(locale, 'a11y.when', { when: formatRiyadh(event.startsAt, 'date') })}</span>
+              <span className="sr-only">{t(locale, 'a11y.when', { when: formatRiyadh(event.startsAt, 'date', locale) })}</span>
             </Link>
           </h3>
           <ul className="m-0 flex list-none flex-col gap-0.5 p-0 text-small text-muted">
             <li className="flex items-center gap-2">
               <Icon icon={Clock} size={16} />
-              <span>{formatRiyadhTimeRange(event.startsAt, event.endsAt)}</span>
+              <span>{formatRiyadhTimeRange(event.startsAt, event.endsAt, locale)}</span>
             </li>
             {(online || event.location) && (
               <li className="flex items-center gap-2">

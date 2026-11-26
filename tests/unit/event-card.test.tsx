@@ -8,6 +8,8 @@ const event: PublicEvent = {
   id: 42,
   title: 'مدخل إلى هندسة الأنظمة',
   description: '',
+  titleEn: null,
+  descriptionEn: null,
   departmentCode: 'SYSTEMS_INTEGRATION',
   startsAt: '2026-11-18T15:00:00Z',
   endsAt: '2026-11-18T17:00:00Z',
@@ -65,6 +67,17 @@ describe('EventCard', () => {
     const { container } = render(<EventCard locale="ar" event={{ ...event, status: 'cancelled' }} variant="upcoming" />)
     expect(within(container).getByText(t('ar', 'event.badge.cancelled'))).toBeInTheDocument()
     expect(container.textContent).not.toContain(t('ar', 'event.card.details'))
+  })
+
+  it('in English: the date block, the full date and the time range are English, in Riyadh time', () => {
+    const { container } = render(<EventCard locale="en" event={event} variant="upcoming" />)
+    const block = container.querySelector('[data-testid="date-block"]')?.textContent ?? ''
+    expect(block).toContain('18')
+    expect(block).toContain('November')
+    expect(block).toContain('Wednesday')
+    expect(block).not.toMatch(/[؀-ۿ]/)
+    expect(screen.getByRole('link', { name: /18 November 2026/ }).getAttribute('href')).toBe('/events/42')
+    expect(container.textContent).toMatch(/6:00\s*–\s*8:00\spm/)
   })
 
   it('omits the department line when the event has none', () => {

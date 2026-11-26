@@ -1,4 +1,5 @@
-import { riyadhDateKey, riyadhMonth } from '@/lib/time/riyadh'
+import type { Locale } from '@/lib/i18n/locale'
+import { DATE_LOCALE, riyadhDateKey, riyadhMonth } from '@/lib/time/riyadh'
 
 /*
   Month arithmetic for the calendar (dev-1 D1-10). A month is 'YYYY-MM' in Riyadh time, which is
@@ -51,9 +52,9 @@ export function dayKeyOf(ms: number): string {
   return key(ms + 3 * 3_600_000)
 }
 
-/** the seven weekday names from Intl, Sunday first (columns run Sunday at the inline-start) */
-export function weekdayNames(style: 'long' | 'short' = 'long'): string[] {
-  const format = new Intl.DateTimeFormat('ar', { weekday: style, timeZone: 'UTC' })
+/** the seven weekday names from Intl in the page's language, Sunday first (columns run Sunday at the inline-start) */
+export function weekdayNames(locale: Locale, style: 'long' | 'short' = 'long'): string[] {
+  const format = new Intl.DateTimeFormat(DATE_LOCALE[locale], { weekday: style, timeZone: 'UTC' })
   // 1 Nov 2026 is a Sunday
   return Array.from({ length: 7 }, (_, i) => format.format(new Date(Date.UTC(2026, 10, 1 + i, 12))))
 }

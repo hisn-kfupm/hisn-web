@@ -34,7 +34,7 @@ export function EventList({ locale, month, events, seatsLeft, now }: Props) {
   const days = [...groupByDay(events)]
   return (
     <section data-testid="event-list" aria-labelledby="cal-list-title" className="md:hidden">
-      <h2 id="cal-list-title" className="sr-only">{t(locale, 'calendar.list.label', { month: formatRiyadh(monthMidpoint(month), 'monthYear') })}</h2>
+      <h2 id="cal-list-title" className="sr-only">{t(locale, 'calendar.list.label', { month: formatRiyadh(monthMidpoint(month), 'monthYear', locale) })}</h2>
       <LayCourses key={month} className="timetable m-0 list-none border-t-2 border-deep p-0">
         {days.map(([day, list]) => {
           const first = list[0].startsAt
@@ -50,10 +50,10 @@ export function EventList({ locale, month, events, seatsLeft, now }: Props) {
                     isToday ? 'grid size-16 place-items-center bg-mint text-[2.5rem] text-deep' : past ? 'text-deep-300' : 'text-teal',
                   )}
                 >
-                  {formatRiyadh(first, 'day')}
+                  {formatRiyadh(first, 'day', locale)}
                 </span>
-                <span className="mt-2 text-label text-deep">{isToday ? t(locale, 'calendar.today') : formatRiyadh(first, 'weekday')}</span>
-                <span className="text-label font-normal text-muted">{formatRiyadh(first, 'month')}</span>
+                <span className="mt-2 text-label text-deep">{isToday ? t(locale, 'calendar.today') : formatRiyadh(first, 'weekday', locale)}</span>
+                <span className="text-label font-normal text-muted">{formatRiyadh(first, 'month', locale)}</span>
               </h3>
               <ul className="m-0 flex min-w-0 list-none flex-col p-0">
                 {list.map((e) => (
@@ -83,10 +83,10 @@ function ListRow({ locale, event, left, now }: { locale: Locale; event: PublicEv
           <h4 className={cn('text-[1.125rem] leading-[1.5] font-bold', status === 'cancelled' && 'line-through decoration-2')}>
             <Link href={`/events/${event.id}`} className={cn('tt-ink no-underline after:absolute after:inset-0 after:z-10', quiet ? 'text-muted' : 'text-deep')}>
               {event.title}
-              <span className="sr-only">{t(locale, 'a11y.when', { when: formatRiyadh(event.startsAt, 'datetime') })}</span>
+              <span className="sr-only">{t(locale, 'a11y.when', { when: formatRiyadh(event.startsAt, 'datetime', locale) })}</span>
             </Link>
           </h4>
-          <p className="tt-soft text-small text-muted">{formatRiyadhTimeRange(event.startsAt, event.endsAt)}</p>
+          <p className="tt-soft text-small text-muted">{formatRiyadhTimeRange(event.startsAt, event.endsAt, locale)}</p>
           <p className="tt-soft flex items-start gap-1.5 text-small text-muted">
             <Icon icon={online ? Video : MapPin} size={16} className="mt-1" />
             <span>{online ? t(locale, 'event.format.online') : event.location ? <Place text={event.location} /> : t(locale, 'event.format.inPerson')}</span>

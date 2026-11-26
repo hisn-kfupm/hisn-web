@@ -95,7 +95,7 @@ function RecordingItem({ locale, event }: { locale: Locale; event: PublicEvent }
       <VideoCard videoId={id} title={event.title} playLabel={t(locale, 'library.play', { title: event.title })} cardId={String(event.id)} fallback={{ src: cover.src, blurDataURL: cover.remote ? undefined : cover.blurDataURL }}>
         {event.departmentCode && <p className="mt-4 text-label text-accent-strong">{t(locale, `dept.${event.departmentCode}.title` as StringKey)}</p>}
         <h3 className="mt-1 text-[1.0625rem] leading-[1.55] font-bold text-deep lg:text-[1.125rem]">{event.title}</h3>
-        <p className="mt-1 text-small text-muted">{formatRiyadh(event.startsAt, 'date')}</p>
+        <p className="mt-1 text-small text-muted">{formatRiyadh(event.startsAt, 'date', locale)}</p>
       </VideoCard>
     </li>
   )
