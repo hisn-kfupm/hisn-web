@@ -3,6 +3,9 @@ export type PublicEvent = {
   id: number
   title: string
   description: string
+  // optional English text (events.title_en / description_en); null shows the Arabic on /en (D1-8)
+  titleEn: string | null
+  descriptionEn: string | null
   departmentCode: string | null
   startsAt: string
   endsAt: string

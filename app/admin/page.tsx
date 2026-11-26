@@ -96,7 +96,7 @@ function EventRow({ event }: { event: AdminEvent }) {
       <th scope="row" className={`${cell} text-start text-body font-semibold text-deep`}>
         {event.title}
       </th>
-      <td className={short}>{formatRiyadh(event.startsAt, 'datetime')}</td>
+      <td className={short}>{formatRiyadh(event.startsAt, 'datetime', 'ar')}</td>
       <td className={short}>
         <Tag tone={look.tone} icon={look.icon}>
           {t('ar', `admin.status.${event.status}`)}

@@ -157,6 +157,8 @@ describe('toPublicEvent', () => {
       id: 7,
       title: 'ت',
       description: 'و',
+      titleEn: null,
+      descriptionEn: null,
       departmentCode: 'SECTOR_AWARENESS',
       startsAt: '2026-11-20T15:00:00Z',
       endsAt: '2026-11-20T17:00:00Z',
@@ -169,6 +171,15 @@ describe('toPublicEvent', () => {
       imageUrl: null,
       recordingUrl: null,
     })
+  })
+
+  it('copies the optional English title and description, and null where a row has none', () => {
+    expect(toPublicEvent({ ...row, title_en: 'Drone Day', description_en: 'About drones' })).toMatchObject({
+      title: 'ت',
+      titleEn: 'Drone Day',
+      descriptionEn: 'About drones',
+    })
+    expect(toPublicEvent({ ...row, title_en: null, description_en: null })).toMatchObject({ titleEn: null, descriptionEn: null })
   })
 
   it('drops columns outside the public list, such as meeting_url', () => {

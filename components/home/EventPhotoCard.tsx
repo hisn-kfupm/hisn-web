@@ -33,8 +33,8 @@ export function EventPhotoCard({ locale, event, taken, sizes }: Props) {
       <div className="relative">
         <Photo image={eventCover(event)} alt="" ratio="16/9" sizes={sizes} />
         <p aria-hidden="true" className="absolute start-0 bottom-0 z-10 grid min-w-16 place-items-center bg-deep px-3 py-2 text-center leading-[1.15] text-white">
-          <span className="block text-[1.625rem] font-bold">{formatRiyadh(event.startsAt, 'day')}</span>
-          <span className="block text-label font-semibold text-mint-200">{formatRiyadh(event.startsAt, 'month')}</span>
+          <span className="block text-[1.625rem] font-bold">{formatRiyadh(event.startsAt, 'day', locale)}</span>
+          <span className="block text-label font-semibold text-mint-200">{formatRiyadh(event.startsAt, 'month', locale)}</span>
         </p>
       </div>
       <div className="flex flex-1 flex-col border-t-4 border-teal p-5">
@@ -42,13 +42,13 @@ export function EventPhotoCard({ locale, event, taken, sizes }: Props) {
         <h3 className="mt-1.5 line-clamp-2 text-[1.1875rem] leading-[1.5] font-bold">
           <Link href={`/events/${event.id}`} className="text-deep no-underline after:absolute after:inset-0 after:z-20">
             <span className="draw-line pb-0.5">{event.title}</span>
-            <span className="sr-only">{t(locale, 'a11y.when', { when: formatRiyadh(event.startsAt, 'datetime') })}</span>
+            <span className="sr-only">{t(locale, 'a11y.when', { when: formatRiyadh(event.startsAt, 'datetime', locale) })}</span>
           </Link>
         </h3>
         <p className="mt-2 flex items-center gap-2 text-small text-muted">
           <Icon icon={online ? Video : MapPin} size={16} className="shrink-0 text-teal" />
           <span>
-            {t(locale, online ? 'event.format.online' : 'event.format.inPerson')} · {formatRiyadh(event.startsAt, 'weekday')} {formatRiyadhTimeRange(event.startsAt, event.endsAt)}
+            {t(locale, online ? 'event.format.online' : 'event.format.inPerson')} · {formatRiyadh(event.startsAt, 'weekday', locale)} {formatRiyadhTimeRange(event.startsAt, event.endsAt, locale)}
           </span>
         </p>
         <div className="mt-auto flex flex-wrap items-center justify-between gap-x-4 gap-y-2 pt-5">
