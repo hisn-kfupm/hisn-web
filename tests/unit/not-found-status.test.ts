@@ -1,6 +1,13 @@
 // @vitest-environment node
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { NextRequest } from 'next/server'
+import { unstable_doesMiddlewareMatch } from 'next/experimental/testing/server'
+
+// Requests that pass through also refresh the Supabase session (D2-4); no session here.
+vi.mock('@supabase/ssr', () => ({
+  createServerClient: () => ({ auth: { getClaims: async () => ({ data: null, error: null }) } }),
+}))
+
 import { config, proxy } from '@/proxy'
 import { departments } from '@/lib/data/labels'
 import { STAND_IN_IDS } from '@/lib/events/stand-in'
@@ -43,8 +50,9 @@ describe('isMissingPage', () => {
 describe('proxy', () => {
   const run = (path: string) => proxy(new NextRequest(`http://localhost${path}`))
 
+  // Unprefixed paths are redirected to /ar first (D2-4, tests/unit/proxy.test.ts), so these carry a locale.
   it('rewrites a missing page to the 404 page before it renders', async () => {
-    for (const p of ['/departments/nope', '/events/999999', '/events/abc', `/events/${STAND_IN_IDS.draft}`]) {
+    for (const p of ['/ar/departments/nope', '/en/events/999999', '/ar/events/abc', `/en/events/${STAND_IN_IDS.draft}`]) {
       expect((await run(p)).headers.get('x-middleware-rewrite'), p).toBe(`http://localhost${NOT_FOUND_PATH}`)
     }
   })
@@ -56,14 +64,17 @@ describe('proxy', () => {
   })
 
   it('lets real pages through untouched, a cancelled event included', async () => {
-    for (const p of ['/events/9001', `/events/${STAND_IN_IDS.cancelled}`, `/events/${STAND_IN_IDS.pastWithRecording}`, '/departments/sector-awareness']) {
+    for (const p of ['/ar/events/9001', `/en/events/${STAND_IN_IDS.cancelled}`, `/ar/events/${STAND_IN_IDS.pastWithRecording}`, '/en/departments/sector-awareness']) {
       const res = await run(p)
       expect(res.headers.get('x-middleware-rewrite'), p).toBeNull()
       expect(res.headers.get('x-middleware-next'), p).toBe('1')
     }
   })
 
-  it('runs only on the department and event pages', () => {
-    expect(config.matcher).toEqual(['/departments/:slug', '/events/:id', '/:locale(ar|en)/departments/:slug', '/:locale(ar|en)/events/:id'])
+  // D2-4 widened the matcher to every page; these must stay covered
+  it('runs on the department and event pages, with or without a locale', () => {
+    for (const p of ['/departments/nope', '/events/999999', '/ar/departments/nope', '/en/events/999999']) {
+      expect(unstable_doesMiddlewareMatch({ config, url: `http://localhost${p}` }), p).toBe(true)
+    }
   })
 })

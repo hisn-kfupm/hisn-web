@@ -70,17 +70,6 @@ describe('lib/i18n/locale', () => {
   })
 })
 
-describe('until D2-4 lands (its proxy redirects every unprefixed path; delete this block with next.config redirects)', () => {
-  it('redirects / to /ar, and the old unprefixed pages to their /ar address', async () => {
-    const redirects = (await nextConfig.redirects?.()) ?? []
-    expect(redirects).toContainEqual({ source: '/', destination: '/ar', permanent: false })
-    for (const path of ['/events', '/events/:id', '/departments/:slug', '/library', '/talent', '/privacy', '/sign-in', '/credits']) {
-      expect(redirects).toContainEqual({ source: path, destination: `/ar${path}`, permanent: false })
-    }
-  })
-
-})
-
 describe('HeaderNav across the move to /ar and /en (D1-5 prefixes the links)', () => {
   const current = (pathname: string, href: string) => {
     nav.pathname = pathname
