@@ -1,8 +1,10 @@
 import type { CSSProperties } from 'react'
 import { cn } from '@/lib/cn'
 import { tp } from '@/lib/i18n/plural'
+import type { Locale } from '@/lib/i18n/locale'
 
 type Props = {
+  locale: Locale
   capacity: number
   /** seats already taken */
   taken: number
@@ -26,7 +28,7 @@ export function seatBricks(capacity: number, taken: number): number {
  * Seat meter: ten bricks filled start → end in proportion to seats taken, and the seats left in
  * Arabic plural forms (seats.left.*). The bricks are decorative; the text carries the meaning.
  */
-export function SeatMeter({ capacity, taken, tone = 'light', reveal = false, className }: Props) {
+export function SeatMeter({ locale, capacity, taken, tone = 'light', reveal = false, className }: Props) {
   const on = seatBricks(capacity, taken)
   const left = Math.max(0, capacity - taken)
   return (
@@ -36,7 +38,7 @@ export function SeatMeter({ capacity, taken, tone = 'light', reveal = false, cla
           <i key={i} className="seat-brick h-2.5 w-3.5" data-on={i < on || undefined} style={{ '--i': i } as CSSProperties} />
         ))}
       </span>
-      <span className={cn('text-small font-semibold', tone === 'dark' ? 'text-on-dark' : 'text-deep')}>{tp('seats.left', left)}</span>
+      <span className={cn('text-small font-semibold', tone === 'dark' ? 'text-on-dark' : 'text-deep')}>{tp(locale, 'seats.left', left)}</span>
     </div>
   )
 }

@@ -2,12 +2,13 @@ import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import { Icon } from '@/components/ui/Icon'
 import { primaryNav } from '@/components/nav-items'
+import type { Locale } from '@/lib/i18n/locale'
 
 /** Brick links to the main sections, used on the 404 and error pages. */
-export function RecoveryLinks() {
+export function RecoveryLinks({ locale }: { locale: Locale }) {
   return (
     <ul className="m-0 grid list-none gap-4 p-0 sm:grid-cols-3">
-      {primaryNav().map((item) => (
+      {primaryNav(locale).map((item) => (
         <li key={item.href}>
           <Link
             href={item.href}

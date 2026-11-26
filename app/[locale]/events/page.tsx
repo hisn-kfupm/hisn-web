@@ -6,6 +6,8 @@ import { CalendarHead } from '@/components/calendar/CalendarHead'
 import { CalendarView } from '@/components/calendar/CalendarView'
 import { loadCalendar } from '@/lib/events/calendar'
 import { groupByDay } from '@/lib/events/month'
+import type { Locale } from '@/lib/i18n/locale'
+import { localeOf } from '@/lib/i18n/page-locale'
 import { t } from '@/lib/i18n/t'
 
 /*
@@ -14,19 +16,24 @@ import { t } from '@/lib/i18n/t'
   request (searchParams) inside a Suspense boundary and leaving it uncached. ?m=YYYY-MM picks the
   month; anything else shows the current Riyadh month.
 */
-export const metadata: Metadata = { title: t('calendar.meta.title') }
+type Params = Promise<{ locale: string }>
+
+export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
+  return { title: t(await localeOf(params), 'calendar.meta.title') }
+}
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>
 
-export default function EventsPage({ searchParams }: { searchParams: SearchParams }) {
+export default async function EventsPage({ params, searchParams }: { params: Params; searchParams: SearchParams }) {
+  const locale = await localeOf(params)
   return (
-    <Suspense fallback={<PageHead kicker={t('nav.events')} size="display" title={t('nav.events')} />}>
-      <Calendar searchParams={searchParams} />
+    <Suspense fallback={<PageHead locale={locale} kicker={t(locale, 'nav.events')} size="display" title={t(locale, 'nav.events')} />}>
+      <Calendar searchParams={searchParams} locale={locale} />
     </Suspense>
   )
 }
 
-async function Calendar({ searchParams }: { searchParams: SearchParams }) {
+async function Calendar({ searchParams, locale }: { searchParams: SearchParams; locale: Locale }) {
   const { m } = await searchParams
   // live seats and today's date: never part of a prerender or a runtime prefetch
   await connection()
@@ -34,8 +41,8 @@ async function Calendar({ searchParams }: { searchParams: SearchParams }) {
   const data = await loadCalendar(typeof m === 'string' ? m : undefined, now)
   return (
     <>
-      <CalendarHead month={data.month} now={now.getTime()} count={data.events.length} eventDays={[...groupByDay(data.events).keys()]} />
-      <CalendarView month={data.month} events={data.events} seatsLeft={data.seatsLeft} now={now.getTime()} next={data.next} />
+      <CalendarHead locale={locale} month={data.month} now={now.getTime()} count={data.events.length} eventDays={[...groupByDay(data.events).keys()]} />
+      <CalendarView locale={locale} month={data.month} events={data.events} seatsLeft={data.seatsLeft} now={now.getTime()} next={data.next} />
     </>
   )
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { hasDeptIcon } from '@/lib/data/dept-icons'
-import { departments, label, labelEn, majors } from '@/lib/data/labels'
+import { academicLevels, departments, label, labelEn, majors } from '@/lib/data/labels'
 import { t, type StringKey } from '@/lib/i18n/t'
 
 /*
@@ -64,7 +64,7 @@ describe('the final departments and majors', () => {
     expect(majors).toEqual(FINAL_MAJORS)
   })
   it('give each department its final Arabic title in ar.json, without the draft marker', () => {
-    for (const d of departments) expect(t(`dept.${d.code}.title` as StringKey)).toBe(FINAL_DEPARTMENT_TITLES[d.code])
+    for (const d of departments) expect(t('ar', `dept.${d.code}.title` as StringKey)).toBe(FINAL_DEPARTMENT_TITLES[d.code])
   })
   it('have an icon for every department', () => {
     for (const d of departments) expect(hasDeptIcon(d.icon)).toBe(true)
@@ -73,12 +73,19 @@ describe('the final departments and majors', () => {
 
 describe('labels', () => {
   it('maps codes to Arabic and English', () => {
-    expect(label('majors', 'OTHER')).toBe('أخرى')
-    expect(label('levels', 'PHD')).toBe('دكتوراه')
+    expect(label('majors', 'OTHER', 'ar')).toBe('أخرى')
+    expect(label('majors', 'OTHER', 'en')).toBe('Other')
+    expect(label('levels', 'PHD', 'ar')).toBe('دكتوراه')
+    expect(label('levels', 'PHD', 'en')).toBe('Doctorate')
     expect(labelEn('levels', 'BACHELOR')).toBe("Bachelor's")
   })
-  it('throws on unknown codes', () => {
-    expect(() => label('majors', 'NOPE')).toThrow('unknown code NOPE')
+  it('throws on unknown codes in both languages', () => {
+    expect(() => label('majors', 'NOPE', 'ar')).toThrow('unknown code NOPE')
+    expect(() => label('majors', 'NOPE', 'en')).toThrow('unknown code NOPE')
+    expect(() => labelEn('majors', 'NOPE')).toThrow('unknown code NOPE')
+  })
+  it('has an English name for every major and level', () => {
+    for (const item of [...majors, ...academicLevels]) expect(item.en.trim()).not.toBe('')
   })
   it('keeps OTHER last', () => {
     expect(majors[majors.length - 1].code).toBe('OTHER')

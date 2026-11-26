@@ -16,6 +16,7 @@ import { Icon } from '@/components/ui/Icon'
 import { SectionMarks } from '@/components/brand/SectionMarks'
 import { pickPlural, type PluralCategory } from '@/lib/i18n/plural'
 import { prefersReducedMotion } from '@/lib/motion/useReducedMotion'
+import { dirFor, type Locale } from '@/lib/i18n/locale'
 
 export type SearchMajor = { code: string; ar: string; en: string }
 export type SearchLabels = {
@@ -31,6 +32,7 @@ export type SearchLabels = {
 }
 
 type Props = {
+  locale: Locale
   majors: SearchMajor[]
   labels: SearchLabels
   inputRef: RefObject<HTMLInputElement | null>
@@ -74,9 +76,11 @@ export function matchMajors(majors: SearchMajor[], query: string): SearchMajor[]
  * lights the matching bricks in the wall; choosing one shows its result card (HeroSearch). Arrow keys move through the options, Enter
  * chooses, Escape closes the list and then clears. Results are announced through aria-live.
  */
-export function MajorSearch({ majors, labels, inputRef, onQuery, onPick, restRef }: Props) {
+export function MajorSearch({ locale, majors, labels, inputRef, onQuery, onPick, restRef }: Props) {
   const id = useId()
   const listId = `${id}-list`
+  // each result shows its name in the page's language, with the other language under it
+  const other: Locale = locale === 'ar' ? 'en' : 'ar'
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
   const [active, setActive] = useState(-1)
@@ -111,15 +115,15 @@ export function MajorSearch({ majors, labels, inputRef, onQuery, onPick, restRef
     setActive(-1)
     const found = matchMajors(majors, value)
     onQuery(value.trim() ? found.map((m) => m.code) : null)
-    setStatus(value.trim() ? pickPlural(labels.counts, found.length) : '')
+    setStatus(value.trim() ? pickPlural(locale, labels.counts, found.length) : '')
   }
 
   const pick = (m: SearchMajor) => {
-    setQuery(m.ar)
+    setQuery(m[locale])
     setOpen(false)
     setActive(-1)
     onQuery([m.code])
-    setStatus(labels.found.replace('{name}', m.ar))
+    setStatus(labels.found.replace('{name}', m[locale]))
     onPick(m)
   }
 
@@ -206,8 +210,8 @@ export function MajorSearch({ majors, labels, inputRef, onQuery, onPick, restRef
               onMouseEnter={() => setActive(i)}
               className="flex min-h-12 cursor-pointer items-center justify-between gap-4 border-b border-teal-100/10 px-4 py-2 text-white aria-selected:bg-mid"
             >
-              <span className="font-semibold">{m.ar}</span>
-              <span lang="en" dir="ltr" className="text-label text-teal-200">{m.en}</span>
+              <span className="font-semibold">{m[locale]}</span>
+              <span lang={other} dir={dirFor(other)} className="text-label text-teal-200">{m[other]}</span>
             </li>
           ))}
         </ul>

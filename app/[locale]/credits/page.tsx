@@ -4,9 +4,14 @@ import type { Metadata } from 'next'
 import { PageHead } from '@/components/brand/PageHead'
 import { CreditsList } from '@/components/credits/CreditsList'
 import { parseCredits } from '@/lib/data/credits'
+import { localeOf } from '@/lib/i18n/page-locale'
 import { t } from '@/lib/i18n/t'
 
-export const metadata: Metadata = { title: t('credits.title') }
+type Params = Promise<{ locale: string }>
+
+export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
+  return { title: t(await localeOf(params), 'credits.title') }
+}
 
 /*
   Read once, when the module loads at build, so the page is fully static: the credits change only
@@ -20,14 +25,15 @@ const credits = parseCredits(readFileSync(join(process.cwd(), 'public', 'images'
  * CC BY-SA ask for the credit to stay with the site). Remove the page and the footer link once
  * every photo is Hisn's own.
  */
-export default function CreditsPage() {
+export default async function CreditsPage({ params }: { params: Params }) {
+  const locale = await localeOf(params)
   return (
     <>
-      <PageHead crumbs={[{ href: '/', label: t('crumbs.home') }, { label: t('credits.title') }]} kicker={t('credits.kicker')} title={t('credits.title')}>
-        <p className="mt-5 max-w-[36em] text-body text-on-dark">{t('credits.intro')}</p>
+      <PageHead locale={locale} crumbs={[{ href: '/', label: t(locale, 'crumbs.home') }, { label: t(locale, 'credits.title') }]} kicker={t(locale, 'credits.kicker')} title={t(locale, 'credits.title')}>
+        <p className="mt-5 max-w-[36em] text-body text-on-dark">{t(locale, 'credits.intro')}</p>
       </PageHead>
       <section className="wrap pt-10 pb-20 lg:pt-14 lg:pb-28">
-        <CreditsList credits={credits} />
+        <CreditsList credits={credits} locale={locale} />
       </section>
     </>
   )

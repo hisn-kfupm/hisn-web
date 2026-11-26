@@ -12,7 +12,7 @@ import { tp } from '@/lib/i18n/plural'
 /* dev-1 D1-11: the signed-in states of the register block (no auth yet, so jsdom covers them) */
 vi.mock('@/lib/motion/useReducedMotion', () => ({ prefersReducedMotion: () => true, useReducedMotion: () => true }))
 
-const labels = registerLabels()
+const labels = registerLabels('ar')
 const actions = () => ({
   register: vi.fn(async () => 'registered' as const),
   joinWaitlist: vi.fn(async () => ({ result: 'waitlisted' as const, position: 2 })),
@@ -21,7 +21,7 @@ const actions = () => ({
 
 function block(state: ButtonState, seatsLeft: number | null = 6, a = actions()) {
   const { container } = render(
-    <RegisterBlock eventId={9} state={state} position={state === 'waitlisted' ? 4 : null} signedIn recordingUrl={null} actions={a} labels={labels} capacity={30} seatsLeft={seatsLeft} />,
+    <RegisterBlock locale="ar" eventId={9} state={state} position={state === 'waitlisted' ? 4 : null} signedIn recordingUrl={null} actions={a} labels={labels} capacity={30} seatsLeft={seatsLeft} />,
   )
   return { a, container }
 }
@@ -30,30 +30,30 @@ describe('RegisterBlock, signed in', () => {
   it('registering lays the own brick and shows مسجّل ✓ with one seat fewer', async () => {
     const { a, container } = block('open')
     expect(container.querySelector('[data-own]')).toBeNull()
-    await userEvent.click(screen.getByRole('button', { name: t('register.open') }))
-    await waitFor(() => expect(screen.getByText(t('register.registered'))).toBeInTheDocument())
+    await userEvent.click(screen.getByRole('button', { name: t('ar', 'register.open') }))
+    await waitFor(() => expect(screen.getByText(t('ar', 'register.registered'))).toBeInTheDocument())
     expect(a.register).toHaveBeenCalledWith(9)
     expect(container.querySelector('[data-own]')).not.toBeNull()
-    expect(screen.getByText(tp('seats.left', 5))).toBeInTheDocument()
+    expect(screen.getByText(tp('ar', 'seats.left', 5))).toBeInTheDocument()
   })
 
   it('cancelling asks in a dialog, then pulls the brick out and reopens', async () => {
     const { a, container } = block('registered', 5)
     expect(container.querySelector('[data-own]')).not.toBeNull()
-    await userEvent.click(screen.getByRole('button', { name: t('register.cancel') }))
+    await userEvent.click(screen.getByRole('button', { name: t('ar', 'register.cancel') }))
     const dialog = container.querySelector('dialog')!
     expect(dialog).toHaveAttribute('open')
     expect(a.cancel).not.toHaveBeenCalled()
-    await userEvent.click(within(dialog).getByRole('button', { name: t('register.confirm.cancel.yes') }))
-    await waitFor(() => expect(screen.getByRole('button', { name: t('register.open') })).toBeInTheDocument())
+    await userEvent.click(within(dialog).getByRole('button', { name: t('ar', 'register.confirm.cancel.yes') }))
+    await waitFor(() => expect(screen.getByRole('button', { name: t('ar', 'register.open') })).toBeInTheDocument())
     expect(a.cancel).toHaveBeenCalledWith(9)
     expect(container.querySelector('[data-own]')).toBeNull()
-    expect(screen.getByText(tp('seats.left', 6))).toBeInTheDocument()
+    expect(screen.getByText(tp('ar', 'seats.left', 6))).toBeInTheDocument()
   })
 
   it('Escape closes the dialog without cancelling', async () => {
     const { a, container } = block('registered', 5)
-    await userEvent.click(screen.getByRole('button', { name: t('register.cancel') }))
+    await userEvent.click(screen.getByRole('button', { name: t('ar', 'register.cancel') }))
     await userEvent.keyboard('{Escape}')
     expect(container.querySelector('dialog')).not.toHaveAttribute('open')
     expect(a.cancel).not.toHaveBeenCalled()
@@ -61,11 +61,11 @@ describe('RegisterBlock, signed in', () => {
 
   it('joining the waitlist shows the position; leaving goes back to full', async () => {
     const { container } = block('full', 0)
-    await userEvent.click(screen.getByRole('button', { name: t('waitlist.join') }))
-    await waitFor(() => expect(screen.getByRole('button', { name: t('waitlist.leave') })).toBeInTheDocument())
-    await userEvent.click(screen.getByRole('button', { name: t('waitlist.leave') }))
-    await userEvent.click(within(container.querySelector('dialog')!).getByRole('button', { name: t('register.confirm.leave.yes') }))
-    await waitFor(() => expect(screen.getByRole('button', { name: t('waitlist.join') })).toBeInTheDocument())
+    await userEvent.click(screen.getByRole('button', { name: t('ar', 'waitlist.join') }))
+    await waitFor(() => expect(screen.getByRole('button', { name: t('ar', 'waitlist.leave') })).toBeInTheDocument())
+    await userEvent.click(screen.getByRole('button', { name: t('ar', 'waitlist.leave') }))
+    await userEvent.click(within(container.querySelector('dialog')!).getByRole('button', { name: t('ar', 'register.confirm.leave.yes') }))
+    await waitFor(() => expect(screen.getByRole('button', { name: t('ar', 'waitlist.join') })).toBeInTheDocument())
   })
 
   it('wallBricks: the own brick takes the next slot, never past the tenth', () => {

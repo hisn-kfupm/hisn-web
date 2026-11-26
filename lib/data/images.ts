@@ -4,7 +4,7 @@ import type { PublicEvent } from '@/lib/events/types'
 /**
  * Every photo the site shows, by use (revision brief 04 §2). They are stand-ins from Wikimedia
  * Commons (see public/images/stand-in/CREDITS.md) until the team has its own photos: swap a file
- * and its width, height and blur here. `alt` is an ar.json key; resolve it with t() on the server
+ * and its width, height and blur here. `alt` is a key of the string files; resolve it with t(locale, alt) on the server
  * and hand the text to <Photo alt>. width/height are the file's real pixels, so next/image never
  * guesses; blurDataURL is a 10 px PNG of the same photo for the blur placeholder.
  */

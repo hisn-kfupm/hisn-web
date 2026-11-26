@@ -11,7 +11,7 @@ import { t } from '@/lib/i18n/t'
 const gate = vi.fn()
 vi.mock('@/lib/profile/gate-stub', () => ({ useProfileGate: () => gate }))
 
-const labels = registerLabels()
+const labels = registerLabels('ar')
 
 function setup(over: Partial<{ eventId: number; state: ButtonState; position: number | null; signedIn: boolean; recordingUrl: string | null; register: () => Promise<RegisterResult> }> = {}) {
   const actions = {
@@ -20,7 +20,7 @@ function setup(over: Partial<{ eventId: number; state: ButtonState; position: nu
     cancel: vi.fn(async () => 'cancelled' as const),
   }
   render(
-    <RegisterButton
+    <RegisterButton locale="ar"
       eventId={over.eventId ?? 1}
       state={over.state ?? 'open'}
       position={over.position ?? null}
@@ -36,14 +36,14 @@ function setup(over: Partial<{ eventId: number; state: ButtonState; position: nu
 describe('RegisterButton', () => {
   it('full and signed in: a button to join the waitlist', () => {
     setup({ state: 'full' })
-    expect(screen.getByRole('button', { name: t('waitlist.join') })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: t('ar', 'waitlist.join') })).toBeInTheDocument()
   })
 
   it('waitlisted at 3: the position and a button to leave the list', () => {
-    // the spec writes { n: 3 }; the page shows Eastern Arabic digits, so n is fmtNum(3) («٣»)
+    // the spec writes { n: 3 }; the page shows Eastern Arabic digits, so n is fmtNum(3, 'ar') («٣»)
     setup({ state: 'waitlisted', position: 3 })
-    expect(screen.getByText(t('waitlist.position', { n: fmtNum(3) }))).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: t('waitlist.leave') })).toBeInTheDocument()
+    expect(screen.getByText(t('ar', 'waitlist.position', { n: fmtNum(3, 'ar') }))).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: t('ar', 'waitlist.leave') })).toBeInTheDocument()
   })
 
   it('almost full: says the seats are nearly gone', () => {
@@ -59,19 +59,19 @@ describe('RegisterButton', () => {
 
   it('disables the button while the action is pending', async () => {
     setup({ register: () => new Promise<RegisterResult>(() => {}) })
-    const button = screen.getByRole('button', { name: t('register.open') })
+    const button = screen.getByRole('button', { name: t('ar', 'register.open') })
     await userEvent.click(button)
     await waitFor(() => expect(button).toBeDisabled())
   })
 
   it('needs a profile: calls the useProfileGate callback once', async () => {
     setup({ register: async () => ({ needsProfile: true }) })
-    await userEvent.click(screen.getByRole('button', { name: t('register.open') }))
+    await userEvent.click(screen.getByRole('button', { name: t('ar', 'register.open') }))
     await waitFor(() => expect(gate).toHaveBeenCalledTimes(1))
   })
 
   it('ended with a recording: a link to watch it', () => {
     setup({ state: 'ended', recordingUrl: 'https://youtu.be/abc' })
-    expect(screen.getByRole('link', { name: t('event.watchRecording') })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: t('ar', 'event.watchRecording') })).toBeInTheDocument()
   })
 })

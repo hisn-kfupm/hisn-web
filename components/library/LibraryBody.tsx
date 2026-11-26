@@ -13,6 +13,7 @@ import { fmtNum } from '@/lib/i18n/number'
 import { t, type StringKey } from '@/lib/i18n/t'
 import { formatRiyadh } from '@/lib/time/riyadh'
 import { youtubeId } from '@/lib/youtube'
+import type { Locale } from '@/lib/i18n/locale'
 
 /** ?d=<CODE>: a department code from data/departments.json, or null (no filter) for anything else */
 export function libraryDepartment(param: string | string[] | undefined): string | null {
@@ -33,7 +34,7 @@ export async function loadLibrary(code: string | null) {
  * The library's filter and grid (dev-1 D1-12). It reads the request (?d= and, when the library
  * needs sign-in, the session), so the page renders it inside <Suspense>.
  */
-export async function LibraryBody({ searchParams }: { searchParams: Promise<{ d?: string | string[] }> }) {
+export async function LibraryBody({ locale, searchParams }: { locale: Locale; searchParams: Promise<{ d?: string | string[] }> }) {
   if (LIBRARY_REQUIRES_SIGN_IN && !(await getSession())) redirect('/sign-in?returnTo=/library')
   const code = libraryDepartment((await searchParams).d)
   const { all, list } = await loadLibrary(code)
@@ -43,13 +44,13 @@ export async function LibraryBody({ searchParams }: { searchParams: Promise<{ d?
     <section aria-labelledby="library-grid-title" className="bg-page py-12 lg:py-16">
       <div className="wrap">
         <h2 id="library-grid-title" className="sr-only">
-          {t('library.grid')}
+          {t(locale, 'library.grid')}
         </h2>
-        <nav aria-label={t('library.filter.label')} className="mb-10">
+        <nav aria-label={t(locale, 'library.filter.label')} className="mb-10">
           <ul className="m-0 flex list-none flex-wrap gap-2 p-0">
-            <FilterChip href="/library" label={t('library.filter.all')} n={count(null)} active={code === null} />
+            <FilterChip locale={locale} href="/library" label={t(locale, 'library.filter.all')} n={count(null)} active={code === null} />
             {departments.map((d) => (
-              <FilterChip key={d.code} href={`/library?d=${d.code}`} label={t(`dept.${d.code}.title` as StringKey)} n={count(d.code)} active={code === d.code} />
+              <FilterChip locale={locale} key={d.code} href={`/library?d=${d.code}`} label={t(locale, `dept.${d.code}.title` as StringKey)} n={count(d.code)} active={code === d.code} />
             ))}
           </ul>
         </nav>
@@ -57,19 +58,19 @@ export async function LibraryBody({ searchParams }: { searchParams: Promise<{ d?
           <ActiveVideoProvider>
             <ul data-testid="library-grid" className="m-0 grid list-none gap-x-6 gap-y-10 p-0 sm:grid-cols-2 lg:grid-cols-3">
               {list.map((event) => (
-                <RecordingItem key={event.id} event={event} />
+                <RecordingItem locale={locale} key={event.id} event={event} />
               ))}
             </ul>
           </ActiveVideoProvider>
         ) : (
-          <p className="text-muted">{code ? t('library.empty') : t('library.emptyAll')}</p>
+          <p className="text-muted">{code ? t(locale, 'library.empty') : t(locale, 'library.emptyAll')}</p>
         )}
       </div>
     </section>
   )
 }
 
-function FilterChip({ href, label, n, active }: { href: string; label: string; n: number; active: boolean }) {
+function FilterChip({ locale, href, label, n, active }: { locale: Locale; href: string; label: string; n: number; active: boolean }) {
   return (
     <li>
       <Link
@@ -79,20 +80,20 @@ function FilterChip({ href, label, n, active }: { href: string; label: string; n
         className={`inline-flex min-h-11 items-center gap-2.5 border px-4 text-small font-semibold no-underline transition-colors duration-200 ${active ? 'border-deep bg-deep text-white' : 'border-line bg-white text-deep hover:border-teal hover:text-teal'} ${n === 0 && !active ? 'opacity-60' : ''}`}
       >
         {label}
-        <span className={`grid min-w-6 place-items-center px-1.5 text-label ${active ? 'bg-mint text-deep' : 'bg-box text-muted'}`}>{fmtNum(n)}</span>
+        <span className={`grid min-w-6 place-items-center px-1.5 text-label ${active ? 'bg-mint text-deep' : 'bg-box text-muted'}`}>{fmtNum(n, locale)}</span>
       </Link>
     </li>
   )
 }
 
-function RecordingItem({ event }: { event: PublicEvent }) {
+function RecordingItem({ locale, event }: { locale: Locale; event: PublicEvent }) {
   const id = event.recordingUrl ? youtubeId(event.recordingUrl) : null
   if (!id) return null
   const cover = eventCover(event)
   return (
     <li id={`recording-${event.id}`} className="recording-item scroll-mt-[calc(var(--header-h)+1.5rem)]">
-      <VideoCard videoId={id} title={event.title} playLabel={t('library.play', { title: event.title })} cardId={String(event.id)} fallback={{ src: cover.src, blurDataURL: cover.remote ? undefined : cover.blurDataURL }}>
-        {event.departmentCode && <p className="mt-4 text-label text-accent-strong">{t(`dept.${event.departmentCode}.title` as StringKey)}</p>}
+      <VideoCard videoId={id} title={event.title} playLabel={t(locale, 'library.play', { title: event.title })} cardId={String(event.id)} fallback={{ src: cover.src, blurDataURL: cover.remote ? undefined : cover.blurDataURL }}>
+        {event.departmentCode && <p className="mt-4 text-label text-accent-strong">{t(locale, `dept.${event.departmentCode}.title` as StringKey)}</p>}
         <h3 className="mt-1 text-[1.0625rem] leading-[1.55] font-bold text-deep lg:text-[1.125rem]">{event.title}</h3>
         <p className="mt-1 text-small text-muted">{formatRiyadh(event.startsAt, 'date')}</p>
       </VideoCard>

@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { t } from '@/lib/i18n/t'
+import type { Locale } from '@/lib/i18n/locale'
 
 export type Crumb = { href?: string; label: string }
 
@@ -8,9 +9,9 @@ export type Crumb = { href?: string; label: string }
  * current page is plain text with aria-current. The separator is a neutral slash, so it reads the
  * same in Arabic and in the coming English version.
  */
-export function Breadcrumbs({ items }: { items: Crumb[] }) {
+export function Breadcrumbs({ locale, items }: { locale: Locale; items: Crumb[] }) {
   return (
-    <nav aria-label={t('crumbs.label')} className="mb-6">
+    <nav aria-label={t(locale, 'crumbs.label')} className="mb-6">
       <ol className="m-0 flex list-none flex-wrap items-center gap-x-2 gap-y-1 p-0 text-small text-on-dark">
         {items.map((crumb, i) => (
           <li key={`${i}-${crumb.label}`} className="flex items-center gap-2">

@@ -9,47 +9,54 @@ import type { Metadata } from 'next'
 import { PageHead } from '@/components/brand/PageHead'
 import { LinkButton } from '@/components/ui/Buttons'
 import { safeReturnTo } from '@/lib/auth/return-to'
+import type { Locale } from '@/lib/i18n/locale'
+import { localeOf } from '@/lib/i18n/page-locale'
 import { t } from '@/lib/i18n/t'
 
-export const metadata: Metadata = { title: t('auth.signIn'), robots: { index: false } }
+type Params = Promise<{ locale: string }>
+
+export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
+  return { title: t(await localeOf(params), 'auth.signIn'), robots: { index: false } }
+}
 
 type SearchParams = Promise<{ returnTo?: string | string[] }>
 
-export default function SignInPage({ searchParams }: { searchParams: SearchParams }) {
+export default async function SignInPage({ params, searchParams }: { params: Params; searchParams: SearchParams }) {
+  const locale = await localeOf(params)
   return (
-    <PageHead crumbs={[{ href: '/', label: t('crumbs.home') }, { label: t('auth.signIn') }]} kicker={t('signin.kicker')} title={t('auth.signIn')}>
-      <p className="mt-5 max-w-[34em] text-body text-on-dark">{t('signin.body')}</p>
+    <PageHead locale={locale} crumbs={[{ href: '/', label: t(locale, 'crumbs.home') }, { label: t(locale, 'auth.signIn') }]} kicker={t(locale, 'signin.kicker')} title={t(locale, 'auth.signIn')}>
+      <p className="mt-5 max-w-[34em] text-body text-on-dark">{t(locale, 'signin.body')}</p>
       <div className="mt-8 flex flex-wrap gap-3">
         <Suspense
           fallback={
             <LinkButton href="/" tone="dark" arrow>
-              {t('signin.home')}
+              {t(locale, 'signin.home')}
             </LinkButton>
           }
         >
-          <BackLinks searchParams={searchParams} />
+          <BackLinks searchParams={searchParams} locale={locale} />
         </Suspense>
       </div>
     </PageHead>
   )
 }
 
-async function BackLinks({ searchParams }: { searchParams: SearchParams }) {
+async function BackLinks({ searchParams, locale }: { searchParams: SearchParams; locale: Locale }) {
   const target = safeReturnTo((await searchParams).returnTo)
   if (target === '/') {
     return (
       <LinkButton href="/" tone="dark" arrow>
-        {t('signin.home')}
+        {t(locale, 'signin.home')}
       </LinkButton>
     )
   }
   return (
     <>
       <LinkButton href={target} tone="dark" arrow>
-        {t('signin.back')}
+        {t(locale, 'signin.back')}
       </LinkButton>
       <LinkButton href="/" variant="secondary" tone="dark">
-        {t('signin.home')}
+        {t(locale, 'signin.home')}
       </LinkButton>
     </>
   )

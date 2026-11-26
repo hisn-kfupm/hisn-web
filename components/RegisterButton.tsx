@@ -11,6 +11,7 @@ import type { RegisterLabels } from '@/lib/events/register-labels'
 import type { ButtonState, CancelResult, JoinWaitlistResult, RegisterResult } from '@/lib/events/types'
 import { fmtNum } from '@/lib/i18n/number'
 import { useProfileGate } from '@/lib/profile/gate-stub' // swap for D2-7's useProfileGate once it merges
+import type { Locale } from '@/lib/i18n/locale'
 
 type Actions = {
   register(eventId: number): Promise<RegisterResult>
@@ -19,6 +20,7 @@ type Actions = {
 }
 
 type Props = {
+  locale: Locale
   eventId: number
   state: ButtonState
   position: number | null
@@ -42,7 +44,7 @@ type Kind = 'register' | 'join' | 'cancel'
  * { needsProfile: true } result goes to useProfileGate with a retry of the same action. The stub
  * actions persist nothing, so the new state is kept here until the next page load.
  */
-export function RegisterButton({ eventId, state: initialState, position: initialPosition, signedIn, recordingUrl, actions, labels, reopensAs = 'open', onChange }: Props) {
+export function RegisterButton({ locale, eventId, state: initialState, position: initialPosition, signedIn, recordingUrl, actions, labels, reopensAs = 'open', onChange }: Props) {
   const [here, setHere] = useState({ state: initialState, position: initialPosition })
   const [notice, setNotice] = useState<Notice | null>(null)
   const [confirming, setConfirming] = useState(false)
@@ -137,7 +139,7 @@ export function RegisterButton({ eventId, state: initialState, position: initial
     case 'waitlisted':
       body = (
         <>
-          <Position template={labels.position} fallback={labels.onWaitlist} n={position} />
+          <Position locale={locale} template={labels.position} fallback={labels.onWaitlist} n={position} />
           <Note>{labels.note.waitlisted}</Note>
           <Button variant="ghost" tone="dark" disabled={pending} onClick={() => setConfirming(true)} className="mt-1 self-start">
             {labels.leave}
@@ -224,14 +226,14 @@ function Settled({ icon, label, children }: { icon: LucideIcon; label: string; c
 }
 
 /** the waitlist position as a big figure, over the full sentence «ترتيبك في قائمة الانتظار: ٣» */
-function Position({ template, fallback, n }: { template: string; fallback: string; n: number | null }) {
+function Position({ locale, template, fallback, n }: { locale: Locale; template: string; fallback: string; n: number | null }) {
   if (n === null) return <p className="reg-position text-[1.375rem] font-bold text-white">{fallback}</p>
   return (
     <div className="reg-position flex items-end gap-4">
       <span aria-hidden="true" className="reg-figure grid min-w-[1.1em] place-items-center text-[clamp(4.5rem,3rem+4vw,6.5rem)] leading-[1.1] font-bold text-mint">
-        {fmtNum(n)}
+        {fmtNum(n, locale)}
       </span>
-      <p className="pb-3 text-[1.125rem] leading-[1.5] font-semibold text-white">{template.replace('{n}', fmtNum(n))}</p>
+      <p className="pb-3 text-[1.125rem] leading-[1.5] font-semibold text-white">{template.replace('{n}', fmtNum(n, locale))}</p>
     </div>
   )
 }

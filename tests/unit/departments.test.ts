@@ -32,7 +32,7 @@ beforeEach(() => {
   vi.mocked(notFound).mockClear()
 })
 
-const params = (slug: string) => ({ params: Promise.resolve({ slug }) })
+const params = (slug: string, locale: 'ar' | 'en' = 'ar') => ({ params: Promise.resolve({ locale, slug }) })
 
 /*
   dev-1 D1-9. The page renders DepartmentView inside <Suspense> (instant navigation under Cache
@@ -60,15 +60,15 @@ describe('department pages', () => {
     const { container } = render(await DepartmentView(params(d.slug)))
     const h1 = screen.getAllByRole('heading', { level: 1 })
     expect(h1).toHaveLength(1)
-    expect(h1[0].textContent).toBe(t(`dept.${d.code}.title` as StringKey))
-    const expected = [1, 2, 3, 4].map((n) => t(`dept.${d.code}.role${n}` as StringKey)).filter((r) => r.trim() !== '')
+    expect(h1[0].textContent).toBe(t('ar', `dept.${d.code}.title` as StringKey))
+    const expected = [1, 2, 3, 4].map((n) => t('ar', `dept.${d.code}.role${n}` as StringKey)).filter((r) => r.trim() !== '')
     const roles = container.querySelectorAll('[data-testid="roles"] li')
     expect(roles).toHaveLength(expected.length)
   })
 
   it('links the previous and next departments, wrapping around the ends', async () => {
     render(await DepartmentView(params(departments[0].slug)))
-    const nav = screen.getByRole('navigation', { name: t('dept.siblings') })
+    const nav = screen.getByRole('navigation', { name: t('ar', 'dept.siblings') })
     const hrefs = within(nav).getAllByRole('link').map((a) => a.getAttribute('href'))
     expect(hrefs).toEqual([`/departments/${departments[departments.length - 1].slug}`, `/departments/${departments[1].slug}`])
   })

@@ -9,6 +9,9 @@ import { CREDITS_FILE, parseCredits } from '@/lib/data/credits'
 import { allImages } from '@/lib/data/images'
 import { t } from '@/lib/i18n/t'
 
+/** a page's props for one language */
+const inLocale = (locale: 'ar' | 'en') => ({ params: Promise.resolve({ locale }) })
+
 /* CC BY and CC BY-SA ask for the credit to stay with the site: public/images/stand-in/CREDITS.md
    is linked from the footer through /credits while the stand-in photos are in use. */
 const SAMPLE = `# Stand-in photographs
@@ -53,7 +56,7 @@ describe('the stand-in photo credits', () => {
   })
 
   it('list each photo with its author, source and licence, the Latin text isolated', () => {
-    const { container } = render(<CreditsList credits={credits} />)
+    const { container } = render(<CreditsList locale="ar" credits={credits} />)
     const rows = container.querySelectorAll<HTMLElement>('[data-credit]')
     expect(rows).toHaveLength(credits.length)
     const [first] = credits
@@ -63,30 +66,30 @@ describe('the stand-in photo credits', () => {
     expect(row.querySelector('bdi[lang="en"]')).not.toBeNull()
     // the thumbnail says what the photo shows, since a Commons title often doesn't
     const image = allImages.find((i) => i.src.endsWith(`/${first.file}`)) as (typeof allImages)[number]
-    expect(row.querySelector('img')?.getAttribute('alt')).toBe(t(image.alt))
-    expect(t(image.alt)).not.toBe('')
+    expect(row.querySelector('img')?.getAttribute('alt')).toBe(t('ar', image.alt))
+    expect(t('ar', image.alt)).not.toBe('')
     // a licence with a deed links to it; public domain is the Arabic label, not the raw English cell
     const deed = credits.findIndex((c) => c.licenseUrl)
     expect(within(rows[deed]).getByRole('link', { name: credits[deed].license }).getAttribute('href')).toBe(credits[deed].licenseUrl)
     const pd = credits.findIndex((c) => !c.licenseUrl)
-    expect(rows[pd].textContent).toContain(t('credits.publicDomain'))
+    expect(rows[pd].textContent).toContain(t('ar', 'credits.publicDomain'))
     expect(rows[pd].textContent).not.toContain(credits[pd].license)
   })
 
-  it('make up a static page with one heading, the trail home and the intro', () => {
-    const { container } = render(<CreditsPage />)
+  it('make up a static page with one heading, the trail home and the intro', async () => {
+    const { container } = render(await CreditsPage(inLocale('ar')))
     const headings = container.querySelectorAll('h1')
     expect(headings).toHaveLength(1)
-    expect(headings[0].textContent).toBe(t('credits.title'))
-    expect(within(container).getByRole('link', { name: t('crumbs.home') }).getAttribute('href')).toBe('/')
-    expect(container.textContent).toContain(t('credits.intro'))
+    expect(headings[0].textContent).toBe(t('ar', 'credits.title'))
+    expect(within(container).getByRole('link', { name: t('ar', 'crumbs.home') }).getAttribute('href')).toBe('/')
+    expect(container.textContent).toContain(t('ar', 'credits.intro'))
     expect(container.querySelectorAll('[data-credit]')).toHaveLength(credits.length)
   })
 })
 
 describe('Footer', () => {
   it('links to the photo credits', () => {
-    const { container } = render(<Footer />)
-    expect(within(container).getByRole('link', { name: t('footer.credits') }).getAttribute('href')).toBe('/credits')
+    const { container } = render(<Footer locale="ar" />)
+    expect(within(container).getByRole('link', { name: t('ar', 'footer.credits') }).getAttribute('href')).toBe('/credits')
   })
 })

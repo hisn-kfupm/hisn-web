@@ -1,6 +1,7 @@
 import majorsData from '@/data/majors.json'
 import levelsData from '@/data/academic-levels.json'
 import departmentsData from '@/data/departments.json'
+import type { Locale } from '@/lib/i18n/locale'
 
 export type DataFile = 'majors' | 'levels' | 'departments'
 type Labelled = { code: string; ar: string; en: string }
@@ -17,12 +18,12 @@ function find(file: 'majors' | 'levels', code: string): Labelled {
   return hit
 }
 
-/** Arabic label for a code. Throws `unknown code X` for codes not in the data file. */
-export function label(file: 'majors' | 'levels', code: string): string {
-  return find(file, code).ar
+/** The label for a code in the page's language. Throws `unknown code X` for codes not in the data file. */
+export function label(file: 'majors' | 'levels', code: string, locale: Locale): string {
+  return find(file, code)[locale]
 }
 
-/** English label for a code. Same throw as `label`. */
+/** English label for a code, whatever the page's language (A-12's CSV export). Same throw as `label`. */
 export function labelEn(file: 'majors' | 'levels', code: string): string {
-  return find(file, code).en
+  return label(file, code, 'en')
 }

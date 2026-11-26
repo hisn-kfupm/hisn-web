@@ -3,7 +3,9 @@ import { Bdi } from '@/components/Bdi'
 import { PageHead } from '@/components/brand/PageHead'
 import { CONTACT_EMAIL } from '@/lib/config/contact'
 import { TALENT_RETENTION_MONTHS } from '@/lib/config/retention'
+import type { Locale } from '@/lib/i18n/locale'
 import { fmtNum } from '@/lib/i18n/number'
+import { localeOf } from '@/lib/i18n/page-locale'
 import { t, type StringKey } from '@/lib/i18n/t'
 
 /*
@@ -14,27 +16,32 @@ import { t, type StringKey } from '@/lib/i18n/t'
   TALENT_RETENTION_MONTHS (null until the retention period is decided).
 */
 
-export const metadata: Metadata = { title: t('privacy.title') }
+type Params = Promise<{ locale: string }>
+
+export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
+  return { title: t(await localeOf(params), 'privacy.title') }
+}
 
 const SECTIONS = ['collect', 'use', 'access', 'retention', 'rights', 'contact'] as const
 type Section = (typeof SECTIONS)[number]
 
-export default function PrivacyPage() {
+export default async function PrivacyPage({ params }: { params: Params }) {
+  const locale = await localeOf(params)
   return (
     <>
-      <PageHead crumbs={[{ href: '/', label: t('crumbs.home') }, { label: t('privacy.title') }]} kicker={t('privacy.kicker')} title={t('privacy.title')}>
-        <p className="mt-5 max-w-[36em] text-body text-on-dark">{t('privacy.intro')}</p>
+      <PageHead locale={locale} crumbs={[{ href: '/', label: t(locale, 'crumbs.home') }, { label: t(locale, 'privacy.title') }]} kicker={t(locale, 'privacy.kicker')} title={t(locale, 'privacy.title')}>
+        <p className="mt-5 max-w-[36em] text-body text-on-dark">{t(locale, 'privacy.intro')}</p>
       </PageHead>
 
       <div className="bg-page py-14 lg:py-20">
         <div className="wrap grid gap-10 lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-16">
-          <nav aria-label={t('privacy.index')} className="lg:sticky lg:top-[calc(var(--header-h)+2rem)] lg:self-start">
-            <p className="text-label text-muted">{t('privacy.index')}</p>
+          <nav aria-label={t(locale, 'privacy.index')} className="lg:sticky lg:top-[calc(var(--header-h)+2rem)] lg:self-start">
+            <p className="text-label text-muted">{t(locale, 'privacy.index')}</p>
             <ol className="m-0 mt-4 list-none border-s-2 border-line p-0">
               {SECTIONS.map((s) => (
                 <li key={s}>
                   <a href={`#privacy-${s}`} className="-ms-0.5 block border-s-2 border-transparent py-2 ps-4 text-deep no-underline hover:border-teal hover:text-teal">
-                    {t(`privacy.${s}.title` as StringKey)}
+                    {t(locale, `privacy.${s}.title` as StringKey)}
                   </a>
                 </li>
               ))}
@@ -44,10 +51,10 @@ export default function PrivacyPage() {
             {SECTIONS.map((s) => (
               <section key={s} id={`privacy-${s}`} aria-labelledby={`privacy-${s}-title`} className="scroll-mt-[calc(var(--header-h)+1.5rem)] border-t border-line py-8 first:border-t-0 first:pt-0">
                 <h2 id={`privacy-${s}-title`} className="text-h2 text-deep">
-                  {t(`privacy.${s}.title` as StringKey)}
+                  {t(locale, `privacy.${s}.title` as StringKey)}
                 </h2>
                 <div className="mt-4 text-[1.0625rem] leading-[1.9]">
-                  <SectionBody section={s} />
+                  <SectionBody section={s} locale={locale} />
                 </div>
               </section>
             ))}
@@ -58,14 +65,14 @@ export default function PrivacyPage() {
   )
 }
 
-function SectionBody({ section }: { section: Section }) {
+function SectionBody({ section, locale }: { section: Section; locale: Locale }) {
   if (section === 'retention') {
-    return <p>{TALENT_RETENTION_MONTHS === null ? t('privacy.retention.unset') : t('privacy.retention.set', { months: fmtNum(TALENT_RETENTION_MONTHS) })}</p>
+    return <p>{TALENT_RETENTION_MONTHS === null ? t(locale, 'privacy.retention.unset') : t(locale, 'privacy.retention.set', { months: fmtNum(TALENT_RETENTION_MONTHS, locale) })}</p>
   }
   if (section === 'contact') {
     return (
       <p>
-        {t('privacy.contact.body')}{' '}
+        {t(locale, 'privacy.contact.body')}{' '}
         <Bdi lang="en">
           <a href={`mailto:${CONTACT_EMAIL}`} className="font-semibold text-teal">
             {CONTACT_EMAIL}
@@ -74,5 +81,5 @@ function SectionBody({ section }: { section: Section }) {
       </p>
     )
   }
-  return <p className="text-muted">{t('privacy.pending')}</p>
+  return <p className="text-muted">{t(locale, 'privacy.pending')}</p>
 }

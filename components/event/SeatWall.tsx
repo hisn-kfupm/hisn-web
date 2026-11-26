@@ -3,10 +3,12 @@ import { seatBricks } from '@/components/ui/SeatMeter'
 import type { PluralCategory } from '@/lib/i18n/plural'
 import { pickPlural } from '@/lib/i18n/plural'
 import { fmtNum } from '@/lib/i18n/number'
+import type { Locale } from '@/lib/i18n/locale'
 
 export type WallTone = 'live' | 'settled' | 'void'
 
 type Props = {
+  locale: Locale
   capacity: number | null
   /** seats taken, the visitor's own seat included when `mine` */
   taken: number
@@ -40,12 +42,12 @@ const place = (i: number): CSSProperties =>
  * button already says «اكتملت المقاعد» and the wall is whole). The bricks are
  * decorative; the sentence carries the meaning. RegisterBlock animates it.
  */
-export function SeatWall({ capacity, taken, mine, tone, labels }: Props) {
+export function SeatWall({ locale, capacity, taken, mine, tone, labels }: Props) {
   const { on, own } = wallBricks(capacity, taken, mine)
   const left = capacity === null ? null : Math.max(0, capacity - taken)
   return (
     <div className="sw" data-tone={tone}>
-      {tone === 'live' && left !== 0 && <Count left={left} forms={labels.seatsLeft} open={labels.seatsOpen} />}
+      {tone === 'live' && left !== 0 && <Count locale={locale} left={left} forms={labels.seatsLeft} open={labels.seatsOpen} />}
       <div aria-hidden="true" className="sw-wall" data-wall>
         <i className="sw-half" style={{ '--r': 1, '--c': 1 } as CSSProperties} />
         {Array.from({ length: BRICKS }, (_, i) => (
@@ -63,10 +65,10 @@ export function SeatWall({ capacity, taken, mine, tone, labels }: Props) {
 }
 
 /** «تبقّت ٦ مقاعد» with ٦ set huge; forms without a number («اكتملت المقاعد») are set whole */
-function Count({ left, forms, open }: { left: number | null; forms: Record<PluralCategory, string>; open: string }) {
+function Count({ locale, left, forms, open }: { locale: Locale; left: number | null; forms: Record<PluralCategory, string>; open: string }) {
   if (left === null) return <p className="sw-count sw-count-text">{open}</p>
-  const text = pickPlural(forms, left)
-  const digits = fmtNum(left)
+  const text = pickPlural(locale, forms, left)
+  const digits = fmtNum(left, locale)
   const at = text.indexOf(digits)
   if (at < 0) return <p className="sw-count sw-count-text">{text}</p>
   return (
