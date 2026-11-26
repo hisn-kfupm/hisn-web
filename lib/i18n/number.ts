@@ -35,3 +35,10 @@ export function isArabicText(text: string): boolean {
 export function arabicDigits(text: string): string {
   return isArabicText(text) ? text.replace(/[0-9]/g, (d) => EASTERN[Number(d)]) : text
 }
+
+const PERSIAN = '۰۱۲۳۴۵۶۷۸۹'
+
+/** Eastern Arabic (٠–٩) and Persian (۰–۹) digits as Latin 0–9: what a phone's Arabic keypad types, read as a number */
+export function latinDigits(text: string): string {
+  return text.replace(/[٠-٩۰-۹]/g, (d) => String(EASTERN.includes(d) ? EASTERN.indexOf(d) : PERSIAN.indexOf(d)))
+}

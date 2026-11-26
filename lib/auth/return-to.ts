@@ -2,6 +2,7 @@
   CLAUDE.md: `returnTo` accepts only same-site relative paths. Used by /sign-in now and by the auth
   task (D2-4) after a successful sign-in.
 */
+import { isLocale, type Locale } from '@/lib/i18n/locale'
 
 const ORIGIN = 'https://hisn.invalid'
 const MAX_LENGTH = 512
@@ -27,6 +28,18 @@ export function safeReturnTo(input: string | string[] | null | undefined): strin
     return '/'
   }
   return raw
+}
+
+/**
+ * Where sign-in returns to (D2-5): a same-site path, kept in the sign-in page's language. Nothing
+ * usable → that language's homepage; a path without a locale (an old link) gets the page's;
+ * /admin and /api have none.
+ */
+export function signInReturnTo(input: string | string[] | null | undefined, locale: Locale): string {
+  const target = safeReturnTo(input)
+  if (target === '/') return `/${locale}`
+  const first = target.split(/[/?#]/)[1]
+  return isLocale(first) || first === 'admin' || first === 'api' ? target : `/${locale}${target}`
 }
 
 /** a university address (….edu, ….edu.sa), which stops working after graduation; sign-in warns about it */
