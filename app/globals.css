@@ -113,7 +113,7 @@
 
 :root {
   color-scheme: light;
-  --header-h: 64px;   /* phones: a compact sticky bar (04 §6) */
+  --header-h: 4rem;   /* phones: a compact sticky bar (04 §6); rem, so it grows with the browser's text size */
   --plate-h: 960px;   /* one gradient canvas shared by the header and the page head, so they read as one plate */
   --sq: 16px;         /* battlement square */
   --dir: -1;          /* RTL: "forward" motion runs toward inline-end, i.e. negative X */
@@ -130,7 +130,7 @@
   :root { --sq: 24px; --course: 36px; }
 }
 @media (min-width: 64rem) {
-  :root { --header-h: 84px; --course: 40px; }
+  :root { --header-h: 5.25rem; --course: 40px; }
 }
 /* in-page anchors glide, except under reduced motion; Next turns it off during route changes
    (data-scroll-behavior on <html>) */

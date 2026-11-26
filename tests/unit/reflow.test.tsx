@@ -7,6 +7,7 @@ import { CreditsList } from '@/components/credits/CreditsList'
 import { Header } from '@/components/Header'
 import { NotFoundView } from '@/components/NotFoundView'
 import { buttonClass } from '@/components/ui/button'
+import { t } from '@/lib/i18n/t'
 
 /*
   WCAG 1.4.10 reflow: at 320 px nothing may make the page scroll sideways or cut content off. jsdom
@@ -52,13 +53,28 @@ describe('nothing forces a 320 px screen to scroll sideways', () => {
     expect(signedIn.querySelector('[data-testid="auth-entry"] button')?.classList.contains('whitespace-nowrap')).toBe(true)
   })
 
-  it('below 360 px (not 359) the header shows sign-in as its icon, with the label kept for screen readers', () => {
-    // Tailwind's max-[360px] is `width < 360px`
-    const entry = render(<Header locale="en" session={null} />).container.querySelector('[data-testid="auth-entry"] a')!
-    expect(entry.querySelector('span')?.className).toContain('max-[360px]:sr-only')
-    expect(entry.querySelector('svg')?.getAttribute('class') ?? '').toContain('max-[360px]:block')
-    expect(entry.className).toContain('max-[360px]:w-11')
-    expect(entry.outerHTML).not.toContain('359px')
+  it('the header follows the browser’s text size: sign-in becomes its icon below 22.5rem, not a fixed 360 px', () => {
+    // rem in a media query is the browser's default text size: 360 px at 16 px, 540 px at 24 px
+    // (Tailwind's max-[22.5rem] is `width < 22.5rem`); the label stays for screen readers
+    const header = render(<Header locale="en" session={null} />).container
+    const entry = header.querySelector('[data-testid="auth-entry"] a')!
+    expect(entry.querySelector('span')?.className).toContain('max-[22.5rem]:sr-only')
+    expect(entry.querySelector('svg')?.getAttribute('class') ?? '').toContain('max-[22.5rem]:block')
+    expect(header.querySelector('[data-testid="site-header"]')?.outerHTML).not.toMatch(/max-\[\d+px\]/)
+  })
+
+  it('the header’s icon-only buttons stay 44 px, so the bar fits even at 32 px text on a 320 px screen', () => {
+    const header = render(<Header locale="en" session={null} />).container
+    const entry = header.querySelector('[data-testid="auth-entry"] a')!
+    for (const cls of ['max-[22.5rem]:size-[44px]', 'max-[22.5rem]:min-h-0', 'max-[22.5rem]:p-0']) expect(entry.className).toContain(cls)
+    const toggle = header.querySelector(`button[aria-label="${t('en', 'nav.menuOpen')}"]`)!
+    expect(toggle.className).toContain('size-[44px]')
+    expect(toggle.className).not.toMatch(/(^|\s)size-11(\s|$)/)
+  })
+
+  it('the header bar’s height is in rem, so it grows with the browser’s text size', () => {
+    const heights = [...css.matchAll(/--header-h:\s*([^;]+);/g)].map((m) => m[1].trim())
+    expect(heights).toEqual(['4rem', '5.25rem'])
   })
 
   it('the talent page’s brick wall sizes its bricks from its own .wrap, never past their full size', () => {
