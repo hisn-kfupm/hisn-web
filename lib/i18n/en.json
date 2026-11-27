@@ -335,5 +335,22 @@
   "admin.status.published": "Published «مؤقت»",
   "admin.status.cancelled": "Cancelled «مؤقت»",
   "admin.announce.notSent": "Not sent «مؤقت»",
-  "admin.announce.started": "Sending started «مؤقت»"
+  "admin.announce.started": "Sending started «مؤقت»",
+  "admin.export.col.name": "Name «مؤقت»",
+  "admin.export.col.email": "Email «مؤقت»",
+  "admin.export.col.major": "Major «مؤقت»",
+  "admin.export.col.level": "Academic level «مؤقت»",
+  "admin.export.col.gender": "Gender «مؤقت»",
+  "admin.export.col.status": "Status «مؤقت»",
+  "admin.export.col.registeredAt": "Registered at «مؤقت»",
+  "admin.export.col.waitlistPosition": "Waitlist position «مؤقت»",
+  "admin.export.col.announcements": "Announcements «مؤقت»",
+  "admin.export.col.createdAt": "Account created «مؤقت»",
+  "admin.export.gender.male": "Male «مؤقت»",
+  "admin.export.gender.female": "Female «مؤقت»",
+  "admin.export.yes": "Yes «مؤقت»",
+  "admin.export.no": "No «مؤقت»",
+  "admin.export.status.registered": "Registered «مؤقت»",
+  "admin.export.status.waitlisted": "Waitlisted «مؤقت»",
+  "admin.export.status.cancelled": "Cancelled «مؤقت»"
 }
