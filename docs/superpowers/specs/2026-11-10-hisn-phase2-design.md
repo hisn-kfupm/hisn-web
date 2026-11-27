@@ -768,7 +768,7 @@ Launch checklist (§17).
 
 ## 16. Migration and launch
 
-**Day 1 (owner):** import teaser `signups` into `hisn-prod` (normalized, case-duplicates dropped); edit the teaser's `js/script.js` to the `hisn-prod` public key and redeploy; then remove the old project's insert policy.
+**Signups (owner, launch day, right before the switch):** freeze the old project (drop its insert policy, saved for rollback), then copy the teaser's `signups` into `hisn-prod` once: normalized, malformed addresses dropped, case-duplicates dropped keeping the earliest original time, `source = 'import'`. The copy fails, and writes nothing, unless the rows copied equal the old project's count. The teaser is not changed; it retires with the switch (owner decision, 27 Nov). Steps: `docs/runbooks/A-09-teaser-migration.md`.
 
 **Preparation:** check whether Vercel's DNS target for hisn-sa.org differs between projects; Cloudflare record DNS-only; lower TTL a day before; rehearse on `rehearsal.hisn-sa.org` (teaser → new → teaser, including certificate issuance), timing each step.
 
