@@ -3,5 +3,6 @@
     "deploymentEnabled": {
       "main": false
     }
-  }
+  },
+  "crons": [{ "path": "/api/cron/flush-email", "schedule": "*/10 * * * *" }]
 }
