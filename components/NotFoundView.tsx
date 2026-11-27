@@ -17,7 +17,7 @@ export function NotFoundView({ locale }: { locale: Locale }) {
     <>
       <PageHead locale={locale} figure={t(locale, 'notFound.code')} title={t(locale, 'notFound.title')} photo={{ image: images.notFound, alt: t(locale, images.notFound.alt) }}>
         <p className="mt-4 max-w-[34rem] text-on-dark">{t(locale, 'notFound.body')}</p>
-        <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+        <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           <Link href={localePath(locale, '/')} className={buttonClass({ tone: 'dark' })}>{t(locale, 'notFound.home')}</Link>
           <Link href={localePath(locale, '/events')} className={buttonClass({ variant: 'secondary', tone: 'dark' })}>{t(locale, 'notFound.events')}</Link>
         </div>

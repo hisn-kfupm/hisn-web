@@ -86,7 +86,7 @@ export function MobileMenu({ labels, departments, items, switcher }: Props) {
         aria-controls={id}
         onClick={() => setOpen((v) => !v)}
         aria-label={open ? labels.close : labels.open}
-        className="grid size-11 place-items-center border border-teal-100/40 text-white transition-colors hover:border-mint lg:hidden"
+        className="grid size-[44px] place-items-center border border-teal-100/40 text-white transition-colors hover:border-mint lg:hidden"
       >
         <Icon icon={open ? X : Menu} size={22} />
       </button>

@@ -81,17 +81,19 @@ export function CalendarHead({ locale, month, now, count, eventDays }: Props) {
           </p>
         </div>
 
-        <nav aria-label={t(locale, 'calendar.nav')} className="flex items-center justify-between gap-6 sm:justify-start">
-          <Link href={localePath(locale, `/events?m=${prev}`)} scroll={false} rel="prev" aria-label={t(locale, 'calendar.prev', { month: monthYear(prev, locale) })} data-month-link="prev" className="group flex items-center gap-3 text-white no-underline">
-            <span className="btn btn-dark-secondary size-14 p-0">
+        {/* below 375 px (23.4375rem) the month links go compact: English names like «September | November»
+            otherwise push the next square past the screen at 320 px (WCAG 1.4.10) */}
+        <nav aria-label={t(locale, 'calendar.nav')} className="flex items-center justify-between gap-6 max-[23.4375rem]:gap-4 sm:justify-start">
+          <Link href={localePath(locale, `/events?m=${prev}`)} scroll={false} rel="prev" aria-label={t(locale, 'calendar.prev', { month: monthYear(prev, locale) })} data-month-link="prev" className="group flex items-center gap-3 text-white no-underline max-[23.4375rem]:gap-2">
+            <span className="btn btn-dark-secondary size-14 p-0 max-[23.4375rem]:size-12">
               <Icon icon={ArrowLeft} mirror size={22} />
             </span>
-            <span aria-hidden="true" className="text-[1.0625rem] font-semibold">{formatRiyadh(monthMidpoint(prev), 'month', locale)}</span>
+            <span aria-hidden="true" className="text-[1.0625rem] font-semibold max-[23.4375rem]:text-[0.9375rem]">{formatRiyadh(monthMidpoint(prev), 'month', locale)}</span>
           </Link>
-          <i aria-hidden="true" className="h-8 w-px bg-white/20" />
-          <Link href={localePath(locale, `/events?m=${next}`)} scroll={false} rel="next" aria-label={t(locale, 'calendar.next', { month: monthYear(next, locale) })} data-month-link="next" className="group flex items-center gap-3 text-white no-underline">
-            <span aria-hidden="true" className="text-[1.0625rem] font-semibold">{formatRiyadh(monthMidpoint(next), 'month', locale)}</span>
-            <span className="btn btn-dark-secondary size-14 p-0">
+          <i aria-hidden="true" className="h-8 w-px bg-white/20 max-[23.4375rem]:hidden" />
+          <Link href={localePath(locale, `/events?m=${next}`)} scroll={false} rel="next" aria-label={t(locale, 'calendar.next', { month: monthYear(next, locale) })} data-month-link="next" className="group flex items-center gap-3 text-white no-underline max-[23.4375rem]:gap-2">
+            <span aria-hidden="true" className="text-[1.0625rem] font-semibold max-[23.4375rem]:text-[0.9375rem]">{formatRiyadh(monthMidpoint(next), 'month', locale)}</span>
+            <span className="btn btn-dark-secondary size-14 p-0 max-[23.4375rem]:size-12">
               <Icon icon={ArrowRight} mirror size={22} />
             </span>
           </Link>
