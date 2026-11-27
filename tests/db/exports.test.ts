@@ -290,6 +290,15 @@ describe('event-registrations', () => {
     expect(rows.map((r) => r['الترتيب في قائمة الانتظار'])).toEqual(['', '', '1', '2', '', ''])
   })
 
+  it('a name Excel would run as a formula comes out as text', async () => {
+    const eventId = await createEvent()
+    const user = await createUser({ email: `a14-formula-${eventId}@test.local` })
+    await db.query(`update profiles set full_name_ar = '=HYPERLINK("http://x","y")' where id = $1`, [user.id])
+    await addRegistration(user.id, eventId)
+    const { rows } = await table(await get('event-registrations', `?event=${eventId}`))
+    expect(rows[0]['الاسم']).toBe(`'=HYPERLINK("http://x","y")`)
+  })
+
   it('a known event with no registrations gives the header line only', async () => {
     const eventId = await createEvent()
     const res = await get('event-registrations', `?event=${eventId}`)

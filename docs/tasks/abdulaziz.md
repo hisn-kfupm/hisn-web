@@ -801,8 +801,9 @@ export async function POST(req: Request): Promise<Response>
 ```ts
 // lib/csv/to-csv.ts
 export function toCsv(rows: Record<string, string | number | null>[], columns: { key: string; header: string }[]): string
-// '﻿' + header line + rows; lines joined with '\r\n'; null → ''; a value containing , " \r or \n is wrapped in
-// double quotes with inner quotes doubled
+// '﻿' + header line + rows; lines joined with '\r\n'; null → ''; a cell (header or value, numbers included)
+// starting with = + - @ tab or \r gets a ' in front, so Excel reads it as text, not a formula (formula
+// injection, P-1); then a value containing , " \r or \n is wrapped in double quotes with inner quotes doubled
 
 // app/admin/export/[kind]/route.ts
 export async function GET(req: Request, ctx: { params: Promise<{ kind: string }> }): Promise<Response>
@@ -824,6 +825,9 @@ export async function GET(req: Request, ctx: { params: Promise<{ kind: string }>
   - `toCsv([{ a: 'x' }], [{ key: 'a', header: 'A' }]).startsWith('﻿')`.
   - Arabic `'عبدالعزيز'` appears unchanged.
   - Value `a,b` → `"a,b"`; value `say "hi"` → `"say ""hi"""`; `null` → empty field.
+  - Formula injection, one test each: `=1+1` → `'=1+1`; `+966…` → `'+966…`; `-2+3` → `'-2+3`; `@SUM(A1)` → `'@SUM(A1)`;
+    `\t=1+1` → `'\t=1+1`; `\r=1+1` → `"'\r=1+1"` (quoted for the CR). Also applied to numbers and headers; the same
+    characters anywhere but first are left alone.
 - `tests/db/exports.test.ts`:
   - as a non-admin user → status `403`.
   - as admin, `all-accounts` includes a profile with `announcements_opt_in = false` (e.g. `u02@test.local`).

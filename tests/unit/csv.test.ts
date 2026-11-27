@@ -53,6 +53,50 @@ describe('toCsv', () => {
     expect(toCsv([], [{ key: 'a', header: 'x,y' }])).toBe('﻿"x,y"')
   })
 
+  // Formula injection: Excel runs a cell starting with = + - @ (or tab / CR, which it skips before
+  // one of those) as a formula. A leading ' makes it text. Names and major_other are free text.
+  describe('neutralises cells that Excel would run as a formula', () => {
+    it('= → \'=', () => {
+      expect(one('=HYPERLINK("http://x","y")')).toBe('﻿A\r\n"\'=HYPERLINK(""http://x"",""y"")"')
+      expect(one('=1+1')).toBe("﻿A\r\n'=1+1")
+    })
+
+    it('+ → \'+', () => {
+      expect(one('+966500000000')).toBe("﻿A\r\n'+966500000000")
+    })
+
+    it('- → \'-', () => {
+      expect(one('-2+3')).toBe("﻿A\r\n'-2+3")
+    })
+
+    it('@ → \'@', () => {
+      expect(one('@SUM(A1)')).toBe("﻿A\r\n'@SUM(A1)")
+    })
+
+    it('tab → \'tab', () => {
+      expect(one('\t=1+1')).toBe("﻿A\r\n'\t=1+1")
+    })
+
+    it('carriage return → \'CR, then quoted for the CR', () => {
+      expect(one('\r=1+1')).toBe('﻿A\r\n"\'\r=1+1"')
+    })
+
+    it('applies to numbers and headers too', () => {
+      expect(one(-1)).toBe("﻿A\r\n'-1")
+      expect(toCsv([], [{ key: 'a', header: '=A' }])).toBe("﻿'=A")
+    })
+
+    it('leaves those characters alone anywhere but first', () => {
+      expect(one('a=b')).toBe('﻿A\r\na=b')
+      expect(one('u-01@test.local')).toBe('﻿A\r\nu-01@test.local')
+      expect(one(' =1')).toBe('﻿A\r\n =1')
+    })
+
+    it('leaves an empty value empty', () => {
+      expect(one('')).toBe('﻿A\r\n')
+    })
+  })
+
   it('follows the column order, not the row keys', () => {
     expect(toCsv([{ b: 2, a: 1 }], [{ key: 'a', header: 'A' }, { key: 'b', header: 'B' }])).toBe('﻿A,B\r\n1,2')
   })
