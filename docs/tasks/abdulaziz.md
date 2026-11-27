@@ -248,14 +248,14 @@ tests.logout() returns void                  -- role 'postgres' (allowed because
 
 **Date:** Mon 16 Nov.
 
-**Build:** Access rules for the remaining tables, and the newsletter function, which becomes the **only** way into `signups` (the teaser and the footer both call it). It rejects malformed addresses so they never reach the announcement audience.
+**Build:** Access rules for the remaining tables, and the newsletter function, which becomes the **only** way into `signups` (the footer calls it; the teaser keeps its own project until it retires at launch, A-9). It rejects malformed addresses so they never reach the announcement audience.
 
 **Files:**
 - `supabase/migrations/<timestamp>_rls_rest.sql`
 - `supabase/tests/rls_rest.test.sql`
 
 **Interfaces — produces:**
-- **signups:** `revoke all on signups from anon, authenticated`; **no** policies. Nobody inserts directly; the teaser switches to `newsletter_signup` in A-9.
+- **signups:** `revoke all on signups from anon, authenticated`; **no** policies, so the site's keys never insert directly. The teaser is not switched over: on launch day the owner copies its signups in once, through a direct database connection (A-9).
 - **email_unsubscribes**, **email_deliveries:** no policies (server only, through the service key).
 - **talent_submission_log:** select `using (user_id = auth.uid())` for `authenticated` — **no admin clause**; no write policies (server writes through the service key).
 ```sql
