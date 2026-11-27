@@ -166,12 +166,13 @@ describe('saveProfile', () => {
     expect(await unsubscribe(user.email)).toStrictEqual({ source: 'profile' })
   })
 
-  it('a save that keeps the choice leaves its date and the unsubscribes alone', async () => {
+  // every later save at no records the unsubscribe (review of #22), so one that failed is recorded by the next save
+  it('a later save that keeps no leaves its date alone and records an unsubscribe from the profile', async () => {
     await saveProfile({ ...input, announcements_opt_in: false })
     const before = (await profile(user.id)).announcements_updated_at
     await saveProfile({ ...input, announcements_opt_in: false, full_name_ar: 'سارة محمد' })
     expect((await profile(user.id)).announcements_updated_at).toStrictEqual(before)
-    expect(await unsubscribe(user.email)).toBeNull()
+    expect(await unsubscribe(user.email)).toStrictEqual({ source: 'profile' })
   })
 
   it('keeps the source of an earlier unsubscribe when the box is unticked', async () => {
@@ -208,12 +209,34 @@ describe('saveProfile', () => {
     expect(await unsubscribe(user.email)).toBeNull()
   })
 
-  it('unticking later: the opt-out holds even when recording the unsubscribe fails', async () => {
+  it('unticking later: the opt-out holds even when recording the unsubscribe fails, and the next save records it', async () => {
     await saveProfile({ ...input, announcements_opt_in: true })
     as.failUnsubscribes = true
     await expect(saveProfile({ ...input, announcements_opt_in: false })).rejects.toBeTruthy()
     expect(reportError).toHaveBeenCalled()
     expect((await profile(user.id)).announcements_opt_in).toBe(false)
+
+    // the stored choice already says no, so this save changes nothing about it; it still records the unsubscribe
+    as.failUnsubscribes = false
+    expect(await saveProfile({ ...input, announcements_opt_in: false })).toStrictEqual({ ok: true })
+    expect(await unsubscribe(user.email)).toStrictEqual({ source: 'profile' })
+  })
+
+  // the row at no already stops announcements, so a save that keeps no isn't failed by the unsubscribe (review of #22)
+  it('a later save that keeps no succeeds when recording the unsubscribe fails, and the next save records it', async () => {
+    await saveProfile({ ...input, announcements_opt_in: false, locale: 'ar' })
+    vi.clearAllMocks()
+    as.failUnsubscribes = true
+    expect(await saveProfile({ ...input, announcements_opt_in: false, locale: 'en' })).toStrictEqual({ ok: true })
+    expect(reportError).toHaveBeenCalledWith(expect.objectContaining({ message: 'injected failure' }), { level: 'error' })
+    expect((await profile(user.id)).locale).toBe('en')
+    expect(await metadataLocale(user.id)).toBe('en')
+    expect(revalidatePath).toHaveBeenCalledWith('/en/account')
+    expect(await unsubscribe(user.email)).toBeNull()
+
+    as.failUnsubscribes = false
+    expect(await saveProfile({ ...input, announcements_opt_in: false, locale: 'en' })).toStrictEqual({ ok: true })
+    expect(await unsubscribe(user.email)).toStrictEqual({ source: 'profile' })
   })
 
   // Review Focus 3: a double tap on a slow connection
@@ -227,6 +250,8 @@ describe('saveProfile', () => {
     expect(await saveProfile(null as never)).toStrictEqual({ ok: false, errors: { form: 'profile.error.invalid' } })
     expect(await saveProfile({ ...input, major_code: 'OTHER', major_other: '😀' })).toStrictEqual({ ok: false, errors: { major_other: 'profile.error.majorOther' } })
     expect(await saveProfile({ ...input, full_name_ar: 'سا\u0000رة' })).toStrictEqual({ ok: false, errors: { full_name_ar: 'profile.error.name' } })
+    // one character outside the BMP: two UTF-16 code units, but one character for the table's check
+    expect(await saveProfile({ ...input, full_name_ar: '𠀀' })).toStrictEqual({ ok: false, errors: { full_name_ar: 'profile.error.name' } })
     expect(await profile(user.id)).toBeNull()
   })
 

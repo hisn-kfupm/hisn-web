@@ -51,6 +51,10 @@ export async function saveProfile(input: ProfileInput): Promise<{ ok: true } | {
  *   retry still sees a change and applies it again (applying it is idempotent);
  * - opting out: the row says no first, which alone stops announcements; then the unsubscribe is
  *   recorded (a failure there is reported, and the opt-out already holds).
+ * - every later save at no records the unsubscribe again, changed or not: after a failure there, the row
+ *   already says no, so the next save would otherwise see nothing to do. The upsert ignores an existing
+ *   row, so repeating it is safe and keeps that row's source. When the choice didn't change, a failure
+ *   there is reported and the save still succeeds: the row at no already stops announcements.
  */
 async function writeProfile(session: Session, profile: ProfileInput): Promise<void> {
   const db = await supabaseProdServer()
@@ -64,7 +68,8 @@ async function writeProfile(session: Session, profile: ProfileInput): Promise<vo
     // the first save comes from the profile step (D2-7), which sends the page's language
     const { error } = await db.from('profiles').insert({ id: session.userId, email: session.email, ...profile, announcements_updated_at: now })
     if (!error) return
-    // 23505: another first save (a double tap) got there first; save over its row instead
+    // 23505: another first save (a double tap) got there first; save over its row instead, as a later
+    // save (so at no it records the unsubscribe too, like any later save)
     if (error.code !== '23505') throw error
     stored = await storedChoice(db, session.userId)
     if (!stored) throw error
@@ -83,7 +88,17 @@ async function writeProfile(session: Session, profile: ProfileInput): Promise<vo
     await update()
   } else {
     await update()
-    if (changed) await applyAnnouncementChoice(session.email, false, 'account')
+    if (!optIn && changed) await applyAnnouncementChoice(session.email, false, 'account')
+    else if (!optIn) await keepOptOut(session.email)
+  }
+}
+
+/** a save that keeps no: records an unsubscribe an earlier save may have failed to record; a failure is reported, not thrown */
+async function keepOptOut(email: string): Promise<void> {
+  try {
+    await applyAnnouncementChoice(email, false, 'account')
+  } catch (thrown) {
+    reportError(thrown, { level: 'error' })
   }
 }
 

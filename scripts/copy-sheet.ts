@@ -53,6 +53,7 @@ const PLACES: [string, string[]][] = [
   ['Library', ['library.']],
   ['Talent pool page', ['talent.']],
   ['Sign-in', ['signin.']],
+  ['Profile step and account page', ['profile.']],
   ['Privacy page', ['privacy.']],
   ['Photo credits page', ['credits.']],
   ['Page not found', ['notFound.']],
