@@ -517,7 +517,7 @@ Access: `anon`/`authenticated` read `published` and `cancelled` rows. Admin full
 
 Unique (`event_id`, `user_id`); re-joining reuses the row. Access: user reads own rows; writes only through §8.4 functions; admin reads all.
 
-**`signups`**: `id`, `email` (unique on `lower(trim(email))`), `source` (`teaser` / `footer` / `import`), `locale` (`ar` / `en`, default `ar`: the page's language at signup; teaser and imported rows are `ar`), `created_at`. No direct access for `anon`/`authenticated`. The only way in is `newsletter_signup(p_email, p_source, p_locale)`, which rejects malformed addresses and unknown locales (errcode `22023`); the teaser calls it too (named arguments, locale defaults to `ar`).
+**`signups`**: `id`, `email` (unique on `lower(trim(email))`), `source` (`teaser` / `footer` / `import`), `locale` (`ar` / `en`, default `ar`: the page's language at signup; teaser and imported rows are `ar`), `created_at`. No direct access for `anon`/`authenticated`. The only way in is `newsletter_signup(p_email, p_source, p_locale)`, which rejects malformed addresses and unknown locales (errcode `22023`). The teaser does not call it: it keeps writing to its own project until the domain switch, and its rows are copied in once on launch day with `source = 'import'` (§16). `teaser` stays an allowed source.
 
 **`email_unsubscribes`**: `email` PK with check `email = lower(trim(email))`, `source` (`link` / `header` / `profile` / `bounce` / `complaint`), `created_at`. Server only.
 
@@ -680,7 +680,8 @@ Local/CI: mail catcher. Previews: separate Resend key, only `EMAIL_ALLOWLIST` ad
 | Event cancelled with a waitlist | Registered and waitlisted both notified |
 | Cancel / leave link reused, after start, or tampered | "Already done" / "has started" / error; no change |
 | Old cancel link used after cancelling and registering again | "Already done"; the new registration is untouched (version check) |
-| Malformed address on the teaser or footer form | Rejected by `newsletter_signup`; never stored |
+| Malformed address on the footer form | Rejected by `newsletter_signup`; never stored |
+| Malformed address among the teaser's old signups | Dropped by the launch-day copy and listed for the owner; never stored (§16) |
 | An address hard-bounces or reports spam | Webhook adds it to `email_unsubscribes`; never mailed again |
 | Announcement fails mid-send | Progress; resend failed only; idempotent batches |
 | Server dies after commit, before send | Queued row sent by the cron |
@@ -768,7 +769,7 @@ Launch checklist (§17).
 
 ## 16. Migration and launch
 
-**Day 1 (owner):** import teaser `signups` into `hisn-prod` (normalized, case-duplicates dropped); edit the teaser's `js/script.js` to the `hisn-prod` public key and redeploy; then remove the old project's insert policy.
+**Signups (owner, launch day, right before the switch):** freeze the old project (drop its insert policy, saved for rollback), then copy the teaser's `signups` into `hisn-prod` once: normalized, malformed addresses dropped, case-duplicates dropped keeping the earliest original time, `source = 'import'`. The copy fails, and writes nothing, unless the rows copied equal the old project's count. The teaser is not changed; it retires with the switch (owner decision, 27 Nov). Steps: `docs/runbooks/A-09-teaser-migration.md`.
 
 **Preparation:** check whether Vercel's DNS target for hisn-sa.org differs between projects; Cloudflare record DNS-only; lower TTL a day before; rehearse on `rehearsal.hisn-sa.org` (teaser → new → teaser, including certificate issuance), timing each step.
 
