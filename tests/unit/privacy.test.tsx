@@ -11,7 +11,7 @@ const inLocale = (locale: 'ar' | 'en') => ({ params: Promise.resolve({ locale })
 describe('privacy page', () => {
   it('shows the contact address and the unset retention text', async () => {
     const { container } = render(await PrivacyPage(inLocale('ar')))
-    expect(container.textContent).toContain('Contact@Hisn-sa.org')
+    expect(container.textContent).toContain('hisn@kfupm.edu.sa')
     expect(TALENT_RETENTION_MONTHS).toBeNull()
     expect(container.textContent).toContain(t('ar', 'privacy.retention.unset'))
   })
@@ -19,7 +19,7 @@ describe('privacy page', () => {
   it('isolates the Latin address inside the Arabic text', async () => {
     const { container } = render(await PrivacyPage(inLocale('ar')))
     const bdi = container.querySelector('bdi')
-    expect(bdi?.textContent).toBe('Contact@Hisn-sa.org')
+    expect(bdi?.textContent).toBe('hisn@kfupm.edu.sa')
     expect(bdi?.getAttribute('lang')).toBe('en')
   })
 
