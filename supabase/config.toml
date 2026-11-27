@@ -233,7 +233,7 @@ secure_password_change = false
 # they signed in with a one-time password, magic link, or recovery link.
 # require_current_password = true
 # Controls the minimum amount of time that must pass before sending another signup confirmation or password reset email.
-max_frequency = "1s"
+max_frequency = "60s"
 # Number of characters used in the email OTP.
 otp_length = 6
 # Number of seconds before the email OTP expires (defaults to 1 hour).
@@ -251,11 +251,11 @@ otp_expiry = 600
 
 # Sign-in is a 6-digit code only: both templates show {{ .Token }} and no link.
 [auth.email.template.confirmation]
-subject = "{{ .Token }} — رمز الدخول إلى حصن"
+subject = "{{ if eq .Data.locale \"en\" }}{{ .Token }} — your Hisn sign-in code{{ else }}{{ .Token }} — رمز الدخول إلى حصن{{ end }}"
 content_path = "./supabase/templates/otp.html"
 
 [auth.email.template.magic_link]
-subject = "{{ .Token }} — رمز الدخول إلى حصن"
+subject = "{{ if eq .Data.locale \"en\" }}{{ .Token }} — your Hisn sign-in code{{ else }}{{ .Token }} — رمز الدخول إلى حصن{{ end }}"
 content_path = "./supabase/templates/otp.html"
 
 # Uncomment to customize email template

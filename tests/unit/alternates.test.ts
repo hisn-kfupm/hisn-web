@@ -6,6 +6,8 @@ import { departments } from '@/lib/data/labels'
 import { standInPageIds } from '@/lib/events/stand-in'
 import { LOCALES } from '@/lib/i18n/locale'
 
+// the sign-in page's form reaches server-only code (its action), as other page tests do
+vi.mock('server-only', () => ({}))
 // the event page reads its row per request
 vi.mock('next/server', async (original) => ({ ...(await original<typeof import('next/server')>()), connection: vi.fn(async () => {}) }))
 

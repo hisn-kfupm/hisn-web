@@ -1,0 +1,91 @@
+# Every merge to main (A-8): migrate hisn-dev, then hisn-prod, then deploy production. A failed migration stops the deploy.
+#
+# Secrets (owner decision on A-8, P-1):
+# - Repository secret DEV_DB_URL: the hisn-dev connection string (Session pooler, IPv4). It reaches hisn-dev only, which
+#   the developers can already reach, so migrate-dev needs no Supabase access token.
+# - Environment `production` only (main only, owner review): SUPABASE_ACCESS_TOKEN (reaches every org, prod and talent
+#   included), PROD_PROJECT_REF, PROD_DB_PASSWORD, VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID.
+# Talent migrations are not here: the owner applies talent/migrations to hisn-talent by hand.
+#
+# Supabase CLI 3: `db push` targets the local stack unless given --remote, and on a hosted database it applies nothing
+# without --yes (CI cannot answer the prompt). --remote=<url> replaces the deprecated --db-url.
+name: Main
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# Never cancel a run halfway through a migration; the next merge waits for this one.
+concurrency:
+  group: main-deploy
+  cancel-in-progress: false
+
+jobs:
+  migrate-dev:
+    name: migrate-dev
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      # Same CLI as the PR jobs (pr.yml)
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 3.1.0
+
+      # With a database URL the CLI falls back to plain text when TLS fails; require refuses instead.
+      - name: Push migrations to hisn-dev
+        env:
+          DEV_DB_URL: ${{ secrets.DEV_DB_URL }}
+          PGSSLMODE: require
+        run: supabase db push --remote="$DEV_DB_URL" --yes
+
+  migrate-prod:
+    name: migrate-prod
+    needs: migrate-dev
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: production
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.PROD_DB_PASSWORD }}
+      PROD_PROJECT_REF: ${{ secrets.PROD_PROJECT_REF }}
+      # No PGSSLMODE here, on purpose: for the linked project the CLI verifies the server against its bundled Supabase CA
+      # with no plain-text fallback, but only while PGSSLMODE is unset. Setting it (even to require) drops that check.
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 3.1.0
+
+      - run: supabase link --project-ref "$PROD_PROJECT_REF"
+      # --remote alone = the linked project; the password comes from SUPABASE_DB_PASSWORD above
+      - name: Push migrations to hisn-prod
+        run: supabase db push --remote --yes
+
+  deploy:
+    name: deploy
+    needs: migrate-prod
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: production
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm install --global vercel@65.15.0
+      - run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+      - run: vercel build --prod --token="$VERCEL_TOKEN"
+      - run: vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
