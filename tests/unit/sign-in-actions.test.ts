@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Locale } from '@/lib/i18n/locale'
 
 const auth = vi.hoisted(() => ({ signInWithOtp: vi.fn(), verifyOtp: vi.fn() }))
@@ -15,6 +15,11 @@ beforeEach(() => {
   vi.clearAllMocks()
   auth.signInWithOtp.mockResolvedValue({ data: {}, error: null })
   auth.verifyOtp.mockResolvedValue({ data: { user: {}, session: {} }, error: null })
+})
+
+// puts back console.warn after the tests that watch it
+afterEach(() => {
+  vi.restoreAllMocks()
 })
 
 /* dev-2 D2-5, spec §7.1 */
@@ -34,12 +39,14 @@ describe('sendCode', () => {
     expect(auth.signInWithOtp).toHaveBeenCalledWith(expect.objectContaining({ options: { shouldCreateUser: true, data: { locale: 'en' } } }))
   })
 
-  // a 429 is also the project's hourly email cap, which stops everyone: reported, but not as fatal
-  it('reports too many requests as rate_limited, with a non-fatal report', async () => {
+  // a 429 is expected under load: logged as a warning, not reported as an error
+  it('answers too many requests with rate_limited, and only logs a warning', async () => {
     const error = { status: 429, message: 'rate limit' }
     auth.signInWithOtp.mockResolvedValue({ data: {}, error })
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     expect(await sendCode('a@gmail.com', 'ar')).toStrictEqual({ ok: false, reason: 'rate_limited' })
-    expect(reportError).toHaveBeenCalledWith(error, { level: 'error', tags: { alert: 'sign-in' } })
+    expect(reportError).not.toHaveBeenCalled()
+    expect(warn).toHaveBeenCalledWith('[sign-in] rate limited', error)
   })
 
   it('treats a crash on the server as send_failed, with a fatal sign-in alert', async () => {
@@ -52,8 +59,10 @@ describe('sendCode', () => {
   it('reports any other failure as send_failed, with a fatal sign-in alert', async () => {
     const error = { status: 500, message: 'smtp down' }
     auth.signInWithOtp.mockResolvedValue({ data: {}, error })
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     expect(await sendCode('a@gmail.com', 'ar')).toStrictEqual({ ok: false, reason: 'send_failed' })
     expect(reportError).toHaveBeenCalledWith(error, { level: 'fatal', tags: { alert: 'sign-in' } })
+    expect(warn).not.toHaveBeenCalled()
   })
 
   // A server action's arguments come from the browser: only a known locale goes into the account.
@@ -95,12 +104,24 @@ describe('verifyCode', () => {
   it.each([
     [0, 'fatal'],
     [503, 'fatal'],
-    [429, 'error'],
   ])('throws and reports when Supabase cannot check the code (status %i)', async (status, level) => {
     const error = { status, message: 'unavailable' }
     auth.verifyOtp.mockResolvedValue({ data: {}, error })
-    await expect(verifyCode('a@gmail.com', '123456')).rejects.toThrow()
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    await expect(verifyCode('a@gmail.com', '123456')).rejects.toThrow('sign-in code could not be checked')
     expect(reportError).toHaveBeenCalledWith(error, { level, tags: { alert: 'sign-in' } })
+    expect(warn).not.toHaveBeenCalled()
+    expect(redirect).not.toHaveBeenCalled()
+  })
+
+  // rate limited: still not a wrong code, so it throws; expected under load, so only a warning is logged
+  it('throws without reporting when Supabase rate limits the check (status 429)', async () => {
+    const error = { status: 429, message: 'unavailable' }
+    auth.verifyOtp.mockResolvedValue({ data: {}, error })
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    await expect(verifyCode('a@gmail.com', '123456')).rejects.toThrow('sign-in code could not be checked')
+    expect(reportError).not.toHaveBeenCalled()
+    expect(warn).toHaveBeenCalledWith('[sign-in] rate limited', error)
     expect(redirect).not.toHaveBeenCalled()
   })
 

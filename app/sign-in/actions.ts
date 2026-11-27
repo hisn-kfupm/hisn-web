@@ -12,7 +12,8 @@ import { reportError } from '@/lib/monitoring/report'
   Sign-in with an email code (dev-2 D2-5, spec §7.1). Outside app/[locale]: only pages move there.
   A server action's arguments come from the browser, so each one is checked like any input.
   Failures that can lock everyone out are reported (spec §11): sign-in is the one email that can't
-  wait for the outbox.
+  wait for the outbox. A 429 is the exception: it is only logged as a warning, even when it is the
+  project's hourly email cap.
 */
 
 const emailSchema = z.string().trim().email()
@@ -31,8 +32,9 @@ export async function sendCode(email: string, locale: Locale): Promise<{ ok: tru
     })
     if (!error) return { ok: true }
     if (error.status === 429) {
-      // one person asking too often, or the project's hourly email cap, which stops everyone
-      reportError(error, { level: 'error', tags: ALERT })
+      // one person asking too often, or the project's hourly email cap: expected under load, so a warning in
+      // the logs rather than a reported error; the form asks the person to wait
+      console.warn('[sign-in] rate limited', error)
       return { ok: false, reason: 'rate_limited' }
     }
     reportError(error, { level: 'fatal', tags: ALERT })
@@ -48,8 +50,8 @@ const unavailable = (status: number | undefined) => status === 0 || status === 4
 
 /**
  * Step 2: checks the code; when it is right, signs in and goes back to returnTo (same-site only).
- * An outage is not the person's mistake, so it is reported and thrown rather than answered 'wrong';
- * the form then says the code could not be checked.
+ * An outage is not the person's mistake, so it is thrown rather than answered 'wrong', and reported
+ * (a 429 is only logged as a warning); the form then says the code could not be checked.
  */
 export async function verifyCode(email: string, code: string, returnTo?: string): Promise<{ ok: false; reason: 'wrong' | 'expired' } | never> {
   if (typeof email !== 'string' || typeof code !== 'string') return { ok: false, reason: 'wrong' }
@@ -63,7 +65,8 @@ export async function verifyCode(email: string, code: string, returnTo?: string)
     throw thrown
   }
   if (error && unavailable(error.status)) {
-    reportError(error, { level: error.status === 429 ? 'error' : 'fatal', tags: ALERT })
+    if (error.status === 429) console.warn('[sign-in] rate limited', error)
+    else reportError(error, { level: 'fatal', tags: ALERT })
     throw new Error('sign-in code could not be checked')
   }
   if (error) return { ok: false, reason: /expired/i.test(error.message) ? 'expired' : 'wrong' }
