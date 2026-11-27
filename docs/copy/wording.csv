@@ -1,0 +1,298 @@
+﻿key,page or place it appears,Arabic draft,English draft,final Arabic,final English,note
+meta.description,01 · Every page · browser tab and search results,«حصن» مبادرة طلابية في جامعة الملك فهد للبترول والمعادن، تعمل على مدار العام حاضنةً لمواهب الصناعات الدفاعية: تعرّف الطلاب بالقطاع، وتؤهلهم لأدواره، وتصلهم بجهاته.,"Hisn is a student initiative at King Fahd University of Petroleum and Minerals that works year-round as an incubator for defense-industry talent: it introduces students to the sector, prepares them for its roles and connects them with its organizations.",,,"Student- and KFUPM-only wording: Hisn and the talent pool are open to everyone (founder's decision); please rewrite. Shown in search results."
+a11y.skip,02 · Every page · header and menu,تخطَّ إلى المحتوى,Skip to content,,,
+header.home,02 · Every page · header and menu,حصن، الصفحة الرئيسية,"Hisn, home page",,,
+header.nav,02 · Every page · header and menu,التنقل الرئيسي,Main navigation,,,
+nav.departments,02 · Every page · header and menu,الأقسام,Departments,,,Arabic approved.
+nav.events,02 · Every page · header and menu,الفعاليات,Events,,,Arabic approved.
+nav.library,02 · Every page · header and menu,المكتبة,Library,,,Arabic approved.
+nav.talent,02 · Every page · header and menu,قاعدة المواهب,Talent pool,,,Arabic approved.
+nav.menuOpen,02 · Every page · header and menu,فتح القائمة,Open menu,,,
+nav.menuClose,02 · Every page · header and menu,إغلاق القائمة,Close menu,,,
+auth.signIn,02 · Every page · header and menu,تسجيل الدخول,Sign in,,,
+auth.account,02 · Every page · header and menu,حسابي,My account,,,Arabic approved.
+auth.accountMenu,02 · Every page · header and menu,قائمة الحساب,Account menu,,,
+auth.signOut,02 · Every page · header and menu,تسجيل الخروج,Sign out,,,Not shown on the site yet. Arabic approved.
+brand.closing,03 · Every page · footer,«أول خطوة في بناء صناعة دفاعية وطنية هي بناء من يفهمها»,“The first step in building a national defense industry is building the people who understand it.”,,,Arabic approved.
+brand.university,03 · Every page · footer,جامعة الملك فهد للبترول والمعادن,King Fahd University of Petroleum and Minerals,,,"The university's name, also in the mobile menu and the home hero. Keep or change it under the open-to-everyone decision. Arabic approved. English approved."
+footer.nav,03 · Every page · footer,روابط الموقع,Site links,,,
+footer.contact,03 · Every page · footer,للتواصل,Contact,,,
+footer.privacy,03 · Every page · footer,سياسة الخصوصية,Privacy policy,,,
+footer.alerts,03 · Every page · footer,قائمة التنبيهات,Event alerts,,,Not shown on the site yet.
+footer.credits,03 · Every page · footer,مصادر الصور,Image credits,,,
+crumbs.label,04 · Every page · breadcrumbs,مسار الصفحة,Breadcrumb,,,
+crumbs.home,04 · Every page · breadcrumbs,الرئيسية,Home,,,
+brand.slogan,05 · Home · hero,كل تخصص لبنة في حصن الوطن,Every major is a brick in the nation's fortress,,,Arabic approved.
+brand.about,05 · Home · hero,«حصن» مبادرة طلابية في جامعة الملك فهد للبترول والمعادن، تعمل على مدار العام حاضنةً لمواهب الصناعات الدفاعية: تعرّف الطلاب بالقطاع، وتؤهلهم لأدواره، وتصلهم بجهاته.,"Hisn is a student initiative at King Fahd University of Petroleum and Minerals that works year-round as an incubator for defense-industry talent: it introduces students to the sector, prepares them for its roles and connects them with its organizations.",,,"Student- and KFUPM-only wording: Hisn and the talent pool are open to everyone (founder's decision); please rewrite."
+home.hero.primary,05 · Home · hero,الفعاليات القادمة,Upcoming events,,,
+hero.search.label,05 · Home · hero,ما تخصصك؟,What's your major?,,,
+hero.search.placeholder,05 · Home · hero,اكتب اسم تخصصك، مثل: علوم الحاسب,"Type your major, such as Computer Science",,,
+hero.search.placeholderShort,05 · Home · hero,مثل: علوم الحاسب,e.g. Computer Science,,,
+hero.search.clear,05 · Home · hero,مسح البحث,Clear search,,,
+hero.search.results,05 · Home · hero,التخصصات المطابقة,Matching majors,,,
+hero.search.count.zero,05 · Home · hero,لا يوجد تخصص بهذا الاسم,No major by that name,,,"Plural form: Arabic for 0; English: 0."
+hero.search.count.one,05 · Home · hero,تخصص واحد مطابق,One matching major,,,"Plural form: Arabic for 1; English: 1."
+hero.search.count.two,05 · Home · hero,تخصصان مطابقان,Two matching majors,,,"Plural form: Arabic for 2; English: not used (copy the ""other"" form)."
+hero.search.count.few,05 · Home · hero,{n} تخصصات مطابقة,{n} matching majors,,,"Plural form: Arabic for 3–10; English: not used (copy the ""other"" form). Keep {n} exactly as written: the site fills it in."
+hero.search.count.many,05 · Home · hero,{n} تخصصًا مطابقًا,{n} matching majors,,,"Plural form: Arabic for 11–99; English: not used (copy the ""other"" form). Keep {n} exactly as written: the site fills it in."
+hero.search.count.other,05 · Home · hero,{n} تخصص مطابق,{n} matching majors,,,"Plural form: Arabic for 100 and more; English: any number but 0 and 1. Keep {n} exactly as written: the site fills it in."
+hero.found.title,05 · Home · hero,لتخصصك مكان في حصن,Your major has a place in Hisn,,,
+hero.found.status,05 · Home · hero,وجدنا لبنتك: {name},We found your brick: {name},,,Keep {name} exactly as written: the site fills it in.
+hero.found.events,05 · Home · hero,الفعاليات القادمة,Upcoming events,,,
+hero.found.departments,05 · Home · hero,تعرّف على الأقسام,Explore the departments,,,
+hero.found.close,05 · Home · hero,إغلاق النتيجة,Close the result,,,
+home.next.label,05 · Home · hero,الفعالية القادمة,Next event,,,
+home.next.none,05 · Home · hero,لا توجد فعالية قادمة الآن، وسنعلن الجديد قريبًا.,"No upcoming event right now; we'll announce new ones soon.",,,
+home.verbs.title,06 · Home · what we do,ماذا نفعل,What we do,,,
+home.verbs.1.word,06 · Home · what we do,تعرّف,Introduce,,,
+home.verbs.1.line,06 · Home · what we do,تعرّف الطلاب بالقطاع: ما هو، ومن يعمل فيه، وأين يجد كل تخصص مكانه.,"We introduce students to the sector: what it is, who works in it and where every major finds its place.",,,"Student-only wording: Hisn and the talent pool are open to everyone (founder's decision); please rewrite."
+home.verbs.2.word,06 · Home · what we do,تؤهّل,Prepare,,,
+home.verbs.2.line,06 · Home · what we do,تؤهّلهم لأدواره بورش ولقاءات مع أهل الصناعة على مدار العام.,We prepare them for its roles with workshops and talks with industry people all year round.,,,
+home.verbs.3.word,06 · Home · what we do,تصل,Connect,,,
+home.verbs.3.line,06 · Home · what we do,تصلهم بجهاته عبر قاعدة مواهب تعرّف الجهات بطلاب الجامعة.,We connect them with its organizations through a talent pool that introduces organizations to the university's students.,,,"Student- and KFUPM-only wording: Hisn and the talent pool are open to everyone (founder's decision); please rewrite. (""the university's students"")"
+home.events.title,07 · Home · upcoming events,الفعاليات القادمة,Upcoming events,,,
+home.events.all,07 · Home · upcoming events,كل الفعاليات,All events,,,
+home.events.none,07 · Home · upcoming events,لا توجد فعاليات قادمة الآن.,No upcoming events right now.,,,
+home.departments.title,08 · Home · departments,الأقسام,Departments,,,
+home.departments.intro,08 · Home · departments,ستة أقسام تغطي مجالات الصناعات الدفاعية، ولكل تخصص مكان في واحد منها على الأقل.,"Six departments cover the fields of the defense industries, and every major has a place in at least one of them.",,,
+home.talent.line,09 · Home · talent pool band,تخصصك له مكان في القطاع الدفاعي. ابدأ من أول لقاء.,Your major has a place in the defense sector. Start with your first event.,,,
+home.talent.body,09 · Home · talent pool band,قاعدة مواهب «حصن» تعرّف جهات القطاع بطلاب الجامعة من كل التخصصات.,Hisn's talent pool introduces the sector's organizations to the university's students from every major.,,,"Student- and KFUPM-only wording: Hisn and the talent pool are open to everyone (founder's decision); please rewrite. (""the university's students"")"
+home.talent.path1.title,09 · Home · talent pool band,احضر فعالية,Attend an event,,,
+home.talent.path1.body,09 · Home · talent pool band,بعد أول حضور تصلك دعوة للانضمام إلى القاعدة.,"After your first event, you'll get an invitation to join the pool.",,,
+home.talent.path2.title,09 · Home · talent pool band,انضم مباشرة,Join directly,,,
+home.talent.path2.body,09 · Home · talent pool band,تنضم مبدئيًا، وتتأكد عضويتك بعد حضورك فعالية واحدة.,"You join provisionally, and your membership is confirmed once you attend one event.",,,
+home.talent.cta,09 · Home · talent pool band,انضم لقاعدة المواهب,Join the talent pool,,,
+home.recordings.title,10 · Home · latest recordings,أحدث التسجيلات,Latest recordings,,,
+home.recordings.all,10 · Home · latest recordings,المكتبة,Library,,,
+home.recordings.none,10 · Home · latest recordings,لا توجد تسجيلات بعد.,No recordings yet.,,,
+dept.SECTOR_AWARENESS.title,11 · Department pages,التوعية بالقطاع,Sector Awareness,,,"Also on event cards, the calendar and the home page. Arabic approved."
+dept.CAREER_READINESS.title,11 · Department pages,التأهيل المهني,Career Readiness,,,"Also on event cards, the calendar and the home page. Arabic approved."
+dept.SYSTEMS_INTEGRATION.title,11 · Department pages,الأنظمة والتكامل,Systems and Integration,,,"Also on event cards, the calendar and the home page. Arabic approved."
+dept.CYBERSECURITY.title,11 · Department pages,الأمن السيبراني,Cybersecurity,,,"Also on event cards, the calendar and the home page. Arabic approved."
+dept.MANUFACTURING_DESIGN.title,11 · Department pages,التصنيع والتصميم,Manufacturing and Design,,,"Also on event cards, the calendar and the home page. Arabic approved."
+dept.DATA_ANALYSIS.title,11 · Department pages,البيانات والتحليل,Data and Analysis,,,"Also on event cards, the calendar and the home page. Arabic approved."
+dept.SECTOR_AWARENESS.summary,11 · Department pages,ما القطاع الدفاعي، ومن يعمل فيه، ومن أين يبدأ الطالب.,"What the defense sector is, who works in it and where a student starts.",,,"Student-only wording: Hisn and the talent pool are open to everyone (founder's decision); please rewrite."
+dept.CAREER_READINESS.summary,11 · Department pages,السيرة والمقابلة وبناء المسار داخل جهات القطاع.,"CVs, interviews and building a career path in the sector's organizations.",,,
+dept.SYSTEMS_INTEGRATION.summary,11 · Department pages,كيف تُبنى الأنظمة المعقدة وتُختبر وتعمل معًا.,"How complex systems are built, tested and made to work together.",,,
+dept.CYBERSECURITY.summary,11 · Department pages,حماية الأنظمة والبيانات، لمن يكتب الشيفرة ومن لا يكتبها.,"Protecting systems and data, for those who write code and those who don't.",,,
+dept.MANUFACTURING_DESIGN.summary,11 · Department pages,من الفكرة إلى المنتج: المواد والتصميم وسلاسل الإمداد.,"From idea to product: materials, design and supply chains.",,,
+dept.DATA_ANALYSIS.summary,11 · Department pages,قراءة البيانات واتخاذ القرار في صناعة تقوم على الدقة.,Reading data and making decisions in an industry built on precision.,,,
+dept.SECTOR_AWARENESS.description,11 · Department pages,يعرّف هذا القسم الطلاب بالقطاع الدفاعي كما هو: صناعات واسعة تشمل الطيران والفضاء والإلكترونيات والاتصالات والأمن السيبراني والتصنيع، لا السلاح وحده. نلتقي مختصين من جهات القطاع ليشرحوا أين يعملون وكيف يبدأ الطالب طريقه، مهما كان تخصصه.,"This department introduces students to the defense sector as it really is: a broad set of industries spanning aerospace, electronics, communications, cybersecurity and manufacturing, not weapons alone. We meet specialists from the sector's organizations who explain where they work and how a student can start out, whatever their major.",,,"Student-only wording: Hisn and the talent pool are open to everyone (founder's decision); please rewrite."
+dept.CAREER_READINESS.description,11 · Department pages,يجهّز القسم الطالب لدخول القطاع: سيرة ذاتية تقرؤها جهات تقنية، ومقابلات تجريبية مع مختصي التوظيف، وورش في بناء المسار والتدريب الصيفي والتعاوني.,"The department prepares students to enter the sector: a CV that technical organizations will read, mock interviews with recruiters, and workshops on career paths, summer internships and co-op training.",,,"Student-only wording: Hisn and the talent pool are open to everyone (founder's decision); please rewrite."
+dept.SYSTEMS_INTEGRATION.description,11 · Department pages,الطائرات والرادارات وأنظمة الاتصالات تجمع عشرات التخصصات في منتج واحد. يشرح القسم كيف تُكتب المتطلبات، وتُصمَّم الأنظمة، وتُختبر حتى تعمل معًا.,"Aircraft, radars and communication systems bring dozens of disciplines together in one product. The department explains how requirements are written and how systems are designed and tested until they work together.",,,
+dept.CYBERSECURITY.description,11 · Department pages,حماية الأنظمة والبيانات والبنى التحتية الحساسة. لقاءات لمن يكتب الشيفرة، ولمن يعمل في السياسات والحوكمة وإدارة المخاطر.,"Protecting sensitive systems, data and infrastructure. Sessions for those who write code, and for those who work in policy, governance and risk management.",,,
+dept.MANUFACTURING_DESIGN.description,11 · Department pages,من الفكرة إلى المنتج: هندسة المواد، والتصميم الميكانيكي، والطباعة ثلاثية الأبعاد، والجودة، وسلاسل الإمداد التي يقوم عليها التوطين.,"From idea to product: materials engineering, mechanical design, 3D printing, quality, and the supply chains that localization depends on.",,,
+dept.DATA_ANALYSIS.description,11 · Department pages,صناعة تقوم على الدقة، والبيانات تصنع قراراتها: من الصيانة التنبؤية إلى تخطيط الإمداد. يعرّف القسم الطلاب بتحليل البيانات وتصويرها والذكاء الاصطناعي في الصناعة.,"An industry built on precision, where data drives the decisions: from predictive maintenance to supply planning. The department introduces students to data analysis, visualization and AI in industry.",,,"Student-only wording: Hisn and the talent pool are open to everyone (founder's decision); please rewrite."
+dept.SECTOR_AWARENESS.role1,11 · Department pages,محلل أبحاث في القطاع,Sector research analyst,,,
+dept.SECTOR_AWARENESS.role2,11 · Department pages,منسّق شراكات مع الجهات,Partnerships coordinator,,,
+dept.SECTOR_AWARENESS.role3,11 · Department pages,أخصائي اتصال مؤسسي,Corporate communications specialist,,,
+dept.SECTOR_AWARENESS.role4,11 · Department pages,مستشار تطوير أعمال,Business development consultant,,,
+dept.CAREER_READINESS.role1,11 · Department pages,أخصائي موارد بشرية تقنية,Technical recruitment specialist,,,
+dept.CAREER_READINESS.role2,11 · Department pages,مهندس في برنامج تطوير الخريجين,Engineer in a graduate development program,,,
+dept.CAREER_READINESS.role3,11 · Department pages,منسّق برامج تدريب,Training program coordinator,,,
+dept.CAREER_READINESS.role4,11 · Department pages,,,,,"Empty: this department has no fourth example role yet. Write one in both languages. If it should show only three roles, say so here and a developer will remove it."
+dept.SYSTEMS_INTEGRATION.role1,11 · Department pages,مهندس أنظمة,Systems engineer,,,
+dept.SYSTEMS_INTEGRATION.role2,11 · Department pages,مهندس تكامل واختبار,Integration and test engineer,,,
+dept.SYSTEMS_INTEGRATION.role3,11 · Department pages,مهندس متطلبات,Requirements engineer,,,
+dept.SYSTEMS_INTEGRATION.role4,11 · Department pages,مدير مشروع تقني,Technical project manager,,,
+dept.CYBERSECURITY.role1,11 · Department pages,محلل مركز عمليات أمنية,Security operations center analyst,,,
+dept.CYBERSECURITY.role2,11 · Department pages,مختبر اختراق,Penetration tester,,,
+dept.CYBERSECURITY.role3,11 · Department pages,أخصائي حوكمة ومخاطر,Governance and risk specialist,,,
+dept.CYBERSECURITY.role4,11 · Department pages,مهندس أمن الأنظمة المدمجة,Embedded systems security engineer,,,
+dept.MANUFACTURING_DESIGN.role1,11 · Department pages,مهندس تصنيع,Manufacturing engineer,,,
+dept.MANUFACTURING_DESIGN.role2,11 · Department pages,مهندس مواد,Materials engineer,,,
+dept.MANUFACTURING_DESIGN.role3,11 · Department pages,مهندس جودة,Quality engineer,,,
+dept.MANUFACTURING_DESIGN.role4,11 · Department pages,أخصائي سلاسل إمداد,Supply chain specialist,,,
+dept.DATA_ANALYSIS.role1,11 · Department pages,محلل بيانات,Data analyst,,,
+dept.DATA_ANALYSIS.role2,11 · Department pages,مهندس تعلّم آلي,Machine learning engineer,,,
+dept.DATA_ANALYSIS.role3,11 · Department pages,أخصائي ذكاء أعمال,Business intelligence specialist,,,
+dept.DATA_ANALYSIS.role4,11 · Department pages,مهندس صيانة تنبؤية,Predictive maintenance engineer,,,
+dept.kicker,11 · Department pages,القسم {n},Department {n},,,Keep {n} exactly as written: the site fills it in.
+dept.about.title,11 · Department pages,عن القسم,About the department,,,"Also on event cards, the calendar and the home page."
+dept.roles.title,11 · Department pages,أدوار يمكنك العمل فيها,Roles you could work in,,,"Also on event cards, the calendar and the home page."
+dept.events.title,11 · Department pages,فعاليات القسم القادمة,Upcoming events in this department,,,"Also on event cards, the calendar and the home page."
+dept.events.none,11 · Department pages,لا فعاليات قادمة في هذا القسم الآن.,No upcoming events in this department right now.,,,
+dept.recordings.title,11 · Department pages,تسجيلات القسم,Department recordings,,,"Also on event cards, the calendar and the home page."
+dept.recordings.none,11 · Department pages,لا تسجيلات لهذا القسم بعد.,No recordings for this department yet.,,,
+dept.siblings,11 · Department pages,الأقسام الأخرى,Other departments,,,
+dept.prev,11 · Department pages,القسم السابق,Previous department,,,
+dept.next,11 · Department pages,القسم التالي,Next department,,,
+calendar.meta.title,12 · Events calendar,تقويم الفعاليات,Events calendar,,,
+calendar.timezone,12 · Events calendar,الأوقات كلها بتوقيت الرياض.,All times are Riyadh time.,,,
+calendar.prev,12 · Events calendar,الشهر السابق: {month},Previous month: {month},,,Keep {month} exactly as written: the site fills it in.
+calendar.next,12 · Events calendar,الشهر التالي: {month},Next month: {month},,,Keep {month} exactly as written: the site fills it in.
+calendar.today,12 · Events calendar,اليوم,Today,,,
+calendar.nav,12 · Events calendar,التنقل بين الأشهر,Month navigation,,,
+calendar.backToToday,12 · Events calendar,إلى الشهر الحالي,Back to this month,,,
+calendar.count.zero,12 · Events calendar,لا فعاليات هذا الشهر,No events this month,,,"Plural form: Arabic for 0; English: 0."
+calendar.count.one,12 · Events calendar,فعالية واحدة هذا الشهر,One event this month,,,"Plural form: Arabic for 1; English: 1."
+calendar.count.two,12 · Events calendar,فعاليتان هذا الشهر,Two events this month,,,"Plural form: Arabic for 2; English: not used (copy the ""other"" form)."
+calendar.count.few,12 · Events calendar,{n} فعاليات هذا الشهر,{n} events this month,,,"Plural form: Arabic for 3–10; English: not used (copy the ""other"" form). Keep {n} exactly as written: the site fills it in."
+calendar.count.many,12 · Events calendar,{n} فعالية هذا الشهر,{n} events this month,,,"Plural form: Arabic for 11–99; English: not used (copy the ""other"" form). Keep {n} exactly as written: the site fills it in."
+calendar.count.other,12 · Events calendar,{n} فعالية هذا الشهر,{n} events this month,,,"Plural form: Arabic for 100 and more; English: any number but 0 and 1. Keep {n} exactly as written: the site fills it in."
+calendar.grid.label,12 · Events calendar,تقويم {month},{month} calendar,,,Keep {month} exactly as written: the site fills it in.
+calendar.list.label,12 · Events calendar,فعاليات {month} يومًا بيوم,"{month} events, day by day",,,Keep {month} exactly as written: the site fills it in.
+calendar.empty,12 · Events calendar,لا فعاليات في هذا الشهر.,No events this month.,,,
+calendar.empty.body,12 · Events calendar,في الجدار مكان ينتظر لبنته القادمة.,There's a space in the wall waiting for its next brick.,,,
+calendar.nextEvent,12 · Events calendar,الفعالية القادمة,Next event,,,
+calendar.nextEvent.month,12 · Events calendar,انتقل إلى {month},Go to {month},,,Keep {month} exactly as written: the site fills it in.
+calendar.recording,12 · Events calendar,التسجيل متاح,Recording available,,,
+event.format.online,13 · Event cards and event page,عن بُعد,Online,,,
+event.format.inPerson,13 · Event cards and event page,حضوري,In person,,,
+event.seats.open,13 · Event cards and event page,التسجيل مفتوح,Registration open,,,
+event.badge.almostFull,13 · Event cards and event page,المقاعد شارفت على الاكتمال!,Seats are nearly full!,,,The Arabic is fixed by the founder and cannot change. English may be reworded. Arabic approved.
+event.card.details,13 · Event cards and event page,التفاصيل والتسجيل,Details and registration,,,
+event.badge.ended,13 · Event cards and event page,انتهت,Ended,,,Arabic approved.
+event.badge.cancelled,13 · Event cards and event page,أُلغيت,Cancelled,,,Arabic approved.
+event.watchRecording,13 · Event cards and event page,شاهد التسجيل,Watch the recording,,,Arabic approved.
+event.riyadhTime,13 · Event cards and event page,بتوقيت الرياض,Riyadh time,,,
+event.facts,13 · Event cards and event page,تفاصيل الفعالية,Event details,,,
+event.fact.date,13 · Event cards and event page,اليوم,Date,,,
+event.fact.time,13 · Event cards and event page,الوقت,Time,,,
+event.fact.place,13 · Event cards and event page,المكان,Location,,,
+event.fact.presenter,13 · Event cards and event page,يقدّمها,Presented by,,,
+event.about,13 · Event cards and event page,عن الفعالية,About the event,,,
+event.ledger.label,13 · Event cards and event page,سجلّ الفعالية,Event summary,,,
+event.ledger.closes,13 · Event cards and event page,يُغلق التسجيل,Registration closes,,,
+event.ledger.capacity,13 · Event cards and event page,عدد المقاعد,Capacity,,,
+event.ledger.noCapacity,13 · Event cards and event page,بلا حدّ للمقاعد,No seat limit,,,
+event.ledger.department,13 · Event cards and event page,القسم,Department,,,
+event.more,13 · Event cards and event page,فعاليات قادمة من القسم نفسه,More upcoming events from this department,,,
+event.addToCalendar,13 · Event cards and event page,أضفها إلى تقويمك,Add to your calendar,,,
+seats.left,13 · Event cards and event page,تبقّى {n} مقعدًا,{n} seats left,,,Keep {n} exactly as written: the site fills it in.
+seats.left.zero,13 · Event cards and event page,اكتملت المقاعد,Fully booked,,,"Plural form: Arabic for 0; English: 0."
+seats.left.one,13 · Event cards and event page,تبقّى مقعد واحد,One seat left,,,"Plural form: Arabic for 1; English: 1."
+seats.left.two,13 · Event cards and event page,تبقّى مقعدان,Two seats left,,,"Plural form: Arabic for 2; English: not used (copy the ""other"" form)."
+seats.left.few,13 · Event cards and event page,تبقّت {n} مقاعد,{n} seats left,,,"Plural form: Arabic for 3–10; English: not used (copy the ""other"" form). Keep {n} exactly as written: the site fills it in."
+seats.left.many,13 · Event cards and event page,تبقّى {n} مقعدًا,{n} seats left,,,"Plural form: Arabic for 11–99; English: not used (copy the ""other"" form). Keep {n} exactly as written: the site fills it in."
+seats.left.other,13 · Event cards and event page,تبقّى {n} مقعد,{n} seats left,,,"Plural form: Arabic for 100 and more; English: any number but 0 and 1. Keep {n} exactly as written: the site fills it in."
+register.region,14 · Event page · registration,التسجيل في الفعالية,Event registration,,,
+register.open,14 · Event page · registration,سجّل,Register,,,Arabic approved.
+register.registered,14 · Event page · registration,مسجّل ✓,Registered ✓,,,Arabic approved.
+register.cancel,14 · Event page · registration,إلغاء التسجيل,Cancel registration,,,Arabic approved.
+register.full,14 · Event page · registration,اكتملت المقاعد,Fully booked,,,Arabic approved.
+register.closed,14 · Event page · registration,أُغلق التسجيل,Registration closed,,,Arabic approved.
+register.cancelledEvent,14 · Event page · registration,أُلغيت الفعالية,Event cancelled,,,Arabic approved.
+register.ended,14 · Event page · registration,انتهت,Ended,,,Arabic approved.
+register.yourBrick,14 · Event page · registration,لبنتك,Your brick,,,
+register.note.open,14 · Event page · registration,احجز مقعدك، وتصلك التفاصيل بالبريد.,"Book your seat, and we'll email you the details.",,,
+register.note.signIn,14 · Event page · registration,تحتاج إلى تسجيل الدخول أولًا.,You need to sign in first.,,,
+register.note.registered,14 · Event page · registration,مقعدك محجوز، وتصلك التفاصيل بالبريد.,"Your seat is booked, and we'll email you the details.",,,
+register.note.full,14 · Event page · registration,انضم إلى قائمة الانتظار، ونراسلك إن فرغ مقعد.,"Join the waitlist, and we'll email you if a seat opens up.",,,
+register.note.waitlisted,14 · Event page · registration,نراسلك بالبريد إن فرغ مقعد.,We'll email you if a seat opens up.,,,
+register.note.closed,14 · Event page · registration,انتهى وقت التسجيل في هذه الفعالية.,Registration for this event has closed.,,,
+register.note.cancelled,14 · Event page · registration,لن تُقام هذه الفعالية في موعدها.,This event won't take place as scheduled.,,,
+register.note.ended,14 · Event page · registration,أُقيمت هذه الفعالية.,This event has taken place.,,,
+register.pending,14 · Event page · registration,لحظة…,One moment…,,,
+register.error,14 · Event page · registration,تعذّر إتمام الطلب، حاول مرة أخرى.,We couldn't complete that. Please try again.,,,
+register.started,14 · Event page · registration,بدأت الفعالية، فلا يمكن إلغاء التسجيل الآن.,"The event has started, so registration can't be cancelled now.",,,
+register.notFound,14 · Event page · registration,لم نجد هذه الفعالية.,We couldn't find this event.,,,
+register.confirm.cancel.title,14 · Event page · registration,إلغاء تسجيلك في الفعالية؟,Cancel your registration?,,,
+register.confirm.cancel.body,14 · Event page · registration,يعود مقعدك متاحًا لغيرك، ويمكنك التسجيل مجددًا ما دامت المقاعد متاحة.,"Your seat goes back to others, and you can register again while seats are available.",,,
+register.confirm.cancel.yes,14 · Event page · registration,نعم، ألغِ التسجيل,"Yes, cancel it",,,
+register.confirm.leave.title,14 · Event page · registration,مغادرة قائمة الانتظار؟,Leave the waitlist?,,,
+register.confirm.leave.body,14 · Event page · registration,تفقد ترتيبك في القائمة إن غادرتها.,You'll lose your place in the list if you leave.,,,
+register.confirm.leave.yes,14 · Event page · registration,نعم، غادر القائمة,"Yes, leave the list",,,
+register.confirm.keep,14 · Event page · registration,تراجع,Go back,,,
+waitlist.join,14 · Event page · registration,انضم لقائمة الانتظار,Join the waitlist,,,Arabic approved.
+waitlist.position,14 · Event page · registration,ترتيبك في قائمة الانتظار: {n},Your place on the waitlist: {n},,,Keep {n} exactly as written: the site fills it in.
+waitlist.leave,14 · Event page · registration,مغادرة القائمة,Leave the waitlist,,,Arabic approved.
+waitlist.on,14 · Event page · registration,أنت في قائمة الانتظار,You're on the waitlist,,,
+library.kicker,15 · Library,تسجيلات اللقاءات والورش,Recordings of talks and workshops,,,
+library.intro,15 · Library,فاتك لقاء؟ شاهد تسجيلات الفعاليات السابقة هنا، وتصفّحها حسب القسم.,"Missed a session? Watch recordings of past events here, and browse them by department.",,,
+library.count.zero,15 · Library,لا تسجيلات بعد,No recordings yet,,,"Plural form: Arabic for 0; English: 0."
+library.count.one,15 · Library,تسجيل واحد,One recording,,,"Plural form: Arabic for 1; English: 1."
+library.count.two,15 · Library,تسجيلان,Two recordings,,,"Plural form: Arabic for 2; English: not used (copy the ""other"" form)."
+library.count.few,15 · Library,{n} تسجيلات,{n} recordings,,,"Plural form: Arabic for 3–10; English: not used (copy the ""other"" form). Keep {n} exactly as written: the site fills it in."
+library.count.many,15 · Library,{n} تسجيلًا,{n} recordings,,,"Plural form: Arabic for 11–99; English: not used (copy the ""other"" form). Keep {n} exactly as written: the site fills it in."
+library.count.other,15 · Library,{n} تسجيل,{n} recordings,,,"Plural form: Arabic for 100 and more; English: any number but 0 and 1. Keep {n} exactly as written: the site fills it in."
+library.grid,15 · Library,التسجيلات,Recordings,,,
+library.filter.label,15 · Library,تصفية التسجيلات حسب القسم,Filter recordings by department,,,
+library.filter.all,15 · Library,الكل,All,,,
+library.play,15 · Library,شغّل: {title},Play: {title},,,Keep {title} exactly as written: the site fills it in.
+library.empty,15 · Library,لا تسجيلات لهذا القسم بعد.,No recordings for this department yet.,,,
+library.emptyAll,15 · Library,لا تسجيلات بعد. ستظهر هنا تسجيلات الفعاليات بعد انتهائها.,No recordings yet. Recordings of events will appear here after they end.,,,
+talent.what.title,16 · Talent pool page,ما قاعدة المواهب؟,What is the talent pool?,,,
+talent.what.body,16 · Talent pool page,قائمة يختار الطالب الانضمام إليها، ليتعرّف إليه من يبحث عن مواهب في جهات القطاع: للتدريب الصيفي والتعاوني، ولبرامج تطوير الخريجين، وللوظائف. لا تشترط تخصصًا معيّنًا؛ فلكل تخصص مكان في القطاع.,"A list that students choose to join, so that people looking for talent in the sector's organizations can get to know them: for summer internships and co-op training, graduate development programs and jobs. No particular major is required; every major has a place in the sector.",,,"Student-only wording: Hisn and the talent pool are open to everyone (founder's decision); please rewrite. (""a list that students choose to join"")"
+talent.privacy.title,16 · Talent pool page,بياناتك,Your data,,,
+talent.privacy.body,16 · Talent pool page,توضح سياسة الخصوصية ما نجمعه، ومن يطّلع عليه، وكيف تسحب بياناتك.,"The privacy policy explains what we collect, who can see it and how to withdraw your data.",,,
+talent.privacy.link,16 · Talent pool page,اقرأ سياسة الخصوصية,Read the privacy policy,,,
+talent.how.title,16 · Talent pool page,كيف تنضم؟,How do you join?,,,
+talent.how.1.title,16 · Talent pool page,احضر فعالية,Attend an event,,,
+talent.how.1.body,16 · Talent pool page,ابدأ بأي لقاء أو ورشة من فعاليات «حصن».,Start with any Hisn talk or workshop.,,,
+talent.how.2.title,16 · Talent pool page,انضم إلى القاعدة,Join the pool,,,
+talent.how.2.body,16 · Talent pool page,تملأ نموذجًا قصيرًا عن اهتماماتك ومهاراتك، وتُنقل بقية بياناتك من حسابك.,"Fill in a short form about your interests and skills; the rest of your details come from your account.",,,
+talent.how.3.title,16 · Talent pool page,تتعرّف إليك الجهات,Organizations get to know you,,,
+talent.how.3.body,16 · Talent pool page,حين تبحث جهات القطاع عن تخصصك، تجدك في القاعدة.,"When the sector's organizations look for your major, they find you in the pool.",,,
+talent.opensSoon,16 · Talent pool page,يفتح قريبًا,Opening soon,,,Arabic approved.
+talent.opensSoon.body,16 · Talent pool page,نموذج الانضمام قيد الإعداد. إلى ذلك الحين، احضر فعالية لتكون أول من يعرف حين يفتح.,"The sign-up form is being prepared. Until then, attend an event to be among the first to know when it opens.",,,
+talent.opensSoon.cta,16 · Talent pool page,تصفّح الفعاليات,Browse events,,,
+signin.kicker,17 · Sign-in,حسابك في «حصن»,Your Hisn account,,,
+signin.email,17 · Sign-in,بريدك الإلكتروني,Your email,,,
+signin.personalHint,17 · Sign-in,استخدم بريدك الشخصي — يبقى معك بعد التخرج,Use your personal email — it stays with you after graduation,,,"Student-only wording: Hisn and the talent pool are open to everyone (founder's decision); please rewrite. (""after graduation"")"
+signin.institutionalWarning,17 · Sign-in,يبدو أنه بريد جامعي، وقد يتوقف بعد تخرّجك. ننصحك باستخدام بريدك الشخصي.,"This looks like a university address, which may stop working after you graduate. We suggest your personal email.",,,"Student-only wording: Hisn and the talent pool are open to everyone (founder's decision); please rewrite. (""after you graduate""). Shown when the address ends in .edu or .edu.sa."
+signin.send,17 · Sign-in,أرسل الرمز,Send the code,,,
+signin.codeSentTo,17 · Sign-in,أرسلنا رمزًا من ٦ أرقام إلى,We sent a 6-digit code to,,,
+signin.code,17 · Sign-in,الرمز,Code,,,
+signin.verify,17 · Sign-in,تأكيد,Confirm,,,
+signin.checkJunk,17 · Sign-in,الرمز صالح لعشر دقائق. إن لم يصلك، فتفقّد مجلد الرسائل غير المرغوب فيها.,"The code works for 10 minutes. If it hasn't arrived, check your junk folder.",,,
+signin.resend,17 · Sign-in,أعد إرسال الرمز,Resend the code,,,
+signin.resendIn,17 · Sign-in,يمكنك طلب رمز جديد بعد {time},You can ask for a new code in {time},,,Keep {time} exactly as written: the site fills it in.
+signin.changeEmail,17 · Sign-in,استخدم بريدًا آخر,Use a different email,,,
+signin.error.invalid,17 · Sign-in,اكتب عنوان بريد إلكتروني صحيحًا.,Enter a valid email address.,,,
+signin.error.rate_limited,17 · Sign-in,طلبت رموزًا كثيرة في وقت قصير. انتظر بضع دقائق ثم حاول مجددًا.,"Too many codes in a short time. Wait a few minutes, then try again.",,,
+signin.error.send_failed,17 · Sign-in,تعذّر إرسال الرمز. حاول مرة أخرى بعد قليل.,We couldn't send the code. Please try again in a moment.,,,
+signin.error.wrong,17 · Sign-in,الرمز غير صحيح. تأكد منه وأعد المحاولة.,That code isn't right. Check it and try again.,,,
+signin.error.expired,17 · Sign-in,الرمز غير صحيح أو انتهت صلاحيته. تأكد منه، أو اطلب رمزًا جديدًا.,"That code is wrong or has expired. Check it, or ask for a new one.",,,
+signin.error.unavailable,17 · Sign-in,تعذّر التحقق من الرمز الآن. تأكد من اتصالك، أو أعد المحاولة بعد دقائق.,"We couldn't check the code right now. Check your connection, or try again in a few minutes.",,,
+privacy.title,18 · Privacy page,سياسة الخصوصية,Privacy policy,,,
+privacy.kicker,18 · Privacy page,بياناتك في «حصن»,Your data at Hisn,,,
+privacy.intro,18 · Privacy page,توضح هذه الصفحة كيف يتعامل «حصن» مع بياناتك. النص النهائي قيد الإعداد.,This page explains how Hisn handles your data. The final text is being prepared.,,,
+privacy.index,18 · Privacy page,محتويات الصفحة,On this page,,,
+privacy.pending,18 · Privacy page,نص هذا القسم قيد الإعداد.,The text of this section is being prepared.,,,
+privacy.collect.title,18 · Privacy page,البيانات التي نجمعها,Data we collect,,,
+privacy.use.title,18 · Privacy page,كيف نستخدمها,How we use it,,,
+privacy.access.title,18 · Privacy page,من يطّلع عليها,Who can see it,,,
+privacy.retention.title,18 · Privacy page,مدة الاحتفاظ,How long we keep it,,,
+privacy.retention.unset,18 · Privacy page,لم تُحدَّد بعد مدة الاحتفاظ ببيانات قاعدة المواهب.,The retention period for talent pool data has not been set yet.,,,
+privacy.retention.set,18 · Privacy page,نحتفظ ببيانات قاعدة المواهب {months} شهرًا.,We keep talent pool data for {months} months.,,,Keep {months} exactly as written: the site fills it in.
+privacy.rights.title,18 · Privacy page,حقوقك,Your rights,,,
+privacy.contact.title,18 · Privacy page,للتواصل,Contact,,,
+privacy.contact.body,18 · Privacy page,لأي سؤال عن بياناتك، راسلنا على,"For any question about your data, write to us at",,,
+credits.title,19 · Photo credits page,مصادر الصور,Image credits,,,
+credits.kicker,19 · Photo credits page,حقوق الصور,Image rights,,,
+credits.intro,19 · Photo credits page,الصور المؤقتة في الموقع مأخوذة من ويكيميديا كومنز، ونستخدمها وفق شروطها إلى أن تتوفر صور «حصن» الخاصة. تظهر مصغّرة ومقصوصة وبتدرّج لوني، وهذه مصادرها ومؤلفوها وتراخيصها.,"The temporary images on this site come from Wikimedia Commons, and we use them under their terms until Hisn's own photos are ready. They appear scaled down, cropped and color-graded; here are their sources, authors and licenses.",,,
+credits.author,19 · Photo credits page,المؤلف,Author,,,
+credits.license,19 · Photo credits page,الترخيص,License,,,
+credits.publicDomain,19 · Photo credits page,ملكية عامة,Public domain,,,
+notFound.events,20 · Page not found,تصفّح الفعاليات,Browse events,,,
+notFound.title,20 · Page not found,لم نجد هذه الصفحة,We couldn't find this page,,,
+notFound.body,20 · Page not found,ربما تغيّر الرابط أو حُذفت الصفحة. جرّب إحدى هذه الصفحات.,The link may have changed or the page may have been removed. Try one of these pages.,,,
+notFound.home,20 · Page not found,العودة إلى الرئيسية,Back to the home page,,,
+error.title,21 · Error page,حدث خطأ غير متوقع,Something went wrong,,,
+error.body,21 · Error page,تعذّر عرض هذه الصفحة الآن. حاول مرة أخرى بعد لحظات.,We can't show this page right now. Please try again in a moment.,,,
+error.retry,21 · Error page,حاول مجددًا,Try again,,,
+error.home,21 · Error page,العودة إلى الرئيسية,Back to the home page,,,
+img.hero-circuit-traces,22 · Photo descriptions (read aloud by screen readers),مسارات نحاسية على لوحة دوائر إلكترونية خضراء,Copper traces on a green circuit board,,,
+img.hero-satellite-cleanroom,22 · Photo descriptions (read aloud by screen readers),مهندسون ببدلات واقية يجهّزون قمرًا صناعيًا في غرفة نظيفة,Engineers in protective suits preparing a satellite in a cleanroom,,,
+img.hero-jet-engine-fan,22 · Photo descriptions (read aloud by screen readers),شفرات مروحة محرك نفّاث من الأمام,"The fan blades of a jet engine, seen from the front",,,
+img.hero-data-centre-aisle,22 · Photo descriptions (read aloud by screen readers),ممر بين خزائن الخوادم في مركز بيانات,An aisle between server cabinets in a data center,,,
+img.hero-soldering-board,22 · Photo descriptions (read aloud by screen readers),يد تلحم مكوّنًا على لوحة إلكترونية,A hand soldering a component onto a circuit board,,,
+img.hero-kfupm-tower,22 · Photo descriptions (read aloud by screen readers),برج الماء ومبانٍ في جامعة الملك فهد للبترول والمعادن بالظهران,The water tower and campus buildings of King Fahd University of Petroleum and Minerals in Dhahran,,,
+img.hero-3d-printer,22 · Photo descriptions (read aloud by screen readers),طابعة ثلاثية الأبعاد تبني قطعة طبقةً فوق طبقة,A 3D printer building a part layer by layer,,,
+img.verb-learn-auditorium,22 · Photo descriptions (read aloud by screen readers),قاعة ممتلئة تستمع إلى متحدثة على المنصة,A full hall listening to a speaker on stage,,,
+img.verb-qualify-workshop,22 · Photo descriptions (read aloud by screen readers),طلاب حول طاولة ورشة يعملون على دوائر إلكترونية,Students around a workshop table working on electronic circuits,,,
+img.verb-connect-showcase,22 · Photo descriptions (read aloud by screen readers),طلاب يشرحون مشروعهم الهندسي لزوار أمام ملصق علمي,Students explaining their engineering project to visitors in front of a research poster,,,
+img.dept-awareness-aircraft-hangar,22 · Photo descriptions (read aloud by screen readers),طائرة ركاب قيد التجميع داخل حظيرة واسعة,An airliner being assembled inside a large hangar,,,
+img.dept-qualification-student-shop,22 · Photo descriptions (read aloud by screen readers),طلاب بنظارات واقية في ورشة تصنيع جامعية,Students in safety glasses in a university machine shop,,,
+img.dept-systems-control-room,22 · Photo descriptions (read aloud by screen readers),غرفة تحكم بشاشات متعددة ومهندسة تتابع الأنظمة,A control room with several screens and an engineer monitoring the systems,,,
+img.dept-cyber-server-cables,22 · Photo descriptions (read aloud by screen readers),كابلات شبكة موصولة بخوادم في خزانة بيانات,Network cables plugged into servers in a data cabinet,,,
+img.dept-manufacturing-laser-cutter,22 · Photo descriptions (read aloud by screen readers),آلة قطع بالليزر في مصنع حديث,A laser cutter in a modern factory,,,
+img.dept-data-monitor-wall,22 · Photo descriptions (read aloud by screen readers),جدار شاشات يعرض رسومًا بيانية ومؤشرات في غرفة تحكم,A wall of screens showing charts and indicators in a control room,,,
+img.event-panel-discussion,22 · Photo descriptions (read aloud by screen readers),متحدثان في جلسة حوارية أمام الجمهور,Two speakers in a panel discussion in front of an audience,,,
+img.event-talk-audience,22 · Photo descriptions (read aloud by screen readers),جمهور يتابع جلسة في قاعة فعاليات,An audience following a session in an event hall,,,
+img.event-lecture-laptops,22 · Photo descriptions (read aloud by screen readers),طلاب بحواسيبهم في مدرج جامعي,Students with laptops in a university lecture hall,,,
+img.event-workshop-tables,22 · Photo descriptions (read aloud by screen readers),مشاركون في ورشة عمل حول طاولات طويلة,Workshop participants around long tables,,,
+img.event-lecture-slide,22 · Photo descriptions (read aloud by screen readers),محاضر يشرح معادلة على الشاشة أمام الحضور,A lecturer explaining an equation on the screen to the audience,,,
+img.talent-design-showcase,22 · Photo descriptions (read aloud by screen readers),فريق طلابي يعرض مشروعه في معرض هندسي,A student team presenting their project at an engineering exhibition,,,
+img.notfound-empty-socket,22 · Photo descriptions (read aloud by screen readers),مقبس كهربائي فارغ في مستودع خالٍ,An empty electrical socket in a bare warehouse,,,

@@ -89,13 +89,41 @@ describe('profileSchema', () => {
     expect(profileSchema.safeParse({ ...valid, major_code: 'OTHER', major_other: '😀'.repeat(41) }).success).toBe(true)
   })
 
+  // the table's char_length counts characters, and so does the schema, explicitly (review of #22); zod 4.6's
+  // min/max count code points too, so these cases pin the rule rather than differ from zod
+  it('counts the name in characters as the database does, not in UTF-16 code units', () => {
+    // one character outside the BMP: two code units, one character
+    expect(problems({ ...valid, full_name_ar: '𠀀' })).toStrictEqual({ full_name_ar: 'profile.error.name' })
+    // 100 characters, 101 code units
+    expect(profileSchema.safeParse({ ...valid, full_name_ar: 'س'.repeat(99) + '😀' }).success).toBe(true)
+    expect(problems({ ...valid, full_name_ar: 'س'.repeat(100) + '😀' })).toStrictEqual({ full_name_ar: 'profile.error.name' })
+  })
+
   it('rejects text the database cannot store: a NUL, or half a surrogate pair', () => {
-    for (const bad of ['سا\u0000رة', 'سارة\ud800']) {
+    for (const bad of ['سا\u0000رة', 'سارة\ud800', '\udc00سارة']) {
       expect(problems({ ...valid, full_name_ar: bad })).toStrictEqual({ full_name_ar: 'profile.error.name' })
       expect(problems({ ...valid, major_code: 'OTHER', major_other: `تخصص ${bad}` })).toStrictEqual({ major_other: 'profile.error.majorOther' })
     }
     // for a listed major, major_other is dropped anyway
     expect(profileSchema.parse({ ...valid, major_other: 'x\u0000' }).major_other).toBeNull()
+  })
+
+  // the account form runs this schema in the browser, and Firefox has isWellFormed only from 119 (review of #22)
+  it('works without String.prototype.isWellFormed', () => {
+    const original = Object.getOwnPropertyDescriptor(String.prototype, 'isWellFormed')
+    Reflect.deleteProperty(String.prototype, 'isWellFormed')
+    try {
+      expect('isWellFormed' in String.prototype).toBe(false)
+      expect(profileSchema.safeParse(valid).success).toBe(true)
+      expect(profileSchema.safeParse({ ...valid, major_code: 'OTHER', major_other: 'هندسة طيران' }).success).toBe(true)
+      for (const bad of ['سارة\ud800', '\udc00سارة']) {
+        expect(problems({ ...valid, full_name_ar: bad })).toStrictEqual({ full_name_ar: 'profile.error.name' })
+        expect(problems({ ...valid, major_code: 'OTHER', major_other: `تخصص ${bad}` })).toStrictEqual({ major_other: 'profile.error.majorOther' })
+      }
+    } finally {
+      if (original) Object.defineProperty(String.prototype, 'isWellFormed', original)
+    }
+    expect(typeof ''.isWellFormed).toBe('function')
   })
 
   it('needs a letter in the name, not only invisible characters', () => {

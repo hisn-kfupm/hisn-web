@@ -26,14 +26,26 @@ const levelCodes = new Set(academicLevels.map((l) => l.code))
 
 const error = (key: StringKey) => ({ error: key })
 
-/** text Postgres can store: no NUL character and no half of a surrogate pair */
-const storable = (text: string) => text.isWellFormed() && !text.includes('\u0000')
+/**
+ * Half of a surrogate pair: a high surrogate with no low one after it, or a low one with no high one before it.
+ * No u flag, so the pattern sees the two halves of a pair separately. Not String.prototype.isWellFormed: Firefox
+ * has it only from 119, and this schema also runs in the browser.
+ */
+const LONE_SURROGATE = /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/
 
-/** major_other for OTHER: 2 to 80 characters once trimmed, counted in code points as the table's check and zod count them */
+/** text Postgres can store: no NUL character and no half of a surrogate pair */
+const storable = (text: string) => !LONE_SURROGATE.test(text) && !text.includes('\u0000')
+
+/** a length counted in characters (code points), as the table's char_length counts it: an emoji is one */
+const characters = (text: string) => [...text].length
+
+/** full_name_ar: 2 to 100 characters once trimmed */
+const validNameLength = (name: string) => characters(name) >= 2 && characters(name) <= 100
+
+/** major_other for OTHER: 2 to 80 characters once trimmed */
 const validOther = (other: string | null | undefined) => {
   const text = other?.trim() ?? ''
-  const length = [...text].length
-  return storable(text) && length >= 2 && length <= 80
+  return storable(text) && characters(text) >= 2 && characters(text) <= 80
 }
 
 export const profileSchema: z.ZodType<ProfileInput> = z
@@ -42,8 +54,7 @@ export const profileSchema: z.ZodType<ProfileInput> = z
       full_name_ar: z
         .string(error('profile.error.name'))
         .trim()
-        .min(2, error('profile.error.name'))
-        .max(100, error('profile.error.name'))
+        .refine(validNameLength, error('profile.error.name'))
         .refine(storable, error('profile.error.name'))
         // at least one letter: not only invisible characters such as zero-width spaces
         .refine((name) => /\p{L}/u.test(name), error('profile.error.name')),
