@@ -4,6 +4,7 @@ import { RecoveryLinks } from '@/components/RecoveryLinks'
 import { buttonClass } from '@/components/ui/button'
 import { images } from '@/lib/data/images'
 import type { Locale } from '@/lib/i18n/locale'
+import { localePath } from '@/lib/i18n/paths'
 import { t } from '@/lib/i18n/t'
 
 /**
@@ -17,8 +18,8 @@ export function NotFoundView({ locale }: { locale: Locale }) {
       <PageHead locale={locale} figure={t(locale, 'notFound.code')} title={t(locale, 'notFound.title')} photo={{ image: images.notFound, alt: t(locale, images.notFound.alt) }}>
         <p className="mt-4 max-w-[34rem] text-on-dark">{t(locale, 'notFound.body')}</p>
         <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-          <Link href="/" className={buttonClass({ tone: 'dark' })}>{t(locale, 'notFound.home')}</Link>
-          <Link href="/events" className={buttonClass({ variant: 'secondary', tone: 'dark' })}>{t(locale, 'notFound.events')}</Link>
+          <Link href={localePath(locale, '/')} className={buttonClass({ tone: 'dark' })}>{t(locale, 'notFound.home')}</Link>
+          <Link href={localePath(locale, '/events')} className={buttonClass({ variant: 'secondary', tone: 'dark' })}>{t(locale, 'notFound.events')}</Link>
         </div>
       </PageHead>
       <section className="wrap pt-14">

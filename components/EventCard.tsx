@@ -9,6 +9,7 @@ import { formatRiyadh, formatRiyadhTimeRange } from '@/lib/time/riyadh'
 import { t, type StringKey } from '@/lib/i18n/t'
 import { cn } from '@/lib/cn'
 import type { Locale } from '@/lib/i18n/locale'
+import { localePath } from '@/lib/i18n/paths'
 
 type Props = {
   locale: Locale
@@ -52,7 +53,7 @@ export function EventCard({ locale, event, variant }: Props) {
           )}
           <h3 className="line-clamp-2 text-h3">
             <Link
-              href={`/events/${event.id}`}
+              href={localePath(locale, `/events/${event.id}`)}
               className={cn('no-underline after:absolute after:inset-0 hover:underline', cancelled ? 'text-muted' : 'text-deep')}
             >
               {event.title}
@@ -67,7 +68,7 @@ export function EventCard({ locale, event, variant }: Props) {
             {(online || event.location) && (
               <li className="flex items-center gap-2">
                 <Icon icon={online ? Video : MapPin} size={16} />
-                <span>{online ? t(locale, 'event.format.online') : <Place text={event.location ?? ''} />}</span>
+                <span>{online ? t(locale, 'event.format.online') : <Place locale={locale} text={event.location ?? ''} />}</span>
               </li>
             )}
           </ul>
@@ -79,7 +80,7 @@ export function EventCard({ locale, event, variant }: Props) {
               <>
                 <Tag tone="muted" icon={Check}>{t(locale, 'event.badge.ended')}</Tag>
                 {event.recordingUrl && (
-                  <Link href="/library" className="relative z-10 inline-flex min-h-11 items-center gap-1.5 font-semibold text-teal underline-offset-4 hover:underline">
+                  <Link href={localePath(locale, '/library')} className="relative z-10 inline-flex min-h-11 items-center gap-1.5 font-semibold text-teal underline-offset-4 hover:underline">
                     <Icon icon={Play} size={16} />
                     {t(locale, 'event.watchRecording')}
                   </Link>

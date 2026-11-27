@@ -15,14 +15,12 @@ export const metadata: Metadata = { title: `${t('ar', 'notFound.title')} · ${t(
 export const viewport: Viewport = { themeColor: '#022C33', colorScheme: 'light' }
 
 /*
-  Interim 404 for /ar and /en addresses that match no route, such as /ar/nope or
-  /ar/events/1/extra (dev-1 D1-1). With the root layout under app/[locale] there is no
-  app/layout.tsx to wrap app/[locale]/not-found.tsx for them, so Next serves this whole document
-  instead, with a 404 status (experimental.globalNotFound in next.config.ts). It gets no props, so
-  it can't follow the address's language: it is Arabic until D1-5's app/[locale]/[...rest] page
-  takes these addresses (then delete this file and the flag, or keep them for stray paths). An
-  unknown first segment such as /fr or /admin matches [locale], so the layout's notFound() gives
-  Next's default 404 there. notFound() inside a page still renders app/[locale]/not-found.tsx.
+  The 404 document for an address that matches no route at all (dev-1 D1-1), served whole with a
+  404 status (experimental.globalNotFound in next.config.ts). It gets no props, so it can't follow
+  the address's language. Since D1-5, app/[locale]/[...rest] answers every unknown address under
+  /ar and /en in its own language, so this is the safety net for the rest: '/' if its redirect to
+  /ar ever went missing. An unknown first segment such as /fr or /admin/x matches [locale], so the
+  layout's notFound() gives Next's default 404 there.
 */
 export default function GlobalNotFound() {
   return (

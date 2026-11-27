@@ -27,7 +27,7 @@ describe('EventCard', () => {
   it('links the title to the event page and names the full date for screen readers', () => {
     render(<EventCard locale="ar" event={event} variant="upcoming" />)
     const link = screen.getByRole('link', { name: /مدخل إلى هندسة الأنظمة/ })
-    expect(link.getAttribute('href')).toBe('/events/42')
+    expect(link.getAttribute('href')).toBe('/ar/events/42')
     expect(link.textContent).toContain('١٨ نوفمبر ٢٠٢٦')
   })
 
@@ -60,7 +60,7 @@ describe('EventCard', () => {
   it('recording: marks it ended and links to the library', () => {
     render(<EventCard locale="ar" event={{ ...event, recordingUrl: 'https://youtu.be/abc' }} variant="recording" />)
     expect(screen.getByText(t('ar', 'event.badge.ended'))).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: t('ar', 'event.watchRecording') }).getAttribute('href')).toBe('/library')
+    expect(screen.getByRole('link', { name: t('ar', 'event.watchRecording') }).getAttribute('href')).toBe('/ar/library')
   })
 
   it('cancelled: says so, whatever the variant', () => {
@@ -76,7 +76,7 @@ describe('EventCard', () => {
     expect(block).toContain('November')
     expect(block).toContain('Wednesday')
     expect(block).not.toMatch(/[؀-ۿ]/)
-    expect(screen.getByRole('link', { name: /18 November 2026/ }).getAttribute('href')).toBe('/events/42')
+    expect(screen.getByRole('link', { name: /18 November 2026/ }).getAttribute('href')).toBe('/en/events/42')
     expect(container.textContent).toMatch(/6:00\s*–\s*8:00\spm/)
   })
 

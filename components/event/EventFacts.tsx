@@ -35,13 +35,13 @@ export function EventFacts({ locale, event }: { locale: Locale; event: PublicEve
         <span className="block">{t(locale, online ? 'event.format.online' : 'event.format.inPerson')}</span>
         {!online && event.location && (
           <span className="block text-small font-normal text-on-dark">
-            <Place text={event.location} />
+            <Place locale={locale} text={event.location} />
           </span>
         )}
       </Fact>
       {event.presenter && (
         <Fact icon={Mic} term={t(locale, 'event.fact.presenter')}>
-          <Place text={event.presenter} />
+          <Place locale={locale} text={event.presenter} />
         </Fact>
       )}
     </dl>

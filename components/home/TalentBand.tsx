@@ -4,6 +4,7 @@ import { Photo } from '@/components/ui/Photo'
 import { images } from '@/lib/data/images'
 import { t } from '@/lib/i18n/t'
 import type { Locale } from '@/lib/i18n/locale'
+import { localePath } from '@/lib/i18n/paths'
 
 /** the guide's line with its second sentence as the mint accent */
 function line(text: string) {
@@ -39,7 +40,7 @@ export function TalentBand({ locale, className }: { locale: Locale; className?: 
             {line(t(locale, 'home.talent.line'))}
           </h2>
           <p className="mt-4 max-w-[30rem] text-body">{t(locale, 'home.talent.body')}</p>
-          <LinkButton href="/talent" tone="dark" size="lg" arrow className="mt-7">
+          <LinkButton href={localePath(locale, '/talent')} tone="dark" size="lg" arrow className="mt-7">
             {t(locale, 'home.talent.cta')}
           </LinkButton>
         </div>

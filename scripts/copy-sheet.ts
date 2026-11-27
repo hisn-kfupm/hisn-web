@@ -37,7 +37,7 @@ const FIXED_ARABIC = new Set(['event.badge.almostFull'])
  */
 const PLACES: [string, string[]][] = [
   ['Every page · browser tab and search results', ['meta.description']],
-  ['Every page · header and menu', ['a11y.skip', 'header.', 'nav.', 'auth.']],
+  ['Every page · header and menu', ['a11y.skip', 'header.', 'nav.', 'auth.', 'lang.']],
   ['Every page · footer', ['footer.', 'brand.closing', 'brand.university']],
   ['Every page · breadcrumbs', ['crumbs.']],
   ['Home · hero', ['brand.slogan', 'brand.about', 'hero.', 'home.hero.', 'home.next.']],

@@ -70,6 +70,6 @@ describe('department pages', () => {
     render(await DepartmentView(params(departments[0].slug)))
     const nav = screen.getByRole('navigation', { name: t('ar', 'dept.siblings') })
     const hrefs = within(nav).getAllByRole('link').map((a) => a.getAttribute('href'))
-    expect(hrefs).toEqual([`/departments/${departments[departments.length - 1].slug}`, `/departments/${departments[1].slug}`])
+    expect(hrefs).toEqual([`/ar/departments/${departments[departments.length - 1].slug}`, `/ar/departments/${departments[1].slug}`])
   })
 })

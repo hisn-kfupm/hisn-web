@@ -7,6 +7,7 @@ import type { PublicEvent } from '@/lib/events/types'
 import { formatRiyadh } from '@/lib/time/riyadh'
 import { t, type StringKey } from '@/lib/i18n/t'
 import type { Locale } from '@/lib/i18n/locale'
+import { localePath } from '@/lib/i18n/paths'
 
 /**
  * «أحدث التسجيلات» (revision 04 §4.5): the four latest recordings as video thumbnails (a photo and
@@ -29,7 +30,7 @@ export function LatestRecordings({ locale, number, recordings, title, headId = '
   return (
     <section data-testid={testId} aria-labelledby={headId} className="bg-page py-14 lg:py-20">
       <div className="wrap">
-        <SectionHead locale={locale} number={number} id={headId} title={title ?? t(locale, 'home.recordings.title')} link={link ?? { href: '/library', label: t(locale, 'home.recordings.all') }} />
+        <SectionHead locale={locale} number={number} id={headId} title={title ?? t(locale, 'home.recordings.title')} link={link ?? { href: localePath(locale, '/library'), label: t(locale, 'home.recordings.all') }} />
         {recordings.length > 0 ? (
           <ul className="m-0 grid list-none grid-cols-2 gap-x-4 gap-y-7 p-0 lg:grid-cols-4 lg:gap-x-6">
             {recordings.map((event) => (
@@ -43,7 +44,7 @@ export function LatestRecordings({ locale, number, recordings, title, headId = '
                   </div>
                   {event.departmentCode && <p className="mt-3 text-label text-accent-strong">{t(locale, `dept.${event.departmentCode}.title` as StringKey)}</p>}
                   <h3 className="mt-1 line-clamp-2 text-[1rem] leading-[1.55] font-bold lg:text-[1.0625rem]">
-                    <Link href={`/library#recording-${event.id}`} className="text-deep no-underline after:absolute after:inset-0 after:z-20">
+                    <Link href={localePath(locale, `/library#recording-${event.id}`)} className="text-deep no-underline after:absolute after:inset-0 after:z-20">
                       <span className="draw-line pb-0.5">{event.title}</span>
                     </Link>
                   </h3>

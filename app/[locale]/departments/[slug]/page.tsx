@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { PageHead } from '@/components/brand/PageHead'
 import { DepartmentView } from '@/components/department/DepartmentView'
 import { departments } from '@/lib/data/labels'
+import { alternatesFor } from '@/lib/i18n/alternates'
 import { localeOf, pageLocale } from '@/lib/i18n/page-locale'
 import { t, type StringKey } from '@/lib/i18n/t'
 
@@ -30,7 +31,7 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const { slug } = await params
   const locale = await localeOf(params)
   const dept = departments.find((d) => d.slug === slug)
-  return dept ? { title: t(locale, key(dept.code, 'title')), description: t(locale, key(dept.code, 'summary')) } : {}
+  return dept ? { title: t(locale, key(dept.code, 'title')), description: t(locale, key(dept.code, 'summary')), alternates: alternatesFor(`/departments/${dept.slug}`, locale) } : {}
 }
 
 export default async function DepartmentPage({ params }: { params: Params }) {

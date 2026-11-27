@@ -7,6 +7,7 @@ import { CalendarView } from '@/components/calendar/CalendarView'
 import { loadCalendar } from '@/lib/events/calendar'
 import { groupByDay } from '@/lib/events/month'
 import type { Locale } from '@/lib/i18n/locale'
+import { alternatesFor } from '@/lib/i18n/alternates'
 import { localeOf } from '@/lib/i18n/page-locale'
 import { t } from '@/lib/i18n/t'
 
@@ -19,7 +20,8 @@ import { t } from '@/lib/i18n/t'
 type Params = Promise<{ locale: string }>
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
-  return { title: t(await localeOf(params), 'calendar.meta.title') }
+  const locale = await localeOf(params)
+  return { title: t(locale, 'calendar.meta.title'), alternates: alternatesFor('/events', locale) }
 }
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>

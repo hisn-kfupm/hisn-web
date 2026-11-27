@@ -77,10 +77,15 @@ describe('t()', () => {
     expect(differ).toEqual([])
   })
 
-  it('keeps en.json in English, apart from the «مؤقت» draft marker', () => {
+  it('keeps en.json in English, apart from the «مؤقت» draft marker and the switcher’s «العربية»', () => {
     const enStrings: Record<string, string> = en
     const arabic = Object.keys(enStrings).filter((k) => /[؀-ۿ]/.test(enStrings[k].replace(MARKER, '')))
-    expect(arabic).toEqual([])
+    expect(arabic).toEqual(['lang.switch'])
+  })
+
+  it('names the other language in its own script on the switcher (spec §6.3: العربية / English)', () => {
+    expect(t('ar', 'lang.switch')).toBe('English')
+    expect(t('en', 'lang.switch')).toBe('العربية')
   })
 
   it('leaves an empty Arabic value empty in English (an empty role is not rendered)', () => {

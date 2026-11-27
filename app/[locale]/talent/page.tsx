@@ -5,8 +5,10 @@ import { ArrowLink } from '@/components/ui/ArrowLink'
 import { LinkButton } from '@/components/ui/Buttons'
 import { images } from '@/lib/data/images'
 import { fmtNum } from '@/lib/i18n/number'
+import { alternatesFor } from '@/lib/i18n/alternates'
 import { localeOf } from '@/lib/i18n/page-locale'
 import { t, type StringKey } from '@/lib/i18n/t'
+import { localePath } from '@/lib/i18n/paths'
 
 /*
   /talent, the public half of dev-1 D1-17: what the talent base is, how to join, where the data
@@ -18,7 +20,8 @@ import { t, type StringKey } from '@/lib/i18n/t'
 type Params = Promise<{ locale: string }>
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
-  return { title: t(await localeOf(params), 'nav.talent') }
+  const locale = await localeOf(params)
+  return { title: t(locale, 'nav.talent'), alternates: alternatesFor('/talent', locale) }
 }
 
 const STEPS = [1, 2, 3] as const
@@ -27,7 +30,7 @@ export default async function TalentPage({ params }: { params: Params }) {
   const locale = await localeOf(params)
   return (
     <>
-      <PageHead locale={locale} crumbs={[{ href: '/', label: t(locale, 'crumbs.home') }, { label: t(locale, 'nav.talent') }]} kicker={t(locale, 'nav.talent')} title={t(locale, 'home.talent.line')} photo={{ image: images.talent, alt: t(locale, images.talent.alt) }}>
+      <PageHead locale={locale} crumbs={[{ href: localePath(locale, '/'), label: t(locale, 'crumbs.home') }, { label: t(locale, 'nav.talent') }]} kicker={t(locale, 'nav.talent')} title={t(locale, 'home.talent.line')} photo={{ image: images.talent, alt: t(locale, images.talent.alt) }}>
         <p className="mt-5 max-w-[34em] text-body text-on-dark">{t(locale, 'home.talent.body')}</p>
       </PageHead>
 
@@ -42,7 +45,7 @@ export default async function TalentPage({ params }: { params: Params }) {
               {t(locale, 'talent.privacy.title')}
             </h3>
             <p className="mt-3 text-muted">{t(locale, 'talent.privacy.body')}</p>
-            <ArrowLink href="/privacy" className="mt-5">
+            <ArrowLink href={localePath(locale, '/privacy')} className="mt-5">
               {t(locale, 'talent.privacy.link')}
             </ArrowLink>
           </aside>
@@ -76,7 +79,7 @@ export default async function TalentPage({ params }: { params: Params }) {
               {t(locale, 'talent.opensSoon')}
             </h2>
             <p className="mt-4 max-w-[36em] text-on-dark">{t(locale, 'talent.opensSoon.body')}</p>
-            <LinkButton href="/events" tone="dark" arrow className="mt-8">
+            <LinkButton href={localePath(locale, '/events')} tone="dark" arrow className="mt-8">
               {t(locale, 'talent.opensSoon.cta')}
             </LinkButton>
           </div>

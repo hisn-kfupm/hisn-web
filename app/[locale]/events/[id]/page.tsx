@@ -27,7 +27,9 @@ import { standInPageIds } from '@/lib/events/stand-in'
 import { eventButtonState } from '@/lib/events/state'
 import type { PublicEvent } from '@/lib/events/types'
 import type { Locale } from '@/lib/i18n/locale'
+import { localePath } from '@/lib/i18n/paths'
 import { arabicDigits, isArabicText } from '@/lib/i18n/number'
+import { alternatesFor } from '@/lib/i18n/alternates'
 import { localeOf, pageLocale } from '@/lib/i18n/page-locale'
 import { t, type StringKey } from '@/lib/i18n/t'
 
@@ -61,9 +63,10 @@ export async function generateStaticParams(): Promise<{ id: string }[]> {
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { id } = await params
+  const locale = await localeOf(params)
   await connection()
   const event = await load(id)
-  return event ? { title: event.title } : {}
+  return event ? { title: event.title, alternates: alternatesFor(`/events/${event.id}`, locale) } : {}
 }
 
 export default async function EventPage({ params }: { params: Params }) {
@@ -106,7 +109,7 @@ async function EventView({ params }: { params: Params }) {
     <>
       <PageHead locale={locale}
         size="title"
-        crumbs={[{ href: '/', label: t(locale, 'crumbs.home') }, { href: '/events', label: t(locale, 'nav.events') }, { label: event.title }]}
+        crumbs={[{ href: localePath(locale, '/'), label: t(locale, 'crumbs.home') }, { href: localePath(locale, '/events'), label: t(locale, 'nav.events') }, { label: event.title }]}
         backdrop={cover}
         kicker={
           dept ? (

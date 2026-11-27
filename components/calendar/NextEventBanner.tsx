@@ -8,6 +8,7 @@ import type { PublicEvent } from '@/lib/events/types'
 import { t, type StringKey } from '@/lib/i18n/t'
 import { formatRiyadh, riyadhMonth } from '@/lib/time/riyadh'
 import type { Locale } from '@/lib/i18n/locale'
+import { localePath } from '@/lib/i18n/paths'
 
 /**
  * The photo's rendered width in each CalendarView layout. The card goes side by side once it is
@@ -53,7 +54,7 @@ export function NextEventBanner({ locale, event, month, sizes = NEXT_EVENT_SIZES
             <h2 id="next-banner-title" className="text-[1.375rem] leading-[1.45] font-bold sm:text-[1.875rem] sm:leading-[1.4]">
               {/* the link's ::after covers the whole card, photo and arrow included; its own z-index
                   keeps it above the reordered photo whatever the engine's paint order */}
-              <Link href={`/events/${event.id}`} className="text-white no-underline after:absolute after:inset-0 after:z-[1]">
+              <Link href={localePath(locale, `/events/${event.id}`)} className="text-white no-underline after:absolute after:inset-0 after:z-[1]">
                 {event.title}
               </Link>
             </h2>
@@ -75,7 +76,7 @@ export function NextEventBanner({ locale, event, month, sizes = NEXT_EVENT_SIZES
           </div>
           <div className="col-span-2 flex flex-wrap items-center justify-between gap-4 border-t border-white/12 pt-4">
             {eventMonth !== month && (
-              <ArrowLink href={`/events?m=${eventMonth}`} scroll={false} tone="dark" className="relative z-10">
+              <ArrowLink href={localePath(locale, `/events?m=${eventMonth}`)} scroll={false} tone="dark" className="relative z-10">
                 {t(locale, 'calendar.nextEvent.month', { month: formatRiyadh(event.startsAt, 'month', locale) })}
               </ArrowLink>
             )}
