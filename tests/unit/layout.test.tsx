@@ -2,6 +2,10 @@ import { describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { renderToStaticMarkup } from 'react-dom/server'
 
+// the layout's profile overlay (D2-7) calls saveProfile and getSession, server actions whose modules are server-only
+vi.mock('@/app/account/actions', () => ({ saveProfile: vi.fn() }))
+vi.mock('@/lib/auth/session', () => ({ getSession: vi.fn(), signOut: vi.fn() }))
+
 const nav = vi.hoisted(() => ({ pathname: '/ar' }))
 vi.mock('next/navigation', async (original) => ({
   ...(await original<typeof import('next/navigation')>()),

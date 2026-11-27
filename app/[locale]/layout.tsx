@@ -9,6 +9,7 @@ import { SkipLink } from '@/components/ui/SkipLink'
 import { dirFor, isLocale, LOCALES } from '@/lib/i18n/locale'
 import { localeOf } from '@/lib/i18n/page-locale'
 import { t } from '@/lib/i18n/t'
+import { ProfileGateProvider } from '@/lib/profile/gate'
 import '../globals.css'
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
@@ -43,7 +44,9 @@ export default async function RootLayout({ children, params }: { children: React
         <ProgressHairline />
         {/* session is null until D2-4 (getSession) merges — dev-1 D1-5 stub */}
         <Header locale={locale} session={null} />
-        <main id="main" tabIndex={-1} className="min-h-dvh outline-none">{children}</main>
+        <main id="main" tabIndex={-1} className="min-h-dvh outline-none">
+          <ProfileGateProvider locale={locale}>{children}</ProfileGateProvider>
+        </main>
         <Footer locale={locale} />
       </body>
     </html>
