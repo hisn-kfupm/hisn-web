@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { buildIcs } from '@/lib/email/ics'
+import { eventIcs } from '@/lib/events/ics'
 
 // The values of the task's cases (dev-2 D2-2)
 const event = {
@@ -80,5 +81,38 @@ describe('buildIcs', () => {
     const ics = buildIcs({ ...event, startsAt: '2026-11-18T15:00:00+00:00', endsAt: '2026-11-18T20:00:00+03:00' })
     expect(ics).toContain('DTSTART:20261118T150000Z')
     expect(ics).toContain('DTEND:20261118T170000Z')
+  })
+
+  /* From the independent review */
+  // RFC 5545 §3.1: lines longer than 75 octets are folded with CRLF and a space, never inside a character
+  it('folds a long line at 75 octets, and unfolding gives the line back', () => {
+    const title = Array(6).fill('ورشة الأمن السيبراني').join(' ')
+    const ics = buildIcs({ ...event, title })
+    const octets = (line: string) => new TextEncoder().encode(line).length
+    for (const line of ics.split('\r\n')) expect(octets(line), line).toBeLessThanOrEqual(75)
+    const summary = ics.split('\r\n').filter((line, i, lines) => line.startsWith('SUMMARY:') || (line.startsWith(' ') && lines.slice(0, i).some((l) => l.startsWith('SUMMARY:'))))
+    expect(summary.length).toBeGreaterThan(1)
+    expect(ics.replaceAll('\r\n ', '')).toContain(`SUMMARY:${title}\r\n`)
+  })
+
+  // a URL can't hold a line break; one that did would add a property of its own
+  it('drops line breaks from the URL', () => {
+    const ics = buildIcs({ ...event, url: 'https://hisn-sa.org/ar/events/7\r\n\n' })
+    expect(ics.split('\r\n')).toHaveLength(15)
+    expect(ics).toContain('URL:https://hisn-sa.org/ar/events/7\r\n')
+  })
+
+  // without an offset, Date reads a time in the server's time zone
+  it('refuses a time without a UTC offset', () => {
+    expect(() => buildIcs({ ...event, startsAt: '2026-11-18T15:00:00' })).toThrow(/offset/)
+    expect(() => buildIcs({ ...event, endsAt: '2026-11-18T17:00:00' })).toThrow(/offset/)
+  })
+
+  // the page's «أضفها إلى تقويمك» file and the emails' file are one calendar entry, so an updated email file updates it
+  it("gives an event the same UID as the event page's calendar file", () => {
+    const page = eventIcs({ id: 7, title: event.title, description: 'وصف تجريبي', startsAt: event.startsAt, endsAt: event.endsAt }, 'قاعة 1')
+    const uid = (ics: string) => ics.split('\r\n').find((line) => line.startsWith('UID:'))
+    expect(uid(page)).toBe('UID:event-7@hisn-sa.org')
+    expect(uid(buildIcs(event))).toBe(uid(page))
   })
 })
