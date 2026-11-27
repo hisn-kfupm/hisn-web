@@ -13,6 +13,8 @@
     "test:scripts": "vitest run --project scripts",
     "test:e2e": "playwright test",
     "check:content": "tsx scripts/check-content.ts",
+    "copy:export": "tsx scripts/export-copy.ts",
+    "copy:import": "tsx scripts/import-copy.ts",
     "db:reset": "supabase db reset && bash scripts/ci/apply-talent.sh",
     "env:local": "bash scripts/ci/write-env.sh"
   },
