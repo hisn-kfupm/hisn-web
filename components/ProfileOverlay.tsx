@@ -11,7 +11,7 @@ import { cn } from '@/lib/cn'
 import { academicLevels, label, majors } from '@/lib/data/labels'
 import type { FieldErrors } from '@/lib/forms/types'
 import type { Locale } from '@/lib/i18n/locale'
-import { t } from '@/lib/i18n/t'
+import { t, type StringKey } from '@/lib/i18n/t'
 import type { ProfileInput } from '@/lib/profile/schema'
 
 type Props = {
@@ -200,9 +200,18 @@ export function ProfileOverlay({ locale, onClose, onSaved }: Props) {
 
   const invalid = (field: Field) => (errors[field] ? true : undefined)
   const described = (field: Field) => (errors[field] ? errorId(field) : undefined)
+  // An error's text. The overlay sits outside the pages' error boundary, so a key this page doesn't
+  // know (a newer server) shows the general error rather than taking the page down.
+  const message = (key: StringKey) => {
+    try {
+      return t(locale, key)
+    } catch {
+      return t(locale, 'profile.error.invalid')
+    }
+  }
   const problem = (field: Field) => {
     const key = errors[field]
-    return key ? <Notice id={errorId(field)}>{t(locale, key)}</Notice> : null
+    return key ? <Notice id={errorId(field)}>{message(key)}</Notice> : null
   }
   // errors with no control on show: the form as a whole, the language, the checkbox
   const general = Object.entries(errors).flatMap(([field, key]) => (key && !((ORDER as readonly string[]).includes(field) && shown(field as Field)) ? [key] : []))
@@ -381,7 +390,7 @@ export function ProfileOverlay({ locale, onClose, onSaved }: Props) {
               </p>
             )}
             {general.map((key) => (
-              <p key={key}>{t(locale, key)}</p>
+              <p key={key}>{message(key)}</p>
             ))}
           </Notice>
         )}

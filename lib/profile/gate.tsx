@@ -16,29 +16,42 @@ const GateContext = createContext<Gate | null>(null)
  * signing in or out). If gate() is called again before a save, the latest action replaces the
  * earlier one.
  *
- * The overlay is mounted only while it is open, so every opening starts blank: nothing one person
- * typed is shown to the next person on the same tab (P-1).
+ * Each opening mounts a new overlay, so every opening starts blank, even one an action asks for as
+ * soon as it runs: nothing one person typed is shown to the next person on the same tab (P-1).
  */
 export function ProfileGateProvider({ children, locale }: { children: ReactNode; locale: Locale }): JSX.Element {
   const waiting = useRef<(() => Promise<void>) | null>(null)
-  const [open, setOpen] = useState(false)
+  /** the overlay on show, by opening (a new number mounts a new, blank overlay), or null */
+  const [opening, setOpening] = useState<number | null>(null)
+  const openings = useRef(0)
   const pathname = usePathname()
+  /** the page the overlay was last opened on */
   const openedOn = useRef(pathname)
 
-  const gate = useCallback<Gate>((action) => {
-    waiting.current = action
-    setOpen(true)
-  }, [])
+  // Made for each page, so the overlay belongs to the page that asked, even one asking as it mounts
+  // after a client-side navigation (its effect runs before the provider's effect below).
+  const gate = useCallback<Gate>(
+    (action) => {
+      const samePage = openedOn.current === pathname
+      waiting.current = action
+      openedOn.current = pathname
+      const next = ++openings.current
+      // an overlay on show for this page stays, with what was typed (the latest action replaces the
+      // earlier one); otherwise a new, blank one opens
+      setOpening((current) => (current !== null && samePage ? current : next))
+    },
+    [pathname],
+  )
 
   const close = useCallback(() => {
     waiting.current = null
-    setOpen(false)
+    setOpening(null)
   }, [])
 
   const saved = useCallback(() => {
     const action = waiting.current
     waiting.current = null
-    setOpen(false)
+    setOpening(null)
     // Run apart from the overlay's save, in a microtask. The action belongs to the caller, which
     // shows its own progress and errors; one that rejects is an unhandled rejection that monitoring
     // sees, and it never takes the page down.
@@ -47,15 +60,13 @@ export function ProfileGateProvider({ children, locale }: { children: ReactNode;
 
   // the overlay and its action belong to the page they opened on
   useEffect(() => {
-    if (openedOn.current === pathname) return
-    openedOn.current = pathname
-    close()
+    if (openedOn.current !== pathname) close()
   }, [pathname, close])
 
   return (
     <GateContext value={gate}>
       {children}
-      {open && <ProfileOverlay locale={locale} onClose={close} onSaved={saved} />}
+      {opening !== null && <ProfileOverlay key={opening} locale={locale} onClose={close} onSaved={saved} />}
     </GateContext>
   )
 }

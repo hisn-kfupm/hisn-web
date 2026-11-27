@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, type ReactNode } from 'react'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Locale } from '@/lib/i18n/locale'
@@ -331,6 +331,50 @@ describe('profile overlay, closing and repeating', () => {
     expect(view.dialog()).toBeInTheDocument()
   })
 
+  // review of #24: the new page's mount effect runs before the provider sees the new pathname
+  it('a page that asks as it mounts, right after a client-side navigation: opens, and the save runs its action', async () => {
+    const action = vi.fn(async () => {})
+    function AsksOnMount() {
+      const gate = useProfileGate()
+      useEffect(() => gate(action), [gate])
+      return null
+    }
+    const tree = (page: ReactNode) => <ProfileGateProvider locale="ar">{page}</ProfileGateProvider>
+    const { rerender } = render(tree(null))
+    nav.pathname = '/ar/account'
+    act(() => rerender(tree(<AsksOnMount />)))
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    fireEvent.change(screen.getByLabelText(ar['profile.name']), { target: { value: 'سارة أحمد' } })
+    fireEvent.change(screen.getByLabelText(ar['profile.major']), { target: { value: 'SWE' } })
+    fireEvent.change(screen.getByLabelText(ar['profile.level']), { target: { value: 'BACHELOR' } })
+    fireEvent.click(screen.getByRole('radio', { name: ar['profile.gender.female'] }))
+    await act(async () => void fireEvent.click(screen.getByRole('button', { name: ar['profile.save'] })))
+    await waitFor(() => expect(action).toHaveBeenCalledTimes(1))
+  })
+
+  // review of #24: an action may ask again at once, before the closed overlay has unmounted
+  it('an action that opens the overlay again as soon as it runs: a blank form (P-1)', async () => {
+    let gate!: Gate
+    const second = vi.fn(async () => {})
+    const first = vi.fn(async () => gate(second))
+    render(
+      <ProfileGateProvider locale="ar">
+        <Capture onGate={(handed) => (gate = handed)} />
+      </ProfileGateProvider>,
+    )
+    await act(async () => gate(first))
+    fireEvent.change(screen.getByLabelText(ar['profile.name']), { target: { value: 'سارة أحمد' } })
+    fireEvent.change(screen.getByLabelText(ar['profile.major']), { target: { value: 'SWE' } })
+    fireEvent.change(screen.getByLabelText(ar['profile.level']), { target: { value: 'BACHELOR' } })
+    fireEvent.click(screen.getByRole('radio', { name: ar['profile.gender.female'] }))
+    await act(async () => void fireEvent.click(screen.getByRole('button', { name: ar['profile.save'] })))
+    await flush()
+    expect(first).toHaveBeenCalledTimes(1)
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    expect(screen.getByLabelText(ar['profile.name'])).toHaveValue('')
+    for (const radio of screen.getAllByRole('radio')) expect(radio).not.toBeChecked()
+  })
+
   it('the same page again (a search change is not a new page): stays open', async () => {
     const view = show()
     await view.open()
@@ -520,6 +564,18 @@ describe('profile overlay, errors', () => {
     const notice = screen.getByRole('alert')
     expect(notice).toHaveTextContent(en['profile.error.invalid'])
     expect(notice).toHaveTextContent(en['profile.error.locale'])
+  })
+
+  // review of #24: the overlay sits outside the pages' error boundary, so a key it can't show must not throw
+  it('an error key the page does not know (a newer server): the general error, and the page stays up', async () => {
+    actions.saveProfile.mockResolvedValue({ ok: false, errors: { full_name_ar: 'profile.error.unknown', form: 'profile.error.unknown' } })
+    const view = show()
+    await view.open()
+    await view.save()
+    await flush()
+    expect(view.dialog()).toBeInTheDocument()
+    expect(view.field('profile.name')).toHaveAccessibleDescription(ar['profile.error.invalid'])
+    expect(screen.getByRole('alert')).toHaveTextContent(ar['profile.error.invalid'])
   })
 
   it("a field's error goes once it is changed, and the next save starts clean", async () => {
