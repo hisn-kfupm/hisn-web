@@ -6,6 +6,9 @@
 # - Environment `production` only (main only, owner review): SUPABASE_ACCESS_TOKEN (reaches every org, prod and talent
 #   included), PROD_PROJECT_REF, PROD_DB_PASSWORD, VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID.
 # Talent migrations are not here: the owner applies talent/migrations to hisn-talent by hand.
+#
+# Supabase CLI 3: `db push` targets the local stack unless given --remote, and on a hosted database it applies nothing
+# without --yes (CI cannot answer the prompt). --remote=<url> replaces the deprecated --db-url.
 name: Main
 
 on:
@@ -36,7 +39,7 @@ jobs:
       - name: Push migrations to hisn-dev
         env:
           DEV_DB_URL: ${{ secrets.DEV_DB_URL }}
-        run: supabase db push --db-url "$DEV_DB_URL"
+        run: supabase db push --remote="$DEV_DB_URL" --yes
 
   migrate-prod:
     name: migrate-prod
@@ -56,8 +59,9 @@ jobs:
           version: 3.1.0
 
       - run: supabase link --project-ref "$PROD_PROJECT_REF"
+      # --remote alone = the linked project; the password comes from SUPABASE_DB_PASSWORD above
       - name: Push migrations to hisn-prod
-        run: supabase db push
+        run: supabase db push --remote --yes
 
   deploy:
     name: deploy
