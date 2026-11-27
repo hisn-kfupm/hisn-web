@@ -248,14 +248,14 @@ tests.logout() returns void                  -- role 'postgres' (allowed because
 
 **Date:** Mon 16 Nov.
 
-**Build:** Access rules for the remaining tables, and the newsletter function, which becomes the **only** way into `signups` (the teaser and the footer both call it). It rejects malformed addresses so they never reach the announcement audience.
+**Build:** Access rules for the remaining tables, and the newsletter function, which becomes the **only** way into `signups` (the footer calls it; the teaser keeps its own project until it retires at launch, A-9). It rejects malformed addresses so they never reach the announcement audience.
 
 **Files:**
 - `supabase/migrations/<timestamp>_rls_rest.sql`
 - `supabase/tests/rls_rest.test.sql`
 
 **Interfaces — produces:**
-- **signups:** `revoke all on signups from anon, authenticated`; **no** policies. Nobody inserts directly; the teaser switches to `newsletter_signup` in A-9.
+- **signups:** `revoke all on signups from anon, authenticated`; **no** policies, so the site's keys never insert directly. The teaser is not switched over: on launch day the owner copies its signups in once, through a direct database connection (A-9).
 - **email_unsubscribes**, **email_deliveries:** no policies (server only, through the service key).
 - **talent_submission_log:** select `using (user_id = auth.uid())` for `authenticated` — **no admin clause**; no write policies (server writes through the service key).
 ```sql
@@ -477,30 +477,39 @@ Languages (columns from A-19): users whose number is divisible by 4 (`u04`, `u08
 
 ## A-9 · Teaser data migration (plan T5)
 
-**Date:** Sat 21 Nov (morning).
+**Date:** Mon 30 Nov (launch day), right before the domain switch in A-17. Runbook and script ready before then.
 
-**Build:** Move phase 1 signups into `hisn-prod`, point the teaser at `hisn-prod`, and close the old project.
+**Build:** Copy the teaser's signups into `hisn-prod` once, right before the domain switch, after freezing the old project so nothing arrives after the count. The teaser itself is **not** changed (owner decision, 27 Nov): it keeps writing to the old project until hisn-sa.org moves, and it retires with the switch.
 
-**Files:** teaser repo `js/script.js` (outside this repo).
+**Files:**
+- `scripts/launch/teaser-signups.sql` (the copy, run in one transaction on `hisn-prod`)
+- `tests/db/teaser-signups.test.ts`
+- `docs/runbooks/A-09-teaser-migration.md` (the launch-day steps)
 
-**Interfaces:** `signups (email, source = 'import')`. Imported rows get `locale = 'ar'` from the column default (A-19); the teaser's `newsletter_signup` call needs no change and also stores `'ar'`.
-- [ ] Export the old `signups`; normalize `lower(trim(email))`; drop case-duplicates; import into `hisn-prod` with `source = 'import'`.
-- [ ] Edit the teaser's `js/script.js`: `hisn-prod` URL and **public** anon key, and replace the direct table insert with `supabase.rpc('newsletter_signup', { p_email, p_source: 'teaser' })` (the teaser's own variable name is outside this repo's lint). Redeploy the teaser; submit a test email → it appears in `hisn-prod.signups` with `source = 'teaser'`; submit `not-an-email` → rejected.
-- [ ] Remove the insert policy on the old project; submit again → rejected.
+**Interfaces:** `signups (email, source = 'import', created_at)`. Imported rows get `locale = 'ar'` from the column default (A-19).
+- Addresses are normalized with `lower(trim(email))`. Malformed ones (the same check as `newsletter_signup`) are dropped and listed on the owner's terminal only. Case-duplicates keep the earliest original `created_at` (owner decisions, 27 Nov). An address already in `hisn-prod` stays as it is.
+- The script needs the temp table `teaser_signups (email, created_at)` loaded from the old project, and `teaser.expected_rows` set to the old project's count. It fails, and writes nothing, unless the rows loaded equal that count and every valid address ends up in `signups`. Running it twice inserts nothing new.
+- [ ] Launch day, following the runbook: save the old project's insert policy (for rollback), drop it (freeze), count the old rows, copy (`rollback` rehearsal, then `commit`), then switch the domain.
+- [ ] After the switch: a submission on the teaser's `*.vercel.app` address fails. Rollback re-creates the saved policy.
 
 **Needs first:** A-8 (`hisn-prod` migrated).
 
-**Blocks:** nobody.
+**Blocks:** A-17 (the switch).
 
-**Tests to write:** none.
+**Tests to write** (`tests/db/teaser-signups.test.ts`, fake rows, every test rolls back):
+- Normalized, one row per address, `source = 'import'`, `locale = 'ar'`, the earliest original time kept; summary `total, malformed, duplicates, unique_valid, inserted, already_in_prod`.
+- Malformed addresses (`not-an-email`, `x@y`, null) are dropped, never stored, and listed.
+- An address already in `hisn-prod` keeps its row.
+- A loaded count different from `teaser.expected_rows` → error; no `teaser.expected_rows` → error.
+- A second run inserts nothing.
 
-**Done when:** imported count = old count minus duplicates, and both test submissions behave as stated.
+**Done when:** `npm run db:reset && npm run test:db -- tests/db/teaser-signups.test.ts` passes. On launch day the `commit` run ends with `COMMIT`, its summary has `total` = the old count and `inserted + already_in_prod = unique_valid`, and a teaser submission after the freeze fails.
 
 ---
 
 ## A-16 · Domain switch rehearsal (plan T24)
 
-**Date:** Sat 21 Nov (afternoon, after A-9). It needs only the deployed new project (A-8) and the TTL lowered on Fri 20.
+**Date:** Sat 21 Nov (afternoon). It needs only the deployed new project (A-8) and the TTL lowered on Fri 20.
 
 **Build:** Rehearse the switch and the rollback on a subdomain and time every step.
 
@@ -886,6 +895,7 @@ export function reportError(err: unknown, opts: { level: 'fatal' | 'error'; tags
   - the talent key gets permission denied reading `talent_entries` and `private.talent_export` (run with the production anon key);
   - each developer account has no access to Hisn Prod, Hisn Talent or production env vars (check each member list);
   - run `scripts/export-talent.ts` and open the file in Excel.
+- [ ] Right before the switch: copy the teaser's signups into `hisn-prod` (A-9, `docs/runbooks/A-09-teaser-migration.md`): freeze the old project, count, copy, counts match.
 - [ ] Switch hisn-sa.org following `docs/launch-runbook.md`. Set `SITE_URL=https://hisn-sa.org` in Vercel production env and redeploy.
 - [ ] Both languages: `https://hisn-sa.org/` redirects to `/ar`; `/en` pages read left to right and the language switcher keeps you on the same page; `/admin` stays Arabic.
 - [ ] Send one real announcement to the team, with at least one team account set to English on `/account`: the Arabic and the English versions arrive in the right inboxes. Press Gmail's own unsubscribe button; confirm the row in `email_unsubscribes`.
