@@ -335,5 +335,22 @@
   "admin.status.published": "منشورة «مؤقت»",
   "admin.status.cancelled": "ملغاة «مؤقت»",
   "admin.announce.notSent": "لم يُرسل «مؤقت»",
-  "admin.announce.started": "بدأ الإرسال «مؤقت»"
+  "admin.announce.started": "بدأ الإرسال «مؤقت»",
+  "admin.export.col.name": "الاسم",
+  "admin.export.col.email": "البريد الإلكتروني",
+  "admin.export.col.major": "التخصص",
+  "admin.export.col.level": "المرحلة الدراسية",
+  "admin.export.col.gender": "الجنس",
+  "admin.export.col.status": "الحالة",
+  "admin.export.col.registeredAt": "تاريخ التسجيل",
+  "admin.export.col.waitlistPosition": "الترتيب في قائمة الانتظار",
+  "admin.export.col.announcements": "الإعلانات",
+  "admin.export.col.createdAt": "تاريخ إنشاء الحساب",
+  "admin.export.gender.male": "ذكر",
+  "admin.export.gender.female": "أنثى",
+  "admin.export.yes": "نعم",
+  "admin.export.no": "لا",
+  "admin.export.status.registered": "مسجّل",
+  "admin.export.status.waitlisted": "في قائمة الانتظار",
+  "admin.export.status.cancelled": "ملغى"
 }
