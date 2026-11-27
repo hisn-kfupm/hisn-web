@@ -17,7 +17,7 @@ export default defineConfig({
     passWithNoTests: true,
     projects: [
       { extends: true, test: { name: 'unit', include: ['tests/unit/**/*.test.{ts,tsx}'], environment: 'jsdom', setupFiles: ['./vitest.setup.ts'] } },
-      { extends: true, test: { name: 'db', include: ['tests/db/**/*.test.ts'], environment: 'node' } },
+      { extends: true, test: { name: 'db', include: ['tests/db/**/*.test.ts'], environment: 'node', setupFiles: ['./tests/db/setup.ts'] } },
       { extends: true, test: { name: 'scripts', include: ['tests/scripts/**/*.test.ts'], environment: 'node' } },
     ],
   },
