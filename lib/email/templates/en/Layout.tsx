@@ -21,7 +21,7 @@ export default function Layout({ preview, children }: { preview: string; childre
           <Text style={styles.small}>
             {t('en', 'email.footer.contact')}{' '}
             <Link href={`mailto:${CONTACT_EMAIL}`} style={styles.link}>
-              <bdi>{CONTACT_EMAIL}</bdi>
+              <bdi lang="en">{CONTACT_EMAIL}</bdi>
             </Link>
           </Text>
         </Container>

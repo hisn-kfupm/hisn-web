@@ -161,7 +161,8 @@ describe('email templates', () => {
   })
 
   it('en/Confirmation isolates an Arabic name inside the English text', async () => {
-    const html = await render(<EnConfirmation name="علي أحمد" event={enEvent} cancelUrl={LINKS.en.cancelUrl} />)
+    // no presenter, so only the name can match
+    const html = await render(<EnConfirmation name="علي أحمد" event={{ ...enEvent, presenter: null }} cancelUrl={LINKS.en.cancelUrl} />)
     expect(html).toMatch(/<bdi[^>]*>علي أحمد<\/bdi>/)
   })
 
@@ -198,16 +199,28 @@ describe('email templates', () => {
     }
   })
 
+  // as on the site (components/event/EventFacts.tsx): a Latin presenter is isolated as English; the greeting's
+  // name differs, so only the presenter can match
   it('isolates the presenter', async () => {
-    for (const locale of ['ar', 'en'] as const) expect(await render(email('confirmation', locale))).toMatch(/<bdi[^>]*>علي أحمد<\/bdi>/)
+    for (const locale of ['ar', 'en'] as const) {
+      const html = await render(email('confirmation', locale, { ...LINKS[locale].event, presenter: 'Ali Ahmed' }))
+      expect(html).toMatch(/<bdi lang="en">Ali Ahmed<\/bdi>/)
+    }
   })
 
-  it('shows the Hisn header and the contact address, isolated, in the footer', async () => {
+  it('writes the weekday and date as the site does (event.weekdayDate)', async () => {
+    for (const locale of ['ar', 'en'] as const) {
+      const when = t(locale, 'event.weekdayDate', { weekday: formatRiyadh(event.startsAt, 'weekday', locale), date: formatRiyadh(event.startsAt, 'date', locale) })
+      expect(await render(email('confirmation', locale))).toContain(escaped(when))
+    }
+  })
+
+  it('shows the Hisn header and the contact address, isolated as English, in the footer', async () => {
     for (const locale of ['ar', 'en'] as const) {
       const html = await render(email('confirmation', locale))
       expect(html).toContain(shown(locale, 'brand.name'))
       expect(html).toContain(shown(locale, 'email.footer.contact'))
-      expect(html).toMatch(new RegExp(`<bdi[^>]*>${CONTACT_EMAIL}</bdi>`))
+      expect(html).toMatch(new RegExp(`<bdi lang="en">${CONTACT_EMAIL}</bdi>`))
       expect(html).toContain("'IBM Plex Sans Arabic', Tahoma, Arial, sans-serif".replace(/'/g, '&#x27;'))
     }
   })
