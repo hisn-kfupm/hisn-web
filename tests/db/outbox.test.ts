@@ -132,6 +132,22 @@ describe('flushStale', () => {
     expect((await stored(row.id)).error).toHaveLength(500)
   })
 
+  // review of D2-8: a cut inside an emoji, or text Postgres can't store, made the status update fail, so the row
+  // stayed queued and was sent again every 5 minutes
+  it('records any error: cut at 500 characters, never inside one, and without text Postgres cannot store', async () => {
+    const emoji = await queued({ age: '3 minutes' })
+    const broken = await queued({ age: '3 minutes' })
+    send.sendEmail.mockImplementation(async (m: OutgoingEmail) => {
+      throw new Error(m.to === emoji.email ? 'a' + '😀'.repeat(600) : 'x\ud83d\u0000y')
+    })
+    await flushStale()
+    const first = await stored(emoji.id)
+    expect(first.status).toBe('failed')
+    // 500 characters: the 'a' and 499 whole emoji (a cut at 500 UTF-16 units would have split the 250th)
+    expect(first.error).toBe('a' + '😀'.repeat(499))
+    expect(await stored(broken.id)).toMatchObject({ status: 'failed', error: 'x�y' })
+  })
+
   it('leaves a row another sender claimed under 5 minutes ago, and takes over one claimed longer ago', async () => {
     const recent = await queued({ age: '10 minutes', claimedAgo: '1 minute' })
     const stuck = await queued({ age: '10 minutes', claimedAgo: '6 minutes' })

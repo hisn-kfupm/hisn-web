@@ -66,7 +66,14 @@ async function claim(ids: number[]): Promise<DeliveryRow[]> {
   return (data as DeliveryRow[]).sort((a, b) => a.id - b.id)
 }
 
-const errorText = (thrown: unknown) => (thrown instanceof Error ? thrown.message : String(thrown)).slice(0, 500)
+/**
+ * The error, as text the row can store: the first 500 characters (never half of one), with lone surrogates and NUL
+ * removed. Postgres refuses those, and a refused update would leave the row queued, to be sent again.
+ */
+const errorText = (thrown: unknown) =>
+  Array.from((thrown instanceof Error ? thrown.message : String(thrown)).toWellFormed().replace(/\u0000/g, ''))
+    .slice(0, 500)
+    .join('')
 
 /** Sends claimed rows one by one, in order, and records each result. A failure is recorded and reported. */
 async function send(rows: DeliveryRow[]): Promise<{ sent: number; failed: number }> {
