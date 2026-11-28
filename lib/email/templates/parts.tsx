@@ -66,14 +66,14 @@ function Fact({ label, children }: { label: string; children: ReactNode }) {
   )
 }
 
-/** a place as the site shows it (components/Place.tsx): Arabic in Eastern Arabic digits, Latin as English; isolated */
+/** a place or presenter as the site shows it (components/Place.tsx): Arabic in Eastern Arabic digits, Latin as English; isolated */
 function Place({ text }: { text: string }) {
   return isArabicText(text) ? <bdi>{arabicDigits(text)}</bdi> : <bdi lang="en">{text}</bdi>
 }
 
-/** the weekday and date in Riyadh time */
+/** the weekday and date in Riyadh time, as the site writes them */
 const weekdayDate = (iso: string, locale: Locale) =>
-  [formatRiyadh(iso, 'weekday', locale), formatRiyadh(iso, 'date', locale)].join(locale === 'ar' ? '، ' : ', ')
+  t(locale, 'event.weekdayDate', { weekday: formatRiyadh(iso, 'weekday', locale), date: formatRiyadh(iso, 'date', locale) })
 
 /**
  * The event: title, date and time (Riyadh), place, presenter; with `meeting`, the meeting link of an online
@@ -103,7 +103,7 @@ function EventDetails({ locale, event, meeting = false, page = true }: { locale:
       )}
       {event.presenter && (
         <Fact label={t(locale, 'email.event.presenter')}>
-          <bdi>{event.presenter}</bdi>
+          <Place text={event.presenter} />
         </Fact>
       )}
       {meeting && online && event.meetingUrl && (
