@@ -58,6 +58,7 @@ const PLACES: [string, string[]][] = [
   ['Page not found', ['notFound.']],
   ['Error page', ['error.']],
   ['Photo descriptions (read aloud by screen readers)', ['img.']],
+  ['Emails', ['email.']],
 ]
 
 function placeOf(key: string): { index: number; label: string } | undefined {

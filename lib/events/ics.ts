@@ -17,7 +17,8 @@ export function eventIcs(e: Pick<PublicEvent, 'id' | 'title' | 'description' | '
     'PRODID:-//Hisn//Events//AR',
     'CALSCALE:GREGORIAN',
     'BEGIN:VEVENT',
-    `UID:event-${e.id}@hisn`,
+    // the UID of the registration emails' file too (lib/email/ics.ts), so both are one calendar entry
+    `UID:event-${e.id}@hisn-sa.org`,
     `DTSTAMP:${stamp(e.startsAt)}`,
     `DTSTART:${stamp(e.startsAt)}`,
     `DTEND:${stamp(e.endsAt)}`,
